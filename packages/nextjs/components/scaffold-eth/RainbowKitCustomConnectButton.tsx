@@ -1,18 +1,72 @@
 import { ConnectButton } from "@rainbow-me/rainbowkit";
+import { CHAIN_NAMESPACES } from "@web3auth/base";
+import { Web3Auth } from "@web3auth/modal";
+import { OpenloginAdapter } from "@web3auth/openlogin-adapter";
 import { useDisconnect, useSwitchNetwork } from "wagmi";
 import { ArrowLeftOnRectangleIcon, ArrowsRightLeftIcon, ChevronDownIcon } from "@heroicons/react/24/solid";
 import { Balance, BlockieAvatar } from "~~/components/scaffold-eth";
 import { useNetworkColor } from "~~/hooks/scaffold-eth";
 import { getTargetNetwork } from "~~/utils/scaffold-eth";
+import { useEffect,useState } from "react";
 
 /**
  * Custom Wagmi Connect Button (watch balance + custom design)
  */
 export const RainbowKitCustomConnectButton = () => {
+
+  const [web3auth,setWeb3Auth] = useState<any>(null);
+
+  useEffect(() => {
+    const authObject = new Web3Auth({
+      clientId: process.env.NEXT_PUBLIC_WEB3_AUTH_CLIENT_ID as string, 
+      web3AuthNetwork: "cyan",
+      chainConfig: {
+        /*
+      you can pass your own chain configs here
+      */
+        chainId: "280",
+        rpcTarget: process.env.NEXT_PUBLIC_ZKSYNC_API_BASE_URL,
+        chainNamespace: CHAIN_NAMESPACES.OTHER,
+        displayName: "zkSync",
+        ticker: "zkSync",
+        tickerName: "zkSync",
+      },
+    })
+
+    setWeb3Auth(authObject);
+  
+    const openloginAdapter = new OpenloginAdapter({
+      adapterSettings: {
+        uxMode: "popup",
+      },
+    });
+
+    authObject.configureAdapter(openloginAdapter);
+    // const web3authProvider = web3auth.initModal().then(() => {
+    //   console.log("modal initialized");
+    //   return web3auth.connect();
+    // });
+  }, []);
+  
+
   const networkColor = useNetworkColor();
   const configuredNetwork = getTargetNetwork();
   const { disconnect } = useDisconnect();
   const { switchNetwork } = useSwitchNetwork();
+
+  const handleConnect = async () => {
+    try {
+      
+      await web3auth.initModal();
+
+      // await web3auth.logout()
+
+      await web3auth.connect();
+    
+    } catch (error) {
+      console.error(error);
+    }
+}
 
   return (
     <ConnectButton.Custom>
@@ -24,7 +78,7 @@ export const RainbowKitCustomConnectButton = () => {
             {(() => {
               if (!connected) {
                 return (
-                  <button className="btn btn-primary btn-sm" onClick={openConnectModal} type="button">
+                  <button className="btn btn-primary btn-sm" onClick={()=>handleConnect()} type="button">
                     Connect Wallet
                   </button>
                 );
