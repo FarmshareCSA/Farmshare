@@ -11,6 +11,7 @@ import { configureChains } from "wagmi";
 import * as chains from "wagmi/chains";
 import { alchemyProvider } from "wagmi/providers/alchemy";
 import { publicProvider } from "wagmi/providers/public";
+import Web3AuthConnectorInstance from "~~/components/scaffold-eth/Web3AuthConnectorInstance";
 import scaffoldConfig from "~~/scaffold.config";
 import { burnerWalletConfig } from "~~/services/web3/wagmi-burner/burnerWalletConfig";
 import { getTargetNetwork } from "~~/utils/scaffold-eth";
@@ -20,6 +21,8 @@ const { onlyLocalBurnerWallet } = scaffoldConfig;
 
 // We always want to have mainnet enabled (ENS resolution, ETH price, etc). But only once.
 const enabledChains = configuredNetwork.id === 1 ? [configuredNetwork] : [configuredNetwork, chains.mainnet];
+
+export const { web3AuthConnectorInstance, web3AuthInstance } = Web3AuthConnectorInstance(enabledChains);
 
 /**
  * Chains for the app
@@ -62,7 +65,11 @@ const wallets = [
  */
 export const wagmiConnectors = connectorsForWallets([
   {
-    groupName: "Supported Wallets",
+    groupName: "Log In With Email, Phone Or Social Account",
+    wallets: [web3AuthConnectorInstance],
+  },
+  {
+    groupName: "Supported Crypto Wallets",
     wallets,
   },
 ]);
