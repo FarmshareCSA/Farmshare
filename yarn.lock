@@ -3814,6 +3814,7 @@ __metadata:
     "@web3auth/modal": ^6.1.5
     "@web3auth/no-modal": ^6.1.4
     "@web3auth/openlogin-adapter": ^6.1.4
+    "@web3auth/web3auth-wagmi-connector": ^4.0.1
     autoprefixer: ^10.4.12
     daisyui: ^2.31.0
     eslint: ^8.15.0
@@ -6327,6 +6328,22 @@ __metadata:
     "@walletconnect/types": ^2.x
     "@walletconnect/utils": ^2.x
   checksum: d94512363265beb9780065e62d43931f25ec1f307d0afe6f323cdc8614ecf551a555ce220d8ba5ded924e84b00ced2f92a1f584cb625a5ed591018e1c753aa45
+  languageName: node
+  linkType: hard
+
+"@web3auth/web3auth-wagmi-connector@npm:^4.0.1":
+  version: 4.0.1
+  resolution: "@web3auth/web3auth-wagmi-connector@npm:4.0.1"
+  peerDependencies:
+    "@wagmi/core": ^1.x
+    "@web3auth/base": ^6.x
+    "@web3auth/modal": ^6.x
+    "@web3auth/no-modal": ^6.x
+    "@web3auth/openlogin-adapter": ^6.x
+  peerDependenciesMeta:
+    "@web3auth/modal":
+      optional: true
+  checksum: 6112e22c3db33e08b5e283d68107f82910de76039e2ad32daa4e78f468c5f622724b4d4b6e230f69942a8b4bcbe3addc6c58cff5e7a04a057c347f51ea3d3020
   languageName: node
   linkType: hard
 
