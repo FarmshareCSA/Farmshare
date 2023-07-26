@@ -65,11 +65,11 @@ const wallets = [
  */
 export const wagmiConnectors = connectorsForWallets([
   {
-    groupName: "Login with Email Or Social Account",
+    groupName: "Log In With Email, Phone Or Social Account",
     wallets: [web3AuthConnectorInstance],
   },
   {
-    groupName: "Supported Wallets",
+    groupName: "Supported Crypto Wallets",
     wallets,
   },
 ]);

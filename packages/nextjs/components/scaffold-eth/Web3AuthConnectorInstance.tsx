@@ -9,8 +9,8 @@ import { Chain, Connector } from "wagmi";
 
 export default function Web3AuthConnectorInstance(chains: Chain[]) {
   // Create Web3Auth Instance
-  const name = "Scaffold-ETH w/ Web3Auth";
-  const iconUrl = "./logo.svg";
+  const name = "FarmShare";
+  const iconUrl = "./fs-logo.png";
   const chainConfig = {
     chainNamespace: CHAIN_NAMESPACES.EIP155,
     chainId: "0x" + chains[0].id.toString(16),
@@ -44,7 +44,7 @@ export default function Web3AuthConnectorInstance(chains: Chain[]) {
       network: "cyan",
       uxMode: "popup",
       whiteLabel: {
-        name: "Scaffold-ETH w/ Web3Auth",
+        name: "FarmShare",
         logoLight: iconUrl,
         logoDark: iconUrl,
         defaultLanguage: "en",
@@ -76,6 +76,21 @@ export default function Web3AuthConnectorInstance(chains: Chain[]) {
                   },
                 },
               },
+              [WALLET_ADAPTERS.WALLET_CONNECT_V1]: {
+                showOnModal: false,
+              },
+              [WALLET_ADAPTERS.WALLET_CONNECT_V2]: {
+                showOnModal: false,
+              },
+              [WALLET_ADAPTERS.TORUS_EVM]: {
+                showOnModal: false,
+              },
+              [WALLET_ADAPTERS.METAMASK]: {
+                showOnModal: false,
+              },
+              [WALLET_ADAPTERS.COINBASE]: {
+                showOnModal: false,
+              }
             } as any,
           },
         });
