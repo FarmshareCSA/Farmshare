@@ -5,11 +5,11 @@ import "../Common.sol";
 
 interface IUserRegistry {
     enum UserRole {
-        ADMIN,
-        FARMER,
-        MANAGER,
         USER,
-        DONOR
+        DONOR,
+        MANAGER,
+        FARMER,
+        ADMIN
     }
 
     struct UserRecord {
@@ -28,29 +28,32 @@ interface IUserRegistry {
         string location;
         string imageUrl;
         string[] socialAccounts;
+        uint communityId;
     }
 
     struct Community {
+        uint id;
         string name;
         string description;
         string location;
         address treasury;
-        UserRecord[] users;
-        UserRecord[] farmers;
-        UserRecord[] managers;
-        UserRecord[] donors;
+        mapping(UserRole => UserRecord[]) membersByRole;
         FarmRecord[] farms;
     }
 
     event UserRegistered(address account, string email, UserRole role);
-    event FarmRegistered(string farmName, address farmOwner);
+    event FarmRegistered(string farmName, address farmOwner, uint communityId);
+    event CommunityRegistered(string name, string location, address creator, address treasury);
+    event UserJoinedCommunity(address user, string communityName, UserRole role);
+    event UserRemovedFromCommunity(address user, string communityName);
 
     function registerUserSelf(
         string memory _name, 
         string memory _email,
         string memory _phone,
         string memory _location,
-        UserRole _role
+        UserRole _role,
+        string memory _communityName
     ) external returns (bool);
 
     function registerUserOnBehalfOf(
@@ -59,7 +62,8 @@ interface IUserRegistry {
         string memory _email,
         string memory _phone,
         string memory _location,
-        UserRole _role
+        UserRole _role,
+        string memory _communityName
     ) external returns (bool);
 
     function registerFarm(
@@ -68,7 +72,8 @@ interface IUserRegistry {
         string memory _description,
         string memory _location,
         string memory _imageUrl,
-        string[] memory _socialAccounts
+        string[] memory _socialAccounts,
+        string memory _communityName
     ) external returns (bool);
 
     function updateUserRecord(
@@ -84,6 +89,10 @@ interface IUserRegistry {
         string memory _newImageUrl,
         string[] memory _newSocialAccounts
     ) external returns (FarmRecord memory);
+
+    function addUserToCommunity(address _newMember, string memory _communityName) external;
+
+    function removeUserFromCommunity(string memory _communityName, UserRole _role, uint256 index) external;
 
     function addFarmProducts(ProductType[] memory _products) external;
 

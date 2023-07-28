@@ -16,6 +16,13 @@ contract UserRegistry is IUserRegistry, Ownable {
     mapping(string => FarmRecord) public farmRecordsByName;
     mapping(address => ProductType[]) public farmProductsByOwner;
 
+    // Community mappings
+    Community[] public communities;
+    mapping(string => Community) public communitiesByName;
+    mapping(uint => Community) public communitiesById;
+    mapping(string => uint) public communityIdsByName;
+    mapping(address => uint[]) public userToCommunityIds;
+
     // Attestation mappings
     mapping(address => bytes32[]) public attestationsSentByUser;
     mapping(address => bytes32[]) public attestationsReceivedByUser;
@@ -43,7 +50,8 @@ contract UserRegistry is IUserRegistry, Ownable {
         string memory _email,
         string memory _phone,
         string memory _location,
-        UserRole _role
+        UserRole _role,
+        string memory _communityName
     ) external returns (bool) {
         require(bytes(_email).length > 0, "Email cannot be empty");
         require(bytes(_name).length > 0, "Name cannot be empty");
@@ -63,6 +71,10 @@ contract UserRegistry is IUserRegistry, Ownable {
         });
         _registerUser(newUser);
         emit UserRegistered(newUser.account, newUser.email, newUser.role);
+        if(bytes(_communityName).length > 0) {
+            _addUserToCommunity(newUser, _communityName);
+            emit UserJoinedCommunity(newUser.account, _communityName, newUser.role);
+        }
         return true;
     }
 
@@ -72,17 +84,19 @@ contract UserRegistry is IUserRegistry, Ownable {
         string memory _email,
         string memory _phone,
         string memory _location,
-        UserRole _role
+        UserRole _role,
+        string memory _communityName
     ) external returns (bool) {
         require(bytes(_email).length > 0, "Email cannot be empty");
         require(bytes(_name).length > 0, "Name cannot be empty");
-        require(
-            msg.sender == owner() || (_role != UserRole.ADMIN), 
-            "Only owner can register admin role"
-        );
         require(userRecordsByAddress[_userAddress].account == address(0), "User address already registered");
         require(userRecordsByEmail[_email].account == address(0), "Email already registered");
         UserRecord memory senderUser = userRecordsByAddress[msg.sender];
+        require(senderUser.account != address(0), "Only registered users can register others");
+        require(
+            (_role != UserRole.ADMIN) || msg.sender == owner() || senderUser.role == UserRole.ADMIN, 
+            "Only owner and other admins can register new admins"
+        );
         require(
             senderUser.role == UserRole.ADMIN || senderUser.role == UserRole.FARMER || senderUser.role == UserRole.MANAGER, 
             "Only admins, farmers and managers can register users on their behalf"
@@ -97,6 +111,10 @@ contract UserRegistry is IUserRegistry, Ownable {
         });
         _registerUser(newUser);
         emit UserRegistered(newUser.account, newUser.email, newUser.role);
+        if(bytes(_communityName).length > 0) {
+            _addUserToCommunity(newUser, _communityName);
+            emit UserJoinedCommunity(newUser.account, _communityName, newUser.role);
+        }
         return true;
     }
 
@@ -106,13 +124,16 @@ contract UserRegistry is IUserRegistry, Ownable {
         string memory _description,
         string memory _location,
         string memory _imageUrl,
-        string[] memory _socialAccounts
+        string[] memory _socialAccounts,
+        string memory _communityName
     ) external returns (bool) {
         require(bytes(_farmName).length > 0, "Farm name cannot be empty");
+        require(bytes(_communityName).length > 0, "Community name cannot be empty");
         require(userRecordsByAddress[_farmOwner].account != address(0), "Farm owner is not a registered user");
         require(userRecordsByAddress[_farmOwner].role == UserRole.FARMER, "Only farmers can register as farm owners");
         require(farmRecordsByOwner[_farmOwner].farmOwner == address(0), "Farm owner already has a registered farm");
         require(farmRecordsByName[_farmName].farmOwner == address(0), "Farm name already exists");
+        require(communitiesByName[_communityName].treasury != address(0), "Community does not exist");
         UserRecord memory senderUser = userRecordsByAddress[msg.sender];
         require(msg.sender == _farmOwner || senderUser.role == UserRole.ADMIN, "Only farm owner and admins can register farms");
         FarmRecord memory newFarm = FarmRecord({
@@ -121,9 +142,11 @@ contract UserRegistry is IUserRegistry, Ownable {
             description: _description,
             location: _location,
             imageUrl: _imageUrl,
-            socialAccounts: _socialAccounts
+            socialAccounts: _socialAccounts,
+            communityId: communitiesByName[_communityName].id
         });
         _registerFarm(newFarm);
+        emit FarmRegistered(_farmName, _farmOwner, communitiesByName[_communityName].id);
         return true;
     }
 
@@ -165,9 +188,46 @@ contract UserRegistry is IUserRegistry, Ownable {
         return farmRecord;
     }
 
+    function addUserToCommunity(address _newMember, string memory _communityName) external {
+        require(_newMember != address(0), "Invalid address");
+        require(userRecordsByAddress[_newMember].account != address(0), "User is not registered");
+        require(bytes(_communityName).length > 0, "Community name cannot be empty");
+        require(communitiesByName[_communityName].treasury != address(0), "Community does not exist");
+        if (userToCommunityIds[_newMember].length > 0) {
+            for (uint i; i < userToCommunityIds[_newMember].length; ++i) {
+                require(!Strings.equal(communities[userToCommunityIds[_newMember][i]].name, _communityName), "User already in community");
+            }
+        }
+        UserRecord memory newMember = userRecordsByAddress[_newMember];
+        if (newMember.role != UserRole.USER && newMember.role != UserRole.DONOR) {
+            require(msg.sender != newMember.account, "Farmers, managers and admins cannot add themselves");
+            UserRecord memory senderUser = userRecordsByAddress[msg.sender];
+            require(senderUser.role != UserRole.USER && senderUser.role != UserRole.DONOR, "Only farmers, managers and admins can add other farmers, managers and admins");
+        }
+        _addUserToCommunity(newMember, _communityName);
+        emit UserJoinedCommunity(newMember.account, _communityName, newMember.role);
+    }
+
+    function removeUserFromCommunity(string memory _communityName, UserRole _role, uint256 index) external {
+        require(bytes(_communityName).length > 0, "Community name cannot be empty");
+        require(communitiesByName[_communityName].treasury != address(0), "Community does not exist");
+        UserRecord memory senderUser = userRecordsByAddress[msg.sender];
+        require(senderUser.role == UserRole.ADMIN, "Only admins can remove users from a community");
+        require(_role != UserRole.ADMIN, "Admins cannot be removed from a community");
+        require(index < communitiesByName[_communityName].membersByRole[_role].length, "Invalid index");
+        address userToRemove = communitiesByName[_communityName].membersByRole[_role][index].account;
+        delete communitiesByName[_communityName].membersByRole[_role][index];
+        for (uint i; i < userToCommunityIds[userToRemove].length; ++i) {
+            if (userToCommunityIds[userToRemove][i] == communitiesByName[_communityName].id) {
+                delete userToCommunityIds[userToRemove][i];
+                break;
+            }
+        }
+    }
+
     function addFarmProducts(ProductType[] memory _products) external onlyFarmOwner {
         ProductType[] storage products = farmProductsByOwner[msg.sender];
-        for (uint i = 0; i < _products.length; ++i) {
+        for (uint i; i < _products.length; ++i) {
             require(bytes(_products[i].name).length > 0, "Product name cannot be empty");
             require(bytes(_products[i].unit).length > 0, "Product unit cannot be empty");
             products.push(_products[i]);
@@ -190,5 +250,13 @@ contract UserRegistry is IUserRegistry, Ownable {
     function _registerFarm(FarmRecord memory _farmRecord) internal {
         farmRecordsByOwner[_farmRecord.farmOwner] = _farmRecord;
         farmRecordsByName[_farmRecord.farmName] = _farmRecord;
-    }        
+        communitiesById[_farmRecord.communityId].farms.push(_farmRecord);
+    }
+
+    function _addUserToCommunity(UserRecord memory _newUser, string memory _communityName) internal {
+        require(communitiesByName[_communityName].treasury != address(0), "Community does not exist");
+        userToCommunityIds[msg.sender].push(communitiesByName[_communityName].id);
+        communitiesByName[_communityName].membersByRole[_newUser.role].push(_newUser);
+    }
+
 }
