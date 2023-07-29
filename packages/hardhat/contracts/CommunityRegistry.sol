@@ -15,6 +15,10 @@ contract CommunityRegistry is ICommunityRegistry, Ownable {
 	mapping(uint => Community) private _communitiesById;
 	mapping(string => uint) private _communityIdsByName;
 	mapping(address => uint[]) private _userToCommunityIds;
+    mapping(uint => UserRecord[]) private _communityToUsers;
+    mapping(uint => UserRecord[]) private _communityToDonors;
+    mapping(uint => UserRecord[]) private _communityToManagers;
+    mapping(uint => UserRecord[]) private _communityToFarmers;
 
 	constructor() Ownable() {}
 
@@ -148,14 +152,16 @@ contract CommunityRegistry is ICommunityRegistry, Ownable {
 		_userToCommunityIds[msg.sender].push(
 			_communitiesByName[_communityName].id
 		);
+        Community memory community = _communitiesByName[_communityName];
+        uint communityId = community.id;
 		if (_newUser.role == UserRole.USER) {
-			_communitiesByName[_communityName].users.push(_newUser);
+			_communityToUsers[communityId].push(_newUser);
 		} else if (_newUser.role == UserRole.DONOR) {
-			_communitiesByName[_communityName].donors.push(_newUser);
+			_communityToDonors[communityId].push(_newUser);
 		} else if (_newUser.role == UserRole.MANAGER) {
-			_communitiesByName[_communityName].managers.push(_newUser);
+			_communityToManagers[communityId].push(_newUser);
 		} else if (_newUser.role == UserRole.FARMER) {
-			_communitiesByName[_communityName].farmers.push(_newUser);
+			_communityToFarmers[communityId].push(_newUser);
 		} else {
 			revert("Invalid role");
 		}
@@ -166,42 +172,35 @@ contract CommunityRegistry is ICommunityRegistry, Ownable {
 		UserRole _role,
 		uint256 index
     ) internal returns (address userToRemove) {
+        uint communityId = _communitiesByName[_communityName].id;
         if (_role == UserRole.USER) {
 			require(
-				_communitiesByName[_communityName].users.length > index,
+				_communityToUsers[communityId].length > index,
 				"Index out of bounds"
 			);
-			userToRemove = _communitiesByName[_communityName]
-				.users[index]
-				.account;
-			delete _communitiesByName[_communityName].users[index];
+			userToRemove = _communityToUsers[communityId][index].account;
+			delete _communityToUsers[communityId][index];
 		} else if (_role == UserRole.DONOR) {
 			require(
-				_communitiesByName[_communityName].donors.length > index,
+				_communityToDonors[communityId].length > index,
 				"Index out of bounds"
 			);
-			userToRemove = _communitiesByName[_communityName]
-				.donors[index]
-				.account;
-			delete _communitiesByName[_communityName].donors[index];
+			userToRemove = _communityToDonors[communityId][index].account;
+			delete _communityToDonors[communityId][index];
 		} else if (_role == UserRole.FARMER) {
 			require(
-				_communitiesByName[_communityName].farmers.length > index,
+				_communityToFarmers[communityId].length > index,
 				"Index out of bounds"
 			);
-			userToRemove = _communitiesByName[_communityName]
-				.farmers[index]
-				.account;
-			delete _communitiesByName[_communityName].farmers[index];
+			userToRemove = _communityToFarmers[communityId][index].account;
+			delete _communityToFarmers[communityId][index];
 		} else if (_role == UserRole.MANAGER) {
 			require(
-				_communitiesByName[_communityName].managers.length > index,
+				_communityToManagers[communityId].length > index,
 				"Index out of bounds"
 			);
-			userToRemove = _communitiesByName[_communityName]
-				.managers[index]
-				.account;
-			delete _communitiesByName[_communityName].managers[index];
+			userToRemove = _communityToManagers[communityId][index].account;
+			delete _communityToManagers[communityId][index];
 		} else {
 			revert("Invalid role");
 		}

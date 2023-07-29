@@ -39,11 +39,7 @@ struct Community {
     string name;
     string description;
     string location;
-    address treasury;
-    UserRecord[] users;
-    UserRecord[] donors;
-    UserRecord[] managers;
-    UserRecord[] farmers;
+    address payable treasury;
     FarmRecord[] farms;
 }
 
