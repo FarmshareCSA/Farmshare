@@ -1,6 +1,52 @@
 //SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
+enum UserRole {
+    USER,
+    DONOR,
+    MANAGER,
+    FARMER,
+    ADMIN
+}
+
+enum TaskStatus {
+    TODO,
+    INPROGRESS,
+    COMPLETE
+}
+
+struct UserRecord {
+    address account;
+    string name;
+    string email;
+    string phone;
+    string location;
+    UserRole role;
+}
+
+struct FarmRecord {
+    string farmName;
+    address farmOwner;
+    string description;
+    string location;
+    string imageUrl;
+    string[] socialAccounts;
+    uint communityId;
+}
+
+struct Community {
+    uint id;
+    string name;
+    string description;
+    string location;
+    address treasury;
+    UserRecord[] users;
+    UserRecord[] donors;
+    UserRecord[] managers;
+    UserRecord[] farmers;
+    FarmRecord[] farms;
+}
+
 struct ProductType {
     string name;
     string unit;
@@ -15,6 +61,6 @@ struct Task {
     address creator;
     uint deadline;
     uint reward;
-    bool completed;
+    TaskStatus status;
     bytes32[] attestations;
 }
