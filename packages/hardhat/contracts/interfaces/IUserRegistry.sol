@@ -4,49 +4,14 @@ pragma solidity ^0.8.0;
 import "../Common.sol";
 
 interface IUserRegistry {
-    enum UserRole {
-        USER,
-        DONOR,
-        MANAGER,
-        FARMER,
-        ADMIN
-    }
-
-    struct UserRecord {
-        address account;
-        string name;
-        string email;
-        string phone;
-        string location;
-        UserRole role;
-    }
-
-    struct FarmRecord {
-        string farmName;
-        address farmOwner;
-        string description;
-        string location;
-        string imageUrl;
-        string[] socialAccounts;
-        uint communityId;
-    }
-
-    struct Community {
-        uint id;
-        string name;
-        string description;
-        string location;
-        address treasury;
-        mapping(UserRole => UserRecord[]) membersByRole;
-        FarmRecord[] farms;
-    }
-
     event UserRegistered(address account, string email, UserRole role);
     event FarmRegistered(string farmName, address farmOwner, uint communityId);
-    event CommunityRegistered(string name, string location, address creator, address treasury);
-    event UserJoinedCommunity(address user, string communityName, UserRole role);
-    event UserRemovedFromCommunity(address user, string communityName);
 
+    function userRecordByAddress(address _address) external view returns (UserRecord memory);
+    function userRecordByEmail(string memory _email) external view returns (UserRecord memory);
+    function farmRecordByOwner(address _owner) external view returns (FarmRecord memory);
+    function farmRecordByName(string memory _name) external view returns (FarmRecord memory);
+    
     function registerUserSelf(
         string memory _name, 
         string memory _email,
@@ -90,11 +55,8 @@ interface IUserRegistry {
         string[] memory _newSocialAccounts
     ) external returns (FarmRecord memory);
 
-    function addUserToCommunity(address _newMember, string memory _communityName) external;
-
-    function removeUserFromCommunity(string memory _communityName, UserRole _role, uint256 index) external;
-
     function addFarmProducts(ProductType[] memory _products) external;
-
     function removeFarmProduct(uint index) external;
+
+    function setCommunityRegistry(address _communityRegistry) external;
 }
