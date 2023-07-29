@@ -219,15 +219,6 @@ contract UserRegistry is IUserRegistry, Ownable {
 		return true;
 	}
 
-	// function registerCommunity(
-	//     string memory _name,
-	//     string memory _description,
-	//     string memory _location,
-	//     FarmRecord[] memory _farms
-	// ) external returns (address newTreasury) {
-
-	// }
-
 	// External registry management functions
 
 	function updateUserRecord(
