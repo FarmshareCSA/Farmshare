@@ -14,6 +14,10 @@ interface ICommunityRegistry {
     function communitiesById(uint _id) external returns (Community memory);
     function communityIdByName(string memory _name) external view returns (uint);
     function userToCommunityIds(address _user) external view returns (uint[] memory);
+    function communityToUsers(uint _communityId) external view returns (UserRecord[] memory);
+    function communityToDonors(uint _communityId) external view returns (UserRecord[] memory);
+    function communityToManagers(uint _communityId) external view returns (UserRecord[] memory);
+    function communityToFarmers(uint _communityId) external view returns (UserRecord[] memory);
 
     function addUserToCommunity(
 		address _newMember,
