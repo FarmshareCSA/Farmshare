@@ -2795,6 +2795,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@matterlabs/zksync-contracts@npm:^0.6.1":
+  version: 0.6.1
+  resolution: "@matterlabs/zksync-contracts@npm:0.6.1"
+  peerDependencies:
+    "@openzeppelin/contracts": 4.6.0
+    "@openzeppelin/contracts-upgradeable": 4.6.0
+  checksum: 736215697fb7529de2bfbb1d73f2a2656d4d048cd2b6fa46e67deceb6c0cbe7ceebc1c6dcb762c7522f527f7bfcd335bf4421061e85d9779c36602f967da4f25
+  languageName: node
+  linkType: hard
+
 "@metamask/detect-provider@npm:^2.0.0":
   version: 2.0.0
   resolution: "@metamask/detect-provider@npm:2.0.0"
@@ -3684,6 +3694,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@safe-global/safe-contracts@npm:^1.4.1-build.0":
+  version: 1.4.1
+  resolution: "@safe-global/safe-contracts@npm:1.4.1"
+  peerDependencies:
+    ethers: 5.4.0
+  checksum: 480676f29270ca2c81580968ed4faee3a92d057bcb4e6fa7af5d0420e020af0f85dafc44a56eed11121dd6beae4866f1b15ff0a1a7a2483d2b3a876b9323c79e
+  languageName: node
+  linkType: hard
+
 "@safe-global/safe-gateway-typescript-sdk@npm:^3.5.3":
   version: 3.7.3
   resolution: "@safe-global/safe-gateway-typescript-sdk@npm:3.7.3"
@@ -3772,12 +3791,14 @@ __metadata:
     "@ethersproject/providers": ^5.7.1
     "@matterlabs/hardhat-zksync-solc": ^0.3.17
     "@matterlabs/hardhat-zksync-verify": ^0.1.8
+    "@matterlabs/zksync-contracts": ^0.6.1
     "@nomicfoundation/hardhat-chai-matchers": ^1.0.3
     "@nomicfoundation/hardhat-network-helpers": ^1.0.6
     "@nomicfoundation/hardhat-toolbox": ^2.0.0
     "@nomiclabs/hardhat-ethers": "npm:hardhat-deploy-ethers@^0.3.0-beta.13"
     "@nomiclabs/hardhat-etherscan": ^3.1.0
     "@openzeppelin/contracts": ^4.9.2
+    "@safe-global/safe-contracts": ^1.4.1-build.0
     "@typechain/ethers-v5": ^10.1.0
     "@typechain/hardhat": ^6.1.3
     "@types/eslint": ^8
