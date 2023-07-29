@@ -1,6 +1,5 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
-// import { ethers, upgrades } from "hardhat";
 
 /**
  * Deploys a contract named "UserRegistry" using the deployer account
@@ -31,10 +30,14 @@ const deployRegistryContracts: DeployFunction = async function (hre: HardhatRunt
     autoMine: true,
   });
 
+  const safeProxyFactory = await hre.ethers.getContract("SafeProxyFactory");
+  const safeSingleton = await hre.ethers.getContract("Safe");
+  const safeFallbackHandler = await hre.ethers.getContract("CompatibilityFallbackHandler");
+
   await deploy("CommunityRegistry", {
     from: deployer,
     // Contract constructor arguments
-    args: [],
+    args: [safeProxyFactory.address, safeSingleton.address, safeFallbackHandler.address],
     log: true,
     // autoMine: can be passed to the deploy function to make the deployment process faster on local networks by
     // automatically mining the contract deployment transaction. There is no effect on live networks.
@@ -53,5 +56,5 @@ const deployRegistryContracts: DeployFunction = async function (hre: HardhatRunt
 export default deployRegistryContracts;
 
 // Tags are useful if you have multiple deploy files and only want to run one of them.
-// e.g. yarn deploy --tags YourContract
-deployRegistryContracts.tags = ["UserRegistry"];
+// e.g. yarn deploy --tags RegistryContracts
+deployRegistryContracts.tags = ["RegistryContracts"];
