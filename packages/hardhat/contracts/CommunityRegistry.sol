@@ -3,24 +3,40 @@ pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
+import "@safe-global/safe-contracts/contracts/proxies/SafeProxyFactory.sol";
+import "@safe-global/safe-contracts/contracts/Safe.sol";
 import "./interfaces/ICommunityRegistry.sol";
 import "./interfaces/IUserRegistry.sol";
 
 contract CommunityRegistry is ICommunityRegistry, Ownable {
 	IUserRegistry public userRegistry;
 
+    SafeProxyFactory private immutable safeProxyFactory;
+    address private immutable safeSingleton;
+    address private immutable safeFallbackHandler;
+
 	// Community mappings
 	Community[] public communities;
 	mapping(string => Community) private _communitiesByName;
 	mapping(uint => Community) private _communitiesById;
 	mapping(string => uint) private _communityIdsByName;
+
+    // Membership mappings
 	mapping(address => uint[]) private _userToCommunityIds;
     mapping(uint => UserRecord[]) private _communityToUsers;
     mapping(uint => UserRecord[]) private _communityToDonors;
     mapping(uint => UserRecord[]) private _communityToManagers;
     mapping(uint => UserRecord[]) private _communityToFarmers;
 
-	constructor() Ownable() {}
+	constructor(
+        address _safeProxyFactory, 
+        address _safeSingleton, 
+        address _safeFallbackHandler
+    ) Ownable() {
+        safeProxyFactory = SafeProxyFactory(_safeProxyFactory);
+        safeSingleton = _safeSingleton;
+        safeFallbackHandler = _safeFallbackHandler;
+    }
 
 	// External view functions
 
@@ -49,6 +65,55 @@ contract CommunityRegistry is ICommunityRegistry, Ownable {
     }
 
 	// External registration functions
+
+	function registerCommunity(
+	    string memory _name,
+	    string memory _description,
+	    string memory _location,
+        address[] memory _initialOwners,
+	    FarmRecord[] memory _farms
+	) external returns (address payable newTreasury) {
+        require(bytes(_name).length > 0, "Name cannot be empty");
+        require(bytes(_description).length > 0, "Description cannot be empty");
+        require(bytes(_location).length > 0, "Location cannot be empty");
+        require(_initialOwners.length > 0, "Must have at least one initial owner");
+        require(_communitiesByName[_name].treasury == address(0), "Community already exists");
+        for(uint i = 0; i < _initialOwners.length; i++) {
+            UserRecord memory user = userRegistry.userRecordByAddress(_initialOwners[i]);
+            require(user.account != address(0), "User does not exist");
+            require(
+                user.role != UserRole.USER && user.role != UserRole.DONOR,
+                "Initial owners must be admins, farmers or managers"
+            );
+        }
+        bytes memory setupData = abi.encodeWithSelector(
+            Safe.setup.selector,
+            _initialOwners,
+            _initialOwners.length,
+            address(0),
+            0,
+            safeFallbackHandler,
+            address(0),
+            0,
+            address(0)
+        );
+        SafeProxy treasuryProxy = safeProxyFactory.createProxyWithNonce(safeSingleton, setupData, 0);
+        newTreasury = payable(treasuryProxy);
+        uint communityId = communities.length;
+        Community memory newCommunity = Community(
+            communityId,
+            _name,
+            _description,
+            _location,
+            newTreasury,
+            _farms
+        );
+        _communitiesByName[_name] = newCommunity;
+        _communitiesById[communityId] = newCommunity;
+        _communityIdsByName[_name] = communityId;
+        communities.push(newCommunity);
+        emit CommunityRegistered(_name, _location, msg.sender, newTreasury);
+	}
 
 	function addUserToCommunity(
 		address _newMember,
