@@ -7,7 +7,7 @@ import { DeployFunction } from "hardhat-deploy/types";
  *
  * @param hre HardhatRuntimeEnvironment object.
  */
-const deployUserRegistry: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
+const deployRegistryContracts: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   /*
     On localhost, the deployer account is the one that comes with Hardhat, which is already funded.
 
@@ -31,12 +31,27 @@ const deployUserRegistry: DeployFunction = async function (hre: HardhatRuntimeEn
     autoMine: true,
   });
 
-  // Get the deployed contract
-  // const yourContract = await hre.ethers.getContract("YourContract", deployer);
+  await deploy("CommunityRegistry", {
+    from: deployer,
+    // Contract constructor arguments
+    args: [],
+    log: true,
+    // autoMine: can be passed to the deploy function to make the deployment process faster on local networks by
+    // automatically mining the contract deployment transaction. There is no effect on live networks.
+    autoMine: true,
+  });
+
+  // Get the deployed contracts
+  const userRegistry = await hre.ethers.getContract("UserRegistry", deployer);
+  const communityRegistry = await hre.ethers.getContract("CommunityRegistry", deployer);
+
+  // Set up links between registry contracts
+  await userRegistry.setCommunityRegistry(communityRegistry.address);
+  await communityRegistry.setUserRegistry(userRegistry.address);
 };
 
-export default deployUserRegistry;
+export default deployRegistryContracts;
 
 // Tags are useful if you have multiple deploy files and only want to run one of them.
 // e.g. yarn deploy --tags YourContract
-deployUserRegistry.tags = ["UserRegistry"];
+deployRegistryContracts.tags = ["UserRegistry"];
