@@ -55,8 +55,5 @@ interface IUserRegistry {
         string[] memory _newSocialAccounts
     ) external returns (FarmRecord memory);
 
-    function addFarmProducts(ProductType[] memory _products) external;
-    function removeFarmProduct(uint index) external;
-
     function setCommunityRegistry(address _communityRegistry) external;
 }

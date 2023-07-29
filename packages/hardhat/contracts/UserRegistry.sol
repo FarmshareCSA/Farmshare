@@ -17,7 +17,6 @@ contract UserRegistry is IUserRegistry, Ownable {
 	// FarmRecord mappings
 	mapping(address => FarmRecord) private _farmRecordsByOwner;
 	mapping(string => FarmRecord) private _farmRecordsByName;
-	mapping(address => ProductType[]) private _farmProductsByOwner;
 
 	// Attestation mappings
 	mapping(address => bytes32[]) private _attestationsSentByUser;
@@ -258,29 +257,6 @@ contract UserRegistry is IUserRegistry, Ownable {
 		farmRecord.imageUrl = _newImageUrl;
 		farmRecord.socialAccounts = _newSocialAccounts;
 		return farmRecord;
-	}
-
-	function addFarmProducts(
-		ProductType[] memory _products
-	) external onlyFarmOwner {
-		ProductType[] storage products = _farmProductsByOwner[msg.sender];
-		for (uint i; i < _products.length; ++i) {
-			require(
-				bytes(_products[i].name).length > 0,
-				"Product name cannot be empty"
-			);
-			require(
-				bytes(_products[i].unit).length > 0,
-				"Product unit cannot be empty"
-			);
-			products.push(_products[i]);
-		}
-	}
-
-	function removeFarmProduct(uint index) external onlyFarmOwner {
-		ProductType[] storage products = _farmProductsByOwner[msg.sender];
-		require(index < products.length, "Index out of bounds");
-		delete products[index];
 	}
 
 	// External admin functions
