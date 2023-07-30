@@ -40,7 +40,6 @@ struct Community {
     string description;
     string location;
     address payable treasury;
-    FarmRecord[] farms;
 }
 
 struct ProductType {
