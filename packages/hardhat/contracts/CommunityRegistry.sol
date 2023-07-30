@@ -27,6 +27,7 @@ contract CommunityRegistry is ICommunityRegistry, Ownable {
 	mapping(uint => UserRecord[]) private _communityToManagers;
 	mapping(uint => UserRecord[]) private _communityToFarmers;
     mapping(uint => FarmRecord[]) private _communityToFarms;
+    mapping(address => uint) private _farmOwnerToCommunityId;
 
 	constructor(
 		address _safeProxyFactory,
@@ -137,10 +138,10 @@ contract CommunityRegistry is ICommunityRegistry, Ownable {
 		SafeProxy treasuryProxy = safeProxyFactory.createProxyWithNonce(
 			safeSingleton,
 			setupData,
-			0
+			communities.length
 		);
 		newTreasury = payable(treasuryProxy);
-		uint communityId = communities.length;
+		uint communityId = communities.length + 1;
 		Community memory newCommunity = Community(
 			communityId,
 			_name,
@@ -212,6 +213,31 @@ contract CommunityRegistry is ICommunityRegistry, Ownable {
 			newMember.role
 		);
 	}
+
+    function addFarmToCommunity(
+        address _farmOwner,
+        uint _communityId
+    ) external {
+        require(_farmOwner != address(0), "Invalid farm owner address");
+        require(
+			userRegistry.userRecordByAddress(_farmOwner).account != address(0),
+			"Farm owner is not registered"
+		);
+        Community memory community = _communitiesById[_communityId];
+        require(
+            community.treasury != address(0),
+            "Community does not exist"
+        );
+        require(_farmOwnerToCommunityId[_farmOwner] == 0, "Farm already in a community");
+        FarmRecord memory farm = userRegistry.farmRecordByOwner(_farmOwner);
+        require(
+            farm.farmOwner == _farmOwner,
+            "Farm owner does not match"
+        );
+        _farmOwnerToCommunityId[_farmOwner] = _communityId;
+        _communityToFarms[_communityId].push(farm);
+        emit FarmJoinedCommunity(_farmOwner, farm.farmName, community.name);
+    }
 
 	function removeUserFromCommunity(
 		uint _communityId,

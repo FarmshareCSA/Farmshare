@@ -9,6 +9,7 @@ interface ICommunityRegistry {
     event CommunityRegistered(string name, string location, address creator, address treasury);
     event UserJoinedCommunity(address user, string communityName, UserRole role);
     event UserRemovedFromCommunity(address user, string communityName);
+    event FarmJoinedCommunity(address farmOwner, string farmName, string communityName);
 
     function communitiesByName(string memory _name) external returns (Community memory);
     function communitiesById(uint _id) external returns (Community memory);
@@ -37,6 +38,11 @@ interface ICommunityRegistry {
 		UserRole _role,
 		uint256 index
 	) external;
+
+    function addFarmToCommunity(
+        address _farmOwner,
+        uint _communityId
+    ) external;
 
     function setUserRegistry(address _userRegistry) external;
 }

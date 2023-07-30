@@ -189,13 +189,6 @@ contract UserRegistry is IUserRegistry, Ownable {
 			_farmOwnerByFarmName[_farmName] == address(0),
 			"Farm name already exists"
 		);
-		if (bytes(_communityName).length > 0) {
-			require(
-				communityRegistry.communitiesByName(_communityName).treasury !=
-					address(0),
-				"Community does not exist"
-			);
-		}
 		UserRecord memory senderUser = _userRecordsByAddress[msg.sender];
 		require(
 			msg.sender == _farmOwner || senderUser.role == UserRole.ADMIN,
@@ -214,6 +207,14 @@ contract UserRegistry is IUserRegistry, Ownable {
 			communityId: communityId
 		});
 		_registerFarm(newFarm);
+        if (bytes(_communityName).length > 0) {
+			require(
+				communityRegistry.communitiesByName(_communityName).treasury !=
+					address(0),
+				"Community does not exist"
+			);
+            communityRegistry.addFarmToCommunity(_farmOwner, communityId);
+		}
 		emit FarmRegistered(_farmName, _farmOwner, communityId);
 		return true;
 	}
