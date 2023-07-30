@@ -18,14 +18,22 @@ interface ICommunityRegistry {
     function communityToDonors(uint _communityId) external view returns (UserRecord[] memory);
     function communityToManagers(uint _communityId) external view returns (UserRecord[] memory);
     function communityToFarmers(uint _communityId) external view returns (UserRecord[] memory);
+    function communityToFarms(uint _communityId) external view returns (FarmRecord[] memory);
+
+    function registerCommunity(
+		string memory _name,
+		string memory _description,
+		string memory _location,
+		address[] memory _initialOwners
+	) external returns (address payable newTreasury);
 
     function addUserToCommunity(
 		address _newMember,
-		string memory _communityName
+		uint _communityId
 	) external;
 
     function removeUserFromCommunity(
-		string memory _communityName,
+		uint _communityId,
 		UserRole _role,
 		uint256 index
 	) external;

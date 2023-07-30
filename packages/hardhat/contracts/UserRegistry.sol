@@ -12,11 +12,11 @@ contract UserRegistry is IUserRegistry, Ownable {
 
 	// UserRecord mappings
 	mapping(address => UserRecord) private _userRecordsByAddress;
-	mapping(string => UserRecord) private _userRecordsByEmail;
+	mapping(string => address) private _userAddressByEmail;
 
 	// FarmRecord mappings
 	mapping(address => FarmRecord) private _farmRecordsByOwner;
-	mapping(string => FarmRecord) private _farmRecordsByName;
+	mapping(string => address) private _farmOwnerByFarmName;
 
 	// Attestation mappings
 	mapping(address => bytes32[]) private _attestationsSentByUser;
@@ -47,7 +47,7 @@ contract UserRegistry is IUserRegistry, Ownable {
 	function userRecordByEmail(
 		string memory _email
 	) external view override returns (UserRecord memory) {
-        return _userRecordsByEmail[_email];
+        return _userRecordsByAddress[_userAddressByEmail[_email]];
     }
 
 	function farmRecordByOwner(
@@ -59,7 +59,7 @@ contract UserRegistry is IUserRegistry, Ownable {
 	function farmRecordByName(
 		string memory _name
 	) external view override returns (FarmRecord memory) {
-        return _farmRecordsByName[_name];
+        return _farmRecordsByOwner[_farmOwnerByFarmName[_name]];
     }
 
 	// External registration functions
@@ -84,7 +84,7 @@ contract UserRegistry is IUserRegistry, Ownable {
 			"User address already registered"
 		);
 		require(
-			_userRecordsByEmail[_email].account == address(0),
+			_userAddressByEmail[_email] == address(0),
 			"Email already registered"
 		);
 		UserRecord memory newUser = UserRecord({
@@ -122,7 +122,7 @@ contract UserRegistry is IUserRegistry, Ownable {
 			"User address already registered"
 		);
 		require(
-			_userRecordsByEmail[_email].account == address(0),
+			_userAddressByEmail[_email] == address(0),
 			"Email already registered"
 		);
 		UserRecord memory senderUser = _userRecordsByAddress[msg.sender];
@@ -186,7 +186,7 @@ contract UserRegistry is IUserRegistry, Ownable {
 			"Farm owner already has a registered farm"
 		);
 		require(
-			_farmRecordsByName[_farmName].farmOwner == address(0),
+			_farmOwnerByFarmName[_farmName] == address(0),
 			"Farm name already exists"
 		);
 		if (bytes(_communityName).length > 0) {
@@ -236,11 +236,11 @@ contract UserRegistry is IUserRegistry, Ownable {
 		userRecord.location = _newLocation;
 		if (!Strings.equal(oldEmail, _newEmail)) {
 			require(
-				_userRecordsByEmail[_newEmail].account == address(0),
+				_userAddressByEmail[_newEmail] == address(0),
 				"New email already registered"
 			);
-			delete _userRecordsByEmail[oldEmail];
-			_userRecordsByEmail[_newEmail] = userRecord;
+			delete _userAddressByEmail[oldEmail];
+			_userAddressByEmail[_newEmail] = msg.sender;
 		}
 		return userRecord;
 	}
@@ -271,12 +271,12 @@ contract UserRegistry is IUserRegistry, Ownable {
 
 	function _registerUser(UserRecord memory _userRecord) internal {
 		_userRecordsByAddress[_userRecord.account] = _userRecord;
-		_userRecordsByEmail[_userRecord.email] = _userRecord;
+		_userAddressByEmail[_userRecord.email] = _userRecord.account;
 	}
 
 	function _registerFarm(FarmRecord memory _farmRecord) internal {
 		_farmRecordsByOwner[_farmRecord.farmOwner] = _farmRecord;
-		_farmRecordsByName[_farmRecord.farmName] = _farmRecord;
+		_farmOwnerByFarmName[_farmRecord.farmName] = _farmRecord.farmOwner;
 		// communitiesById[_farmRecord.communityId].farms.push(_farmRecord);
 	}
 

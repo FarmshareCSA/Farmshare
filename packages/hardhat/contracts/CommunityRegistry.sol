@@ -17,7 +17,6 @@ contract CommunityRegistry is ICommunityRegistry, Ownable {
 
 	// Community mappings
 	Community[] public communities;
-	mapping(string => Community) private _communitiesByName;
 	mapping(uint => Community) private _communitiesById;
 	mapping(string => uint) private _communityIdsByName;
 
@@ -27,6 +26,7 @@ contract CommunityRegistry is ICommunityRegistry, Ownable {
 	mapping(uint => UserRecord[]) private _communityToDonors;
 	mapping(uint => UserRecord[]) private _communityToManagers;
 	mapping(uint => UserRecord[]) private _communityToFarmers;
+    mapping(uint => FarmRecord[]) private _communityToFarms;
 
 	constructor(
 		address _safeProxyFactory,
@@ -43,7 +43,7 @@ contract CommunityRegistry is ICommunityRegistry, Ownable {
 	function communitiesByName(
 		string memory _name
 	) external view override returns (Community memory) {
-		return _communitiesByName[_name];
+		return _communitiesById[_communityIdsByName[_name]];
 	}
 
 	function communitiesById(
@@ -88,14 +88,19 @@ contract CommunityRegistry is ICommunityRegistry, Ownable {
         return _communityToFarmers[_communityId];
     }
 
+    function communityToFarms(
+        uint _communityId
+    ) external view override returns (FarmRecord[] memory) {
+        return _communityToFarms[_communityId];
+    }
+
 	// External registration functions
 
 	function registerCommunity(
 		string memory _name,
 		string memory _description,
 		string memory _location,
-		address[] memory _initialOwners,
-		FarmRecord[] memory _farms
+		address[] memory _initialOwners
 	) external returns (address payable newTreasury) {
 		require(bytes(_name).length > 0, "Name cannot be empty");
 		require(bytes(_description).length > 0, "Description cannot be empty");
@@ -105,7 +110,7 @@ contract CommunityRegistry is ICommunityRegistry, Ownable {
 			"Must have at least one initial owner"
 		);
 		require(
-			_communitiesByName[_name].treasury == address(0),
+			_communitiesById[_communityIdsByName[_name]].treasury == address(0),
 			"Community already exists"
 		);
 		for (uint i = 0; i < _initialOwners.length; i++) {
@@ -141,10 +146,8 @@ contract CommunityRegistry is ICommunityRegistry, Ownable {
 			_name,
 			_description,
 			_location,
-			newTreasury,
-			_farms
+			newTreasury
 		);
-		_communitiesByName[_name] = newCommunity;
 		_communitiesById[communityId] = newCommunity;
 		_communityIdsByName[_name] = communityId;
 		communities.push(newCommunity);
@@ -153,7 +156,7 @@ contract CommunityRegistry is ICommunityRegistry, Ownable {
 
 	function addUserToCommunity(
 		address _newMember,
-		string memory _communityName
+		uint _communityId
 	) external {
 		require(_newMember != address(0), "Invalid address");
 		require(
@@ -161,20 +164,13 @@ contract CommunityRegistry is ICommunityRegistry, Ownable {
 			"User is not registered"
 		);
 		require(
-			bytes(_communityName).length > 0,
-			"Community name cannot be empty"
-		);
-		require(
-			_communitiesByName[_communityName].treasury != address(0),
+			_communitiesById[_communityId].treasury != address(0),
 			"Community does not exist"
 		);
 		if (_userToCommunityIds[_newMember].length > 0) {
 			for (uint i; i < _userToCommunityIds[_newMember].length; ++i) {
 				require(
-					!Strings.equal(
-						communities[_userToCommunityIds[_newMember][i]].name,
-						_communityName
-					),
+					_userToCommunityIds[_newMember][i] != _communityId,
 					"User already in community"
 				);
 			}
@@ -198,25 +194,21 @@ contract CommunityRegistry is ICommunityRegistry, Ownable {
 				"Only farmers, managers and admins can add other farmers, managers and admins"
 			);
 		}
-		_addUserToCommunity(newMember, _communityName);
+		_addUserToCommunity(newMember, _communityId);
 		emit UserJoinedCommunity(
 			newMember.account,
-			_communityName,
+			_communitiesById[_communityId].name,
 			newMember.role
 		);
 	}
 
 	function removeUserFromCommunity(
-		string memory _communityName,
+		uint _communityId,
 		UserRole _role,
 		uint256 index
 	) external {
 		require(
-			bytes(_communityName).length > 0,
-			"Community name cannot be empty"
-		);
-		require(
-			_communitiesByName[_communityName].treasury != address(0),
+			_communitiesById[_communityId].treasury != address(0),
 			"Community does not exist"
 		);
 		UserRecord memory senderUser = userRegistry.userRecordByAddress(
@@ -231,11 +223,11 @@ contract CommunityRegistry is ICommunityRegistry, Ownable {
 			"Admins cannot be removed from a community"
 		);
 		address userToRemove = _removeUserFromCommunity(
-			_communityName,
+			_communityId,
 			_role,
 			index
 		);
-		emit UserRemovedFromCommunity(userToRemove, _communityName);
+		emit UserRemovedFromCommunity(userToRemove, _communitiesById[_communityId].name);
 	}
 
 	// External admin functions
@@ -248,16 +240,16 @@ contract CommunityRegistry is ICommunityRegistry, Ownable {
 
 	function _addUserToCommunity(
 		UserRecord memory _newUser,
-		string memory _communityName
+		uint _communityId
 	) internal {
 		require(
-			_communitiesByName[_communityName].treasury != address(0),
+			_communitiesById[_communityId].treasury != address(0),
 			"Community does not exist"
 		);
 		_userToCommunityIds[msg.sender].push(
-			_communitiesByName[_communityName].id
+			_communityId
 		);
-		Community memory community = _communitiesByName[_communityName];
+		Community memory community = _communitiesById[_communityId];
 		uint communityId = community.id;
 		if (_newUser.role == UserRole.USER) {
 			_communityToUsers[communityId].push(_newUser);
@@ -273,45 +265,44 @@ contract CommunityRegistry is ICommunityRegistry, Ownable {
 	}
 
 	function _removeUserFromCommunity(
-		string memory _communityName,
+		uint _communityId,
 		UserRole _role,
 		uint256 index
 	) internal returns (address userToRemove) {
-		uint communityId = _communitiesByName[_communityName].id;
 		if (_role == UserRole.USER) {
 			require(
-				_communityToUsers[communityId].length > index,
+				_communityToUsers[_communityId].length > index,
 				"Index out of bounds"
 			);
-			userToRemove = _communityToUsers[communityId][index].account;
-			delete _communityToUsers[communityId][index];
+			userToRemove = _communityToUsers[_communityId][index].account;
+			delete _communityToUsers[_communityId][index];
 		} else if (_role == UserRole.DONOR) {
 			require(
-				_communityToDonors[communityId].length > index,
+				_communityToDonors[_communityId].length > index,
 				"Index out of bounds"
 			);
-			userToRemove = _communityToDonors[communityId][index].account;
-			delete _communityToDonors[communityId][index];
+			userToRemove = _communityToDonors[_communityId][index].account;
+			delete _communityToDonors[_communityId][index];
 		} else if (_role == UserRole.FARMER) {
 			require(
-				_communityToFarmers[communityId].length > index,
+				_communityToFarmers[_communityId].length > index,
 				"Index out of bounds"
 			);
-			userToRemove = _communityToFarmers[communityId][index].account;
-			delete _communityToFarmers[communityId][index];
+			userToRemove = _communityToFarmers[_communityId][index].account;
+			delete _communityToFarmers[_communityId][index];
 		} else if (_role == UserRole.MANAGER) {
 			require(
-				_communityToManagers[communityId].length > index,
+				_communityToManagers[_communityId].length > index,
 				"Index out of bounds"
 			);
-			userToRemove = _communityToManagers[communityId][index].account;
-			delete _communityToManagers[communityId][index];
+			userToRemove = _communityToManagers[_communityId][index].account;
+			delete _communityToManagers[_communityId][index];
 		} else {
 			revert("Invalid role");
 		}
 		uint[] memory userCommunities = _userToCommunityIds[userToRemove];
 		for (uint i; i < userCommunities.length; ++i) {
-			if (userCommunities[i] == _communityIdsByName[_communityName]) {
+			if (userCommunities[i] == _communityId) {
 				delete _userToCommunityIds[userToRemove][i];
 				break;
 			}
