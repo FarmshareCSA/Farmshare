@@ -101,7 +101,7 @@ contract UserRegistry is IUserRegistry, Ownable {
 		}
 		emit UserRegistered(newUser.account, newUser.email, newUser.role);
 		if(bytes(_communityName).length > 0) {
-		    communityRegistry.addUserToCommunity(newUser.account, _communityName);
+		    communityRegistry.addUserToCommunity(newUser.account, communityRegistry.communityIdByName(_communityName));
 		}
 		return true;
 	}
@@ -153,7 +153,7 @@ contract UserRegistry is IUserRegistry, Ownable {
 		_registerUser(newUser);
 		emit UserRegistered(newUser.account, newUser.email, newUser.role);
 		if(bytes(_communityName).length > 0) {
-		    communityRegistry.addUserToCommunity(newUser.account, _communityName);
+		    communityRegistry.addUserToCommunity(newUser.account, communityRegistry.communityIdByName(_communityName));
 		}
 		return true;
 	}
