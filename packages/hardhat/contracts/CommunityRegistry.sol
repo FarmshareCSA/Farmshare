@@ -151,6 +151,17 @@ contract CommunityRegistry is ICommunityRegistry, Ownable {
 		_communitiesById[communityId] = newCommunity;
 		_communityIdsByName[_name] = communityId;
 		communities.push(newCommunity);
+        for (uint i = 0; i < _initialOwners.length; i++) {
+			UserRecord memory user = userRegistry.userRecordByAddress(
+				_initialOwners[i]
+			);
+			require(user.account != address(0), "User does not exist");
+			require(
+				user.role != UserRole.USER && user.role != UserRole.DONOR,
+				"Initial owners must be admins, farmers or managers"
+			);
+            _addUserToCommunity(user, communityId);
+		}
 		emit CommunityRegistered(_name, _location, msg.sender, newTreasury);
 	}
 
