@@ -5,6 +5,7 @@ import "../Common.sol";
 
 interface IUserRegistry {
     event UserRegistered(address account, string email, UserRole role);
+    event UserPendingApproval(address account, string email, UserRole role);
     event FarmRegistered(string farmName, address farmOwner, uint communityId);
 
     function userRecordByAddress(address _address) external view returns (UserRecord memory);
@@ -30,6 +31,8 @@ interface IUserRegistry {
         UserRole _role,
         string memory _communityName
     ) external returns (bool);
+
+    function approvePendingUser(uint index) external;
 
     function registerFarm(
         address _farmOwner,

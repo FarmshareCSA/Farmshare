@@ -9,6 +9,7 @@ import "./interfaces/ICommunityRegistry.sol";
 contract UserRegistry is IUserRegistry, Ownable {
 	ICommunityRegistry public communityRegistry;
 	UserRecord[] public admins;
+    UserRecord[] public pendingUsers;
 
 	// UserRecord mappings
 	mapping(address => UserRecord) private _userRecordsByAddress;
@@ -95,6 +96,11 @@ contract UserRegistry is IUserRegistry, Ownable {
 			location: _location,
 			role: _role
 		});
+        if (_role == UserRole.FARMER || _role == UserRole.MANAGER) {
+            pendingUsers.push(newUser);
+            emit UserPendingApproval(msg.sender, _email, _role);
+            return false;
+        }
 		_registerUser(newUser);
 		if (_role == UserRole.ADMIN) {
 			admins.push(newUser);
@@ -157,6 +163,18 @@ contract UserRegistry is IUserRegistry, Ownable {
 		}
 		return true;
 	}
+
+    function approvePendingUser(uint index) external {
+        require(index < pendingUsers.length, "Index out of bounds");
+        UserRecord memory pendingUser = pendingUsers[index];
+        UserRecord memory senderUser = _userRecordsByAddress[msg.sender];
+        require(
+            senderUser.role != UserRole.USER && senderUser.role != UserRole.DONOR,
+            "Only admins, farmers and managers can approve pending users"
+        );
+        _registerUser(pendingUser);
+        emit UserRegistered(pendingUser.account, pendingUser.email, pendingUser.role);
+    }
 
 	function registerFarm(
 		address _farmOwner,
