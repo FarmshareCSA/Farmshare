@@ -20,37 +20,40 @@ const deployRegistryContracts: DeployFunction = async function (hre: HardhatRunt
   const { deployer } = await hre.getNamedAccounts();
   const { deploy } = hre.deployments;
 
+  const eas = await hre.ethers.getContract("EAS");
+  const schemaRegistry = await hre.ethers.getContract("SchemaRegistry");
+
   await deploy("UserRegistry", {
     from: deployer,
     // Contract constructor arguments
-    args: [],
+    args: [eas.address, schemaRegistry.address],
     log: true,
     // autoMine: can be passed to the deploy function to make the deployment process faster on local networks by
     // automatically mining the contract deployment transaction. There is no effect on live networks.
     autoMine: true,
   });
 
-  const safeProxyFactory = await hre.ethers.getContract("SafeProxyFactory");
-  const safeSingleton = await hre.ethers.getContract("Safe");
-  const safeFallbackHandler = await hre.ethers.getContract("CompatibilityFallbackHandler");
+  // const safeProxyFactory = await hre.ethers.getContract("SafeProxyFactory");
+  // const safeSingleton = await hre.ethers.getContract("Safe");
+  // const safeFallbackHandler = await hre.ethers.getContract("CompatibilityFallbackHandler");
 
-  await deploy("CommunityRegistry", {
-    from: deployer,
-    // Contract constructor arguments
-    args: [safeProxyFactory.address, safeSingleton.address, safeFallbackHandler.address],
-    log: true,
-    // autoMine: can be passed to the deploy function to make the deployment process faster on local networks by
-    // automatically mining the contract deployment transaction. There is no effect on live networks.
-    autoMine: true,
-  });
+  // await deploy("CommunityRegistry", {
+  //   from: deployer,
+  //   // Contract constructor arguments
+  //   args: [safeProxyFactory.address, safeSingleton.address, safeFallbackHandler.address],
+  //   log: true,
+  //   // autoMine: can be passed to the deploy function to make the deployment process faster on local networks by
+  //   // automatically mining the contract deployment transaction. There is no effect on live networks.
+  //   autoMine: true,
+  // });
 
-  // Get the deployed contracts
-  const userRegistry = await hre.ethers.getContract("UserRegistry", deployer);
-  const communityRegistry = await hre.ethers.getContract("CommunityRegistry", deployer);
+  // // Get the deployed contracts
+  // const userRegistry = await hre.ethers.getContract("UserRegistry", deployer);
+  // const communityRegistry = await hre.ethers.getContract("CommunityRegistry", deployer);
 
-  // Set up links between registry contracts
-  await userRegistry.setCommunityRegistry(communityRegistry.address);
-  await communityRegistry.setUserRegistry(userRegistry.address);
+  // // Set up links between registry contracts
+  // await userRegistry.setCommunityRegistry(communityRegistry.address);
+  // await communityRegistry.setUserRegistry(userRegistry.address);
 };
 
 export default deployRegistryContracts;

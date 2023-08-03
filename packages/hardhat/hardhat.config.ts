@@ -17,14 +17,29 @@ const etherscanApiKey = process.env.ETHERSCAN_API_KEY || "DNXJA8RX2Q3VZ4URQIWP7Z
 
 const config: HardhatUserConfig = {
   solidity: {
-    version: "0.8.17",
-    settings: {
-      optimizer: {
-        enabled: true,
-        // https://docs.soliditylang.org/en/latest/using-the-compiler.html#optimizer-options
-        runs: 200,
+    compilers: [
+      {
+        version: "0.8.17",
+        settings: {
+          optimizer: {
+            enabled: true,
+            // https://docs.soliditylang.org/en/latest/using-the-compiler.html#optimizer-options
+            runs: 200,
+          },
+        },
       },
-    },
+      {
+        version: "0.8.19",
+        settings: {
+          optimizer: {
+            enabled: true,
+            // https://docs.soliditylang.org/en/latest/using-the-compiler.html#optimizer-options
+            runs: 200,
+          },
+        },
+      }
+    ],
+    
   },
   defaultNetwork: "localhost",
   namedAccounts: {
@@ -76,6 +91,10 @@ const config: HardhatUserConfig = {
     },
     polygonMumbai: {
       url: `https://polygon-mumbai.g.alchemy.com/v2/${providerApiKey}`,
+      accounts: [deployerPrivateKey],
+    },
+    baseGoerli: {
+      url: `https://base-goerli.public.blastapi.io`,
       accounts: [deployerPrivateKey],
     },
     zkSyncTestnet: {
