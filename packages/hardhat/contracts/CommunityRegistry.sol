@@ -214,30 +214,30 @@ contract CommunityRegistry is ICommunityRegistry, Ownable {
 		);
 	}
 
-    function addFarmToCommunity(
-        address _farmOwner,
-        uint _communityId
-    ) external {
-        require(_farmOwner != address(0), "Invalid farm owner address");
-        require(
-			userRegistry.userRecordByAddress(_farmOwner).account != address(0),
-			"Farm owner is not registered"
-		);
-        Community memory community = _communitiesById[_communityId];
-        require(
-            community.treasury != address(0),
-            "Community does not exist"
-        );
-        require(_farmOwnerToCommunityId[_farmOwner] == 0, "Farm already in a community");
-        FarmRecord memory farm = userRegistry.farmRecordByOwner(_farmOwner);
-        require(
-            farm.farmOwner == _farmOwner,
-            "Farm owner does not match"
-        );
-        _farmOwnerToCommunityId[_farmOwner] = _communityId;
-        _communityToFarms[_communityId].push(farm);
-        emit FarmJoinedCommunity(_farmOwner, farm.farmName, community.name);
-    }
+    // function addFarmToCommunity(
+    //     address _farmOwner,
+    //     uint _communityId
+    // ) external {
+    //     require(_farmOwner != address(0), "Invalid farm owner address");
+    //     require(
+	// 		userRegistry.userRecordByAddress(_farmOwner).account != address(0),
+	// 		"Farm owner is not registered"
+	// 	);
+    //     Community memory community = _communitiesById[_communityId];
+    //     require(
+    //         community.treasury != address(0),
+    //         "Community does not exist"
+    //     );
+    //     require(_farmOwnerToCommunityId[_farmOwner] == 0, "Farm already in a community");
+    //     FarmRecord memory farm = userRegistry.farmRecordByOwner(_farmOwner);
+    //     require(
+    //         farm.farmOwner == _farmOwner,
+    //         "Farm owner does not match"
+    //     );
+    //     _farmOwnerToCommunityId[_farmOwner] = _communityId;
+    //     _communityToFarms[_communityId].push(farm);
+    //     emit FarmJoinedCommunity(_farmOwner, farm.farmName, community.name);
+    // }
 
 	function removeUserFromCommunity(
 		uint _communityId,

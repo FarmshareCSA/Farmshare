@@ -39,10 +39,10 @@ interface ICommunityRegistry {
 		uint256 index
 	) external;
 
-    function addFarmToCommunity(
-        address _farmOwner,
-        uint _communityId
-    ) external;
+    // function addFarmToCommunity(
+    //     address _farmOwner,
+    //     uint _communityId
+    // ) external;
 
     function setUserRegistry(address _userRegistry) external;
 }
