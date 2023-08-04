@@ -57,12 +57,6 @@ export const Header = () => {
           Block Explorer
         </NavLink>
       </li>
-      <li>
-        <NavLink href="/registration">
-          <MagnifyingGlassIcon className="h-4 w-4" />
-          Register
-        </NavLink>
-      </li>
     </>
   );
 
