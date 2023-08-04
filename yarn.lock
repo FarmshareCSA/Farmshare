@@ -4031,6 +4031,7 @@ __metadata:
     "@web3auth/openlogin-adapter": ^6.1.4
     "@web3auth/web3auth-wagmi-connector": ^4.0.1
     autoprefixer: ^10.4.12
+    axios: ^1.4.0
     daisyui: ^2.31.0
     eslint: ^8.15.0
     eslint-config-next: ^13.1.6
