@@ -1,5 +1,6 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
+import { developmentChains, networkConfig } from "../helper-hardhat-config";
 
 /**
  * Deploys a contract named "UserRegistry" using the deployer account
@@ -19,19 +20,42 @@ const deployRegistryContracts: DeployFunction = async function (hre: HardhatRunt
   */
   const { deployer } = await hre.getNamedAccounts();
   const { deploy } = hre.deployments;
+  const chainId = hre.network.config.chainId;
 
-  const eas = await hre.ethers.getContract("EAS");
-  const schemaRegistry = await hre.ethers.getContract("SchemaRegistry");
+  let eas;
+  let schemaRegistry;
+  if (developmentChains.includes(hre.network.name)) {
+    eas = await hre.ethers.getContract("EAS");
+    schemaRegistry = await hre.ethers.getContract("SchemaRegistry")
+    await deploy("UserRegistry", {
+      from: deployer,
+      // Contract constructor arguments
+      args: [eas.address, schemaRegistry.address],
+      log: true,
+      // autoMine: can be passed to the deploy function to make the deployment process faster on local networks by
+      // automatically mining the contract deployment transaction. There is no effect on live networks.
+      autoMine: true,
+    });
+  } else if (chainId && networkConfig[chainId]) {
+    await deploy("UserRegistry", {
+      from: deployer,
+      // Contract constructor arguments
+      args: [
+        networkConfig[chainId]["easContractAddress"],
+        networkConfig[chainId]["schemaRegistryAddress"]
+      ],
+      log: true,
+      // autoMine: can be passed to the deploy function to make the deployment process faster on local networks by
+      // automatically mining the contract deployment transaction. There is no effect on live networks.
+      autoMine: true,
+    });
+  } else if (chainId) {
+    throw new Error("No EAS contracts configured for this network.");
+  } else {
+    throw new Error("No chain ID found.");
+  }
 
-  await deploy("UserRegistry", {
-    from: deployer,
-    // Contract constructor arguments
-    args: [eas.address, schemaRegistry.address],
-    log: true,
-    // autoMine: can be passed to the deploy function to make the deployment process faster on local networks by
-    // automatically mining the contract deployment transaction. There is no effect on live networks.
-    autoMine: true,
-  });
+  
 
   // const safeProxyFactory = await hre.ethers.getContract("SafeProxyFactory");
   // const safeSingleton = await hre.ethers.getContract("Safe");
