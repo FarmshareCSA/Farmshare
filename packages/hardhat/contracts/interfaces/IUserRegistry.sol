@@ -8,5 +8,6 @@ interface IUserRegistry {
     event UserRevoked(address indexed account, string name, string email, string phone, string location, UserRole role);
     event UserPendingApproval(address indexed account, string email, UserRole role);
 
-    function userRecordByAddress(address user) external view returns (UserRecord memory);
+    function userRecordByAddress(address) external view returns (UserRecord memory);
+    function userRecordByEmail(string calldata) external view returns (UserRecord memory);
 }

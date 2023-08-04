@@ -18,7 +18,7 @@ contract UserRegistry is IUserRegistry, Ownable, SchemaResolver {
         schemaUID = registry.register(schema, this, true);
     }
 
-    function userRecordByAddress(address user) external view returns (UserRecord memory) {
+    function userRecordByAddress(address user) public view returns (UserRecord memory) {
         require(userRegistrations[user] != bytes32(0), "User is not registered");
         Attestation memory attestation = _eas.getAttestation(userRegistrations[user]);
         (
@@ -38,6 +38,10 @@ contract UserRegistry is IUserRegistry, Ownable, SchemaResolver {
 			role: _role
         });
     }
+
+    function userRecordByEmail(string calldata email) external view returns (UserRecord memory) {
+        return userRecordByAddress(userEmailToAddress[email]);
+    } 
 
 	function onAttest(
 		Attestation calldata attestation,
