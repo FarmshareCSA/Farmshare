@@ -20,8 +20,8 @@ contract UserRegistry is IUserRegistry, Ownable, SchemaResolver {
 
     // External view functions
 
-    function userRecordByAddress(address user) public view returns (UserRecord memory) {
-        if(userRegistrations[user] == bytes32(0)) {
+    function userRecordByUID(bytes32 userUID) public view returns (UserRecord memory) {
+        if(userUID == bytes32(0)) {
             return UserRecord({
                 account: address(0),
                 name: "",
@@ -31,7 +31,7 @@ contract UserRegistry is IUserRegistry, Ownable, SchemaResolver {
                 role: UserRole.NONE
             });
         }
-        Attestation memory attestation = _eas.getAttestation(userRegistrations[user]);
+        Attestation memory attestation = _eas.getAttestation(userUID);
         (
             address _account, 
             string memory _name, 
@@ -50,6 +50,10 @@ contract UserRegistry is IUserRegistry, Ownable, SchemaResolver {
         });
     }
 
+    function userRecordByAddress(address user) public view returns (UserRecord memory) {
+        return userRecordByUID(userRegistrations[user]);
+    }
+
     function userRecordByEmail(string calldata email) external view returns (UserRecord memory) {
         return userRecordByAddress(userEmailToAddress[email]);
     } 
@@ -61,6 +65,7 @@ contract UserRegistry is IUserRegistry, Ownable, SchemaResolver {
 		uint256 value
 	) internal virtual override returns (bool) {
         require(value == 0, "User registration requires zero value");
+        require(attestation.schema == registrationSchemaUID, "Invalid attestation schema");
         (
             address _account, 
             string memory _name, 
