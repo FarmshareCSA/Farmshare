@@ -47,6 +47,19 @@ const deployRegistryContracts: DeployFunction = async function (hre: HardhatRunt
   });
 
   const userRegistry = await hre.ethers.getContract("UserRegistry", deployer);
+
+  await deploy("FarmRegistry", {
+    from: deployer,
+    // Contract constructor arguments
+    args: [eas.address, schemaRegistry.address, userRegistry.address],
+    log: true,
+    // autoMine: can be passed to the deploy function to make the deployment process faster on local networks by
+    // automatically mining the contract deployment transaction. There is no effect on live networks.
+    autoMine: true,
+  });
+
+  const farmRegistry = await hre.ethers.getContract("FarmRegistry", deployer);
+
   const safeProxyFactory = await hre.ethers.getContract("SafeProxyFactory");
   const safeSingleton = await hre.ethers.getContract("Safe");
   const safeFallbackHandler = await hre.ethers.getContract("CompatibilityFallbackHandler");
@@ -58,6 +71,7 @@ const deployRegistryContracts: DeployFunction = async function (hre: HardhatRunt
       eas.address,
       schemaRegistry.address,
       userRegistry.address,
+      farmRegistry.address,
       safeProxyFactory.address, 
       safeSingleton.address, 
       safeFallbackHandler.address
