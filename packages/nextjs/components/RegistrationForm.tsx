@@ -110,10 +110,10 @@ export const RegistrationForm = () => {
                     onChange={e => setRole(e.target.value)}
                 >
                     <option value=''>Select Role</option>
-                    <option value='0'>Community Member</option>
-                    <option value='3'>Farmer</option>
-                    <option value='2'>Farm Manager</option>
-                    <option value='1'>Donor</option>
+                    <option value='1'>Community Member</option>
+                    <option value='4'>Farmer</option>
+                    <option value='3'>Farm Manager</option>
+                    <option value='2'>Donor</option>
                 </select>
             </div>
             <button
