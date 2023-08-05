@@ -19,7 +19,16 @@ contract UserRegistry is IUserRegistry, Ownable, SchemaResolver {
     }
 
     function userRecordByAddress(address user) public view returns (UserRecord memory) {
-        require(userRegistrations[user] != bytes32(0), "User is not registered");
+        if(userRegistrations[user] == bytes32(0)) {
+            return UserRecord({
+                account: address(0),
+                name: "",
+                email: "",
+                phone: "",
+                location: "",
+                role: UserRole.NONE
+            });
+        }
         Attestation memory attestation = _eas.getAttestation(userRegistrations[user]);
         (
             address _account, 
