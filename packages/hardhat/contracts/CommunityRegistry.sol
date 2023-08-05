@@ -10,6 +10,7 @@ import "@ethereum-attestation-service/eas-contracts/contracts/ISchemaRegistry.so
 import "@ethereum-attestation-service/eas-contracts/contracts/IEAS.sol";
 import "./interfaces/ICommunityRegistry.sol";
 import "./interfaces/IUserRegistry.sol";
+import "./interfaces/IFarmRegistry.sol";
 
 contract CommunityRegistry is ICommunityRegistry, Ownable, SchemaResolver {
 	string public constant registrationSchema = "string name,string description,string country,string state,string postalCode";
@@ -22,6 +23,7 @@ contract CommunityRegistry is ICommunityRegistry, Ownable, SchemaResolver {
 	address private immutable safeFallbackHandler;
 
 	IUserRegistry public userRegistry;
+	IFarmRegistry public farmRegistry;
 
 	// Community mappings
 	mapping(address => bytes32) public communityUIDByTreasury;
@@ -33,11 +35,13 @@ contract CommunityRegistry is ICommunityRegistry, Ownable, SchemaResolver {
 		IEAS _easContract,
 		ISchemaRegistry _schemaRegistry,
 		IUserRegistry _userRegistry,
+		IFarmRegistry _farmRegistry,
 		address _safeProxyFactory,
 		address _safeSingleton,
 		address _safeFallbackHandler
 	) Ownable() SchemaResolver(_easContract) {
 		userRegistry = _userRegistry;
+		farmRegistry = _farmRegistry;
 		safeProxyFactory = SafeProxyFactory(_safeProxyFactory);
 		safeSingleton = _safeSingleton;
 		safeFallbackHandler = _safeFallbackHandler;
