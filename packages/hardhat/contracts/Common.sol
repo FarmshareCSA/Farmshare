@@ -30,16 +30,17 @@ struct FarmRecord {
     address farmOwner;
     string description;
     string location;
+    string websiteUrl;
     string imageUrl;
-    string[] socialAccounts;
-    uint communityId;
 }
 
 struct Community {
-    uint id;
+    bytes32 uid;
     string name;
     string description;
-    string location;
+    string country;
+    string state;
+    string postalCode;
     address payable treasury;
 }
 
