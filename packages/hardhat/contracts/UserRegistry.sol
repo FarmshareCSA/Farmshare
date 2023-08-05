@@ -8,14 +8,14 @@ import "@ethereum-attestation-service/eas-contracts/contracts/ISchemaRegistry.so
 import "./interfaces/IUserRegistry.sol";
 
 contract UserRegistry is IUserRegistry, Ownable, SchemaResolver {
-    string public constant schema = "address account,string name,string email,string phone,string location,uint8 role";
-    bytes32 public immutable schemaUID;
+    string public constant registrationSchema = "address account,string name,string email,string phone,string location,uint8 role";
+    bytes32 public immutable registrationSchemaUID;
 
     mapping(address => bytes32) public userRegistrations;
     mapping(string => address) public userEmailToAddress;
 
     constructor(IEAS eas, ISchemaRegistry registry) SchemaResolver(eas) Ownable() {
-        schemaUID = registry.register(schema, this, true);
+        registrationSchemaUID = registry.register(registrationSchema, this, true);
     }
 
     function userRecordByAddress(address user) public view returns (UserRecord memory) {
