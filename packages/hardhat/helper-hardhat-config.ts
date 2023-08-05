@@ -1,8 +1,7 @@
 export interface networkConfigItem {
   name?: string;
-  easContractAddress?: string;
-  schemaRegistryAddress?: string;
-  donationResolverAddress?: string;
+  easContractAddress: string;
+  schemaRegistryAddress: string;
 }
 
 export interface networkConfigInfo {
@@ -12,12 +11,13 @@ export interface networkConfigInfo {
 export const networkConfig: networkConfigInfo = {
   31337: {
     name: "localhost",
+    easContractAddress: "0x0165878A594ca255338adfa4d48449f69242Eb8F",
+    schemaRegistryAddress: "0x5FC8d32690cc91D4c39d9d3abcBD16989F875707"
   },
   11155111: {
     name: "sepolia",
     easContractAddress: "0xC2679fBD37d54388Ce493F1DB75320D236e1815e",
     schemaRegistryAddress: "0x0a7E2Ff54e76B8E6659aedc9103FB21c038050D0",
-    donationResolverAddress: "0x932C90f9C801535Fe1160921Ec4043AA7b64F75E",
   },
 };
 

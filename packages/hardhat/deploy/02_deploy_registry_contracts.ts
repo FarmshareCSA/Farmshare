@@ -27,49 +27,46 @@ const deployRegistryContracts: DeployFunction = async function (hre: HardhatRunt
   if (developmentChains.includes(hre.network.name)) {
     eas = await hre.ethers.getContract("EAS");
     schemaRegistry = await hre.ethers.getContract("SchemaRegistry")
-    await deploy("UserRegistry", {
-      from: deployer,
-      // Contract constructor arguments
-      args: [eas.address, schemaRegistry.address],
-      log: true,
-      // autoMine: can be passed to the deploy function to make the deployment process faster on local networks by
-      // automatically mining the contract deployment transaction. There is no effect on live networks.
-      autoMine: true,
-    });
   } else if (chainId && networkConfig[chainId]) {
-    await deploy("UserRegistry", {
-      from: deployer,
-      // Contract constructor arguments
-      args: [
-        networkConfig[chainId]["easContractAddress"],
-        networkConfig[chainId]["schemaRegistryAddress"]
-      ],
-      log: true,
-      // autoMine: can be passed to the deploy function to make the deployment process faster on local networks by
-      // automatically mining the contract deployment transaction. There is no effect on live networks.
-      autoMine: true,
-    });
+    eas = await hre.ethers.getContractAt("EAS", networkConfig[chainId]["easContractAddress"]);
+    schemaRegistry = await hre.ethers.getContractAt("SchemaRegistry", networkConfig[chainId]["schemaRegistryAddress"]);
   } else if (chainId) {
     throw new Error("No EAS contracts configured for this network.");
   } else {
     throw new Error("No chain ID found.");
   }
 
-  
+  await deploy("UserRegistry", {
+    from: deployer,
+    // Contract constructor arguments
+    args: [eas.address, schemaRegistry.address],
+    log: true,
+    // autoMine: can be passed to the deploy function to make the deployment process faster on local networks by
+    // automatically mining the contract deployment transaction. There is no effect on live networks.
+    autoMine: true,
+  });
 
-  // const safeProxyFactory = await hre.ethers.getContract("SafeProxyFactory");
-  // const safeSingleton = await hre.ethers.getContract("Safe");
-  // const safeFallbackHandler = await hre.ethers.getContract("CompatibilityFallbackHandler");
+  const userRegistry = await hre.ethers.getContract("UserRegistry", deployer);
+  const safeProxyFactory = await hre.ethers.getContract("SafeProxyFactory");
+  const safeSingleton = await hre.ethers.getContract("Safe");
+  const safeFallbackHandler = await hre.ethers.getContract("CompatibilityFallbackHandler");
 
-  // await deploy("CommunityRegistry", {
-  //   from: deployer,
-  //   // Contract constructor arguments
-  //   args: [safeProxyFactory.address, safeSingleton.address, safeFallbackHandler.address],
-  //   log: true,
-  //   // autoMine: can be passed to the deploy function to make the deployment process faster on local networks by
-  //   // automatically mining the contract deployment transaction. There is no effect on live networks.
-  //   autoMine: true,
-  // });
+  await deploy("CommunityRegistry", {
+    from: deployer,
+    // Contract constructor arguments
+    args: [
+      eas.address,
+      schemaRegistry.address,
+      userRegistry.address,
+      safeProxyFactory.address, 
+      safeSingleton.address, 
+      safeFallbackHandler.address
+    ],
+    log: true,
+    // autoMine: can be passed to the deploy function to make the deployment process faster on local networks by
+    // automatically mining the contract deployment transaction. There is no effect on live networks.
+    autoMine: true,
+  });
 
   // // Get the deployed contracts
   // const userRegistry = await hre.ethers.getContract("UserRegistry", deployer);
