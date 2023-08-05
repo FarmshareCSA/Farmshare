@@ -24,7 +24,7 @@ export const RegistrationForm = () => {
 
     const { data: schemaUID } = useScaffoldContractRead({
         contractName: "UserRegistry",
-        functionName: "schemaUID",
+        functionName: "registrationSchemaUID",
     });
 
     const easAddress =
