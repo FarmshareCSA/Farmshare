@@ -18,6 +18,8 @@ contract UserRegistry is IUserRegistry, Ownable, SchemaResolver {
         registrationSchemaUID = registry.register(registrationSchema, this, true);
     }
 
+    // External view functions
+
     function userRecordByAddress(address user) public view returns (UserRecord memory) {
         if(userRegistrations[user] == bytes32(0)) {
             return UserRecord({
@@ -52,6 +54,8 @@ contract UserRegistry is IUserRegistry, Ownable, SchemaResolver {
         return userRecordByAddress(userEmailToAddress[email]);
     } 
 
+    // Internal SchemaResolver functions
+
 	function onAttest(
 		Attestation calldata attestation,
 		uint256 value
@@ -69,7 +73,7 @@ contract UserRegistry is IUserRegistry, Ownable, SchemaResolver {
         require(userEmailToAddress[_email] == address(0), "Email already registered");
         userRegistrations[_account] = attestation.uid;
         userEmailToAddress[_email] = _account;
-        emit UserRegistered(_account, _name, _email, _phone, _location, _role);
+        emit UserRegistered(_account, attestation.uid, _name, _email, _phone, _location, _role);
         return true;
     }
 
@@ -90,7 +94,7 @@ contract UserRegistry is IUserRegistry, Ownable, SchemaResolver {
         require(userEmailToAddress[_email] == _account, "Registered email does not match");
         delete userRegistrations[_account];
         delete userEmailToAddress[_email];
-        emit UserRevoked(_account, _name, _email, _phone, _location, _role);
+        emit UserRevoked(_account, attestation.uid, _name, _email, _phone, _location, _role);
         return true;
     }
 }
