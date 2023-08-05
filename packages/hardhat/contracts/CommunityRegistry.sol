@@ -147,6 +147,10 @@ contract CommunityRegistry is ICommunityRegistry, Ownable, SchemaResolver {
 	// 	uint256 index
 	// ) external {}
 
+	function isPayable() public pure override returns (bool) {
+		return true;
+	}
+
 	// External admin functions
 
 	function setUserRegistry(address _userRegistry) external onlyOwner {
