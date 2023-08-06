@@ -87,6 +87,7 @@ contract UserRegistry is IUserRegistry, Ownable, SchemaResolver {
 		uint256 value
 	) internal virtual override returns (bool) {
         require(value == 0, "User registration requires zero value");
+        require(attestation.schema == registrationSchemaUID, "Invalid attestation schema");
         (
             address _account, 
             string memory _name, 
