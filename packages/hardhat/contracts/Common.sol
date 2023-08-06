@@ -2,6 +2,7 @@
 pragma solidity ^0.8.0;
 
 enum UserRole {
+    NONE,
     USER,
     DONOR,
     MANAGER,
@@ -28,17 +29,20 @@ struct FarmRecord {
     string farmName;
     address farmOwner;
     string description;
-    string location;
+    string country;
+    string state;
+    string postalCode;
+    string websiteUrl;
     string imageUrl;
-    string[] socialAccounts;
-    uint communityId;
 }
 
 struct Community {
-    uint id;
+    bytes32 uid;
     string name;
     string description;
-    string location;
+    string country;
+    string state;
+    string postalCode;
     address payable treasury;
 }
 

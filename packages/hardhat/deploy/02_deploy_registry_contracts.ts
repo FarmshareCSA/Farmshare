@@ -1,5 +1,6 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
+import { developmentChains, networkConfig } from "../helper-hardhat-config";
 
 /**
  * Deploys a contract named "UserRegistry" using the deployer account
@@ -19,16 +20,45 @@ const deployRegistryContracts: DeployFunction = async function (hre: HardhatRunt
   */
   const { deployer } = await hre.getNamedAccounts();
   const { deploy } = hre.deployments;
+  const chainId = hre.network.config.chainId;
+
+  let eas;
+  let schemaRegistry;
+  if (developmentChains.includes(hre.network.name)) {
+    eas = await hre.ethers.getContract("EAS");
+    schemaRegistry = await hre.ethers.getContract("SchemaRegistry")
+  } else if (chainId && networkConfig[chainId]) {
+    eas = await hre.ethers.getContractAt("EAS", networkConfig[chainId]["easContractAddress"]);
+    schemaRegistry = await hre.ethers.getContractAt("SchemaRegistry", networkConfig[chainId]["schemaRegistryAddress"]);
+  } else if (chainId) {
+    throw new Error("No EAS contracts configured for this network.");
+  } else {
+    throw new Error("No chain ID found.");
+  }
 
   await deploy("UserRegistry", {
     from: deployer,
     // Contract constructor arguments
-    args: [],
+    args: [eas.address, schemaRegistry.address],
     log: true,
     // autoMine: can be passed to the deploy function to make the deployment process faster on local networks by
     // automatically mining the contract deployment transaction. There is no effect on live networks.
     autoMine: true,
   });
+
+  const userRegistry = await hre.ethers.getContract("UserRegistry", deployer);
+
+  await deploy("FarmRegistry", {
+    from: deployer,
+    // Contract constructor arguments
+    args: [eas.address, schemaRegistry.address, userRegistry.address],
+    log: true,
+    // autoMine: can be passed to the deploy function to make the deployment process faster on local networks by
+    // automatically mining the contract deployment transaction. There is no effect on live networks.
+    autoMine: true,
+  });
+
+  const farmRegistry = await hre.ethers.getContract("FarmRegistry", deployer);
 
   const safeProxyFactory = await hre.ethers.getContract("SafeProxyFactory");
   const safeSingleton = await hre.ethers.getContract("Safe");
@@ -37,20 +67,28 @@ const deployRegistryContracts: DeployFunction = async function (hre: HardhatRunt
   await deploy("CommunityRegistry", {
     from: deployer,
     // Contract constructor arguments
-    args: [safeProxyFactory.address, safeSingleton.address, safeFallbackHandler.address],
+    args: [
+      eas.address,
+      schemaRegistry.address,
+      userRegistry.address,
+      farmRegistry.address,
+      safeProxyFactory.address, 
+      safeSingleton.address, 
+      safeFallbackHandler.address
+    ],
     log: true,
     // autoMine: can be passed to the deploy function to make the deployment process faster on local networks by
     // automatically mining the contract deployment transaction. There is no effect on live networks.
     autoMine: true,
   });
 
-  // Get the deployed contracts
-  const userRegistry = await hre.ethers.getContract("UserRegistry", deployer);
-  const communityRegistry = await hre.ethers.getContract("CommunityRegistry", deployer);
+  // // Get the deployed contracts
+  // const userRegistry = await hre.ethers.getContract("UserRegistry", deployer);
+  // const communityRegistry = await hre.ethers.getContract("CommunityRegistry", deployer);
 
-  // Set up links between registry contracts
-  await userRegistry.setCommunityRegistry(communityRegistry.address);
-  await communityRegistry.setUserRegistry(userRegistry.address);
+  // // Set up links between registry contracts
+  // await userRegistry.setCommunityRegistry(communityRegistry.address);
+  // await communityRegistry.setUserRegistry(userRegistry.address);
 };
 
 export default deployRegistryContracts;
