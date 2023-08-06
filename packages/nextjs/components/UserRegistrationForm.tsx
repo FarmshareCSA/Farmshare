@@ -9,15 +9,18 @@ import invariant from "tiny-invariant";
 import { contracts } from "~~/utils/scaffold-eth/contract";
 import { useEthersSigner } from '~~/services/web3/ethers';
 import { useScaffoldContractRead } from '~~/hooks/scaffold-eth';
+import { UserRegistration } from '~~/services/eas/customSchemaTypes';
+import { Spinner } from './Spinner';
 
 export const UserRegistrationForm = () => {
     const userInfo = useGlobalState(state => state.userInfo);
+    const setUserRegistration = useGlobalState(state => state.setUserRegistration);
     const [name, setName] = useState(userInfo?.name || "");
     const [email, setEmail] = useState(userInfo?.email || "");
     const [phone, setPhone] = useState("");
     const [location, setLocation] = useState("");
     const [role, setRole] = useState("");
-    const [loading, setLoading] = useState(false);
+    const [submitting, setSubmitting] = useState(false);
     const { chain } = useNetwork();
     const signer = useEthersSigner();
     const writeDisabled = !chain || chain?.id !== getTargetNetwork().id;
@@ -46,7 +49,7 @@ export const UserRegistrationForm = () => {
     );
 
     const handleSubmit = async () => {
-        setLoading(true);
+        setSubmitting(true);
         try {
             invariant(signer, "Signer must be defined");
             eas.connect(signer);
@@ -61,26 +64,34 @@ export const UserRegistrationForm = () => {
                 { name: "role", value: role, type: "uint8" },
               ]);
       
-              const tx = await eas.attest({
+            const tx = await eas.attest({
                 schema: schemaUID,
                 data: {
-                  recipient: address,
-                  expirationTime: 0,
-                  revocable: false,
-                  data: encodedData,
+                    recipient: address,
+                    expirationTime: 0,
+                    revocable: false,
+                    data: encodedData,
                 },
-              });
-      
-              const newAttestationUID = await tx.wait();
-      
-              console.log("New attestation UID:", newAttestationUID);
-
-            setLoading(false);
+            });
+    
+            const newAttestationUID = await tx.wait();
+    
+            console.log("New attestation UID:", newAttestationUID);
+            const userRegistration: UserRegistration = {
+                account: address,
+                name: name,
+                email: email,
+                phone: phone,
+                location: location,
+                role: Number(role)
+            };
+            setUserRegistration(userRegistration);
+            setSubmitting(false);
             notification.success("You successfully registered!")
         } catch (error: any) {
             console.error("⚡️ ~ file: RegistrationForm.tsx:handleSubmit ~ error", error);
             notification.error(error.toString())
-            setLoading(false);
+            setSubmitting(false);
         }
         
     };
@@ -109,7 +120,7 @@ export const UserRegistrationForm = () => {
                     className='input input-ghost focus:outline-none focus:bg-transparent focus:text-gray-400 h-[2.2rem] min-h-[2.2rem] px-4 border w-full font-medium placeholder:text-accent/50 text-gray-400'
                     onChange={e => setRole(e.target.value)}
                 >
-                    <option value=''>Select Role</option>
+                    <option value='0'>Select Role</option>
                     <option value='1'>Community Member</option>
                     <option value='4'>Farmer</option>
                     <option value='3'>Farm Manager</option>
@@ -118,10 +129,10 @@ export const UserRegistrationForm = () => {
             </div>
             <button
               className={`btn btn-secondary btn-sm`}
-              disabled={writeDisabled || loading}
+              disabled={writeDisabled || submitting}
               onClick={handleSubmit}
             >
-              Register 📝
+              {submitting ? <Spinner /> : "Register 📝"}
             </button>
         </div>
     );

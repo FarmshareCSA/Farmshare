@@ -8,25 +8,48 @@ import type {
 } from "~~/services/eas/types";
 import { UserRegistrationForm } from "~~/components/UserRegistrationForm";
 import { useScaffoldContractRead } from "~~/hooks/scaffold-eth";
+import { useGlobalState } from "~~/services/store/store";
+import { SchemaEncoder } from "@ethereum-attestation-service/eas-sdk";
+import { UserRole } from "~~/services/eas/customSchemaTypes";
+import { FarmRegistrationForm } from "~~/components/FarmRegistrationForm";
 
 const Home: NextPage = () => {
   const { address } = useAccount();
+  const userInfo = useGlobalState(state => state.userInfo);
+  const userRegistration = useGlobalState(state => state.userRegistration);
+  const setUserRegistration = useGlobalState(state => state.setUserRegistration);
   const [userAttestations, setUserAttestations] = useState<Attestation[]>([])
+
+  const userSchemaEncoder = new SchemaEncoder(
+    "address account,string name,string email,string phone,string location,uint8 role",
+  );
 
   const { data: schemaUID } = useScaffoldContractRead({
     contractName: "UserRegistry",
     functionName: "registrationSchemaUID",
-});
+  });
 
   useEffect(() => {
     const getUserAttestations = async () => {
-      setUserAttestations(await getUserAttestationsForAddress(
+      const tmpAttestations = await getUserAttestationsForAddress(
         address ? address : "",
         schemaUID ? schemaUID : ""
-      ));
+      )
+      setUserAttestations(tmpAttestations);
+      if (tmpAttestations.length > 0) {
+        const decodedData = userSchemaEncoder.decodeData(tmpAttestations[0].data);
+        setUserRegistration({
+          account: decodedData[0].value.value.toString(),
+          name: decodedData[1].value.value.toString(),
+          email: decodedData[2].value.value.toString(),
+          phone: decodedData[3].value.value.toString(),
+          location: decodedData[4].value.value.toString(),
+          role: Number(decodedData[5].value.value)
+        })
+      }
     }
     getUserAttestations();
-  }, [address])
+  }, [address, userRegistration])
 
   return (
     <>
@@ -38,9 +61,9 @@ const Home: NextPage = () => {
             <span className="block text-4xl font-bold">FarmShare</span>
           </h1>
           { address ? 
-            userAttestations.length > 0 ? (
+            userAttestations.length > 0 || userRegistration ? (
               <p className="text-center text-lg">
-                Welcome back!
+                Welcome back{ userInfo && userInfo.name ? " " + userInfo.name.split(" ")[0] : ""}!
               </p>
             ) : (
               <UserRegistrationForm />
@@ -51,6 +74,7 @@ const Home: NextPage = () => {
               Just hit <i>Log In</i> in the top-right corner!
             </p>
           ) }
+          { userRegistration && userRegistration.role == UserRole.Farmer && <FarmRegistrationForm /> }
         </div>
       </div>
     </>

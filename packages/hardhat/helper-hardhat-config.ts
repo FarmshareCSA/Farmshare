@@ -1,5 +1,5 @@
 export interface networkConfigItem {
-  name?: string;
+  name: string;
   easContractAddress: string;
   schemaRegistryAddress: string;
 }
@@ -13,6 +13,11 @@ export const networkConfig: networkConfigInfo = {
     name: "localhost",
     easContractAddress: "0x0165878A594ca255338adfa4d48449f69242Eb8F",
     schemaRegistryAddress: "0x5FC8d32690cc91D4c39d9d3abcBD16989F875707"
+  },
+  280: {
+    name: "zksync era testnet",
+    easContractAddress: "0x87A33bc39A49Bd3e50aa053Bee91a988A510ED6a",
+    schemaRegistryAddress: "0x11619C020e98c9B6055f9fc82D4761259e760189"
   },
   11155111: {
     name: "sepolia",
