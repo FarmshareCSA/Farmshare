@@ -6,7 +6,7 @@ import { useState, useEffect } from "react";
 import type {
   Attestation,
 } from "~~/services/eas/types";
-import { RegistrationForm } from "~~/components/RegistrationForm";
+import { UserRegistrationForm } from "~~/components/UserRegistrationForm";
 
 const Home: NextPage = () => {
   const { address } = useAccount();
@@ -34,7 +34,7 @@ const Home: NextPage = () => {
                 Welcome back!
               </p>
             ) : (
-              <RegistrationForm />
+              <UserRegistrationForm />
             )
           : (
             <p className="text-center text-lg">

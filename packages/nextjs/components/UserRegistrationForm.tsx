@@ -10,7 +10,7 @@ import { contracts } from "~~/utils/scaffold-eth/contract";
 import { useEthersSigner } from '~~/services/web3/ethers';
 import { useScaffoldContractRead } from '~~/hooks/scaffold-eth';
 
-export const RegistrationForm = () => {
+export const UserRegistrationForm = () => {
     const userInfo = useGlobalState(state => state.userInfo);
     const [name, setName] = useState(userInfo?.name || "");
     const [email, setEmail] = useState(userInfo?.email || "");
