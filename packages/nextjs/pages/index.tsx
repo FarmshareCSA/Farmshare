@@ -74,7 +74,7 @@ const Home: NextPage = () => {
               Just hit <i>Log In</i> in the top-right corner!
             </p>
           ) }
-          
+          { userRegistration && userRegistration.role == UserRole.Farmer && <FarmRegistrationForm /> }
         </div>
       </div>
     </>
