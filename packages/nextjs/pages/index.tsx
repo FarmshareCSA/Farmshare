@@ -7,14 +7,23 @@ import type {
   Attestation,
 } from "~~/services/eas/types";
 import { UserRegistrationForm } from "~~/components/UserRegistrationForm";
+import { useScaffoldContractRead } from "~~/hooks/scaffold-eth";
 
 const Home: NextPage = () => {
   const { address } = useAccount();
   const [userAttestations, setUserAttestations] = useState<Attestation[]>([])
 
+  const { data: schemaUID } = useScaffoldContractRead({
+    contractName: "UserRegistry",
+    functionName: "registrationSchemaUID",
+});
+
   useEffect(() => {
     const getUserAttestations = async () => {
-      setUserAttestations(await getUserAttestationsForAddress(address ? address : ""));
+      setUserAttestations(await getUserAttestationsForAddress(
+        address ? address : "",
+        schemaUID ? schemaUID : ""
+      ));
     }
     getUserAttestations();
   }, [address])

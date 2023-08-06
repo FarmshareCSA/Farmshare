@@ -43,10 +43,6 @@ export const EAS_CONFIG = {
   chainId: chain.id,
 };
 
-export const CUSTOM_SCHEMAS = {
-    USER_REGISTRATION_SCHEMA: "0xa1bcdf5b69bb07822297df0a172e90fdd02b19b13780be86281b17a78d0687ed"
-}
-
 export async function getAttestation(uid: string): Promise<Attestation | null> {
     const response = await axios.post<AttestationResult>(
       `${baseURL}/graphql`,
@@ -68,7 +64,7 @@ export async function getAttestation(uid: string): Promise<Attestation | null> {
     return response.data.data.attestation;
 }
 
-export async function getUserAttestationsForAddress(address: string) {
+export async function getUserAttestationsForAddress(address: string, schema: string) {
     const response = await axios.post<MyAttestationResult>(
       `${baseURL}/graphql`,
       {
@@ -78,7 +74,7 @@ export async function getUserAttestationsForAddress(address: string) {
         variables: {
           where: {
             schemaId: {
-              equals: CUSTOM_SCHEMAS.USER_REGISTRATION_SCHEMA,
+              equals: schema,
             },
             recipient: {
                 equals: address,
