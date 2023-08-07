@@ -93,22 +93,62 @@ contract TaskRegistry is ITaskRegistry, Ownable, SchemaResolver {
 	) external returns (address newTaskStared) {
 		require(taskUID != bytes32(0), "Task UID cannot be 0");
 		require(bytes(userAddress).length > 0, "Initial owners cannot be empty");
-		Attestation memory communityTaskRegistration = _eas.getAttestation(communityUID);
-		require(communityRegistration.schema == communityTaskSchemaUID, "Invalid community task schema");
-		(string memory name, , , ,) = abi.decode(communityRegistration.data, (string, string, string, string, string));
+		Attestation memory communityTaskRegistration = _eas.getAttestation(taskUID);
+		require(communityTaskRegistration.schema == communityTaskSchemaUID, "Invalid community task schema");
 
 
-		bytes memory taskStartedData = abi.encode([], []);
+		bytes memory taskStartedData = abi.encode([
+			uint,
+			address,
+			uint
+		], [
+			taskUID,
+			userAddress,
+			timeStamp
+		]);
 		AttestationRequestData memory requestData = AttestationRequestData({
 			recipient: userAddress,
 			expirationTime: 0,
 			revocable: false,
 			refUID: taskUID,
-			data: taskStartedData,
-			value: 0
+			data: taskStartedData
 		});
 		AttestationRequest memory request = AttestationRequest({
 			schema: taskStartedSchemaUID,
+			data: requestData
+		});
+		_eas.attest{value: msg.value}(request);
+	}
+
+	function createTaskCompleted(
+		bytes32 taskUID, 
+		address memory userAddress,
+		uint256 memory timeStamp
+	) external returns (address newTaskStared) {
+		require(taskUID != bytes32(0), "Task UID cannot be 0");
+		require(bytes(userAddress).length > 0, "Initial owners cannot be empty");
+		Attestation memory communityTaskRegistration = _eas.getAttestation(taskUID);
+		require(communityTaskRegistration.schema == communityTaskSchemaUID, "Invalid community task schema");
+
+
+		bytes memory taskCompletedData = abi.encode([
+			uint,
+			address,
+			uint
+		], [
+			taskUID,
+			userAddress,
+			timeStamp
+		]);
+		AttestationRequestData memory requestData = AttestationRequestData({
+			recipient: userAddress,
+			expirationTime: 0,
+			revocable: false,
+			refUID: taskUID,
+			data: taskCompletedData
+		});
+		AttestationRequest memory request = AttestationRequest({
+			schema: taskCompletedDataSchemaUID,
 			data: requestData
 		});
 		_eas.attest{value: msg.value}(request);
