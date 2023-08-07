@@ -79,12 +79,12 @@ export const UserRegistrationForm = () => {
 
             setLoading(false);
             notification.success("You successfully registered!")
+            
         } catch (error: any) {
             console.error("⚡️ ~ file: RegistrationForm.tsx:handleSubmit ~ error", error);
             notification.error(error.toString())
             setLoading(false);
-        }
-        
+        }       
     };
     
     return (

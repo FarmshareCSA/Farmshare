@@ -33,7 +33,6 @@ contract TaskRegistry is ITaskRegistry, Ownable, SchemaResolver {
 		ICommunityRegistry _communityRegistry
 	) Ownable() SchemaResolver(_easContract) {
 		communityRegistry = _communityRegistry;
-		farmRegistry = _farmRegistry;
 		communityTaskSchemaUID = _schemaRegistry.register(communityTaskSchema, this, false);
 		taskStartedSchemaUID = _schemaRegistry.register(taskStartedSchema, this, false);
 		taskCompletedSchemaUID = _schemaRegistry.register(taskCompletedSchema, this, false);
@@ -87,130 +86,65 @@ contract TaskRegistry is ITaskRegistry, Ownable, SchemaResolver {
 		return taskByUID(taskUIDByName[name]);
 	}
 
-	// External registration functions
-
-
-//here
-	function createTreasury(
-		bytes32 communityUID, 
-		address[] memory initialOwners
-	) external payable returns (address newTreasury) {
-		require(communityUID != bytes32(0), "Community UID cannot be 0");
-		require(initialOwners.length > 0, "Initial owners cannot be empty");
-		Attestation memory communityRegistration = _eas.getAttestation(communityUID);
-		require(communityRegistration.schema == registrationSchemaUID, "Invalid community registration schema");
+	function createTaskStarted(
+		bytes32 taskUID, 
+		address memory userAddress,
+		uint256 memory timeStamp
+	) external returns (address newTaskStared) {
+		require(taskUID != bytes32(0), "Task UID cannot be 0");
+		require(bytes(userAddress).length > 0, "Initial owners cannot be empty");
+		Attestation memory communityTaskRegistration = _eas.getAttestation(communityUID);
+		require(communityRegistration.schema == communityTaskSchemaUID, "Invalid community task schema");
 		(string memory name, , , ,) = abi.decode(communityRegistration.data, (string, string, string, string, string));
-		require(communityTreasuryByName[name] == address(0), "Community treasury already exists");
-		bytes memory setupData = abi.encodeWithSelector(
-			Safe.setup.selector,
-			initialOwners,
-			initialOwners.length,
-			address(0),
-			0,
-			safeFallbackHandler,
-			address(0),
-			0,
-			address(0)
-		);
-		SafeProxy treasuryProxy = safeProxyFactory.createProxyWithNonce(
-			safeSingleton,
-			setupData,
-			uint256(communityUID)
-		);
-		newTreasury = payable(treasuryProxy);
-		communityTreasuryByName[name] = newTreasury;
-		communityUIDByTreasury[newTreasury] = communityUID;
-		bytes memory treasuryData = abi.encode(newTreasury, initialOwners);
+
+
+		bytes memory taskStartedData = abi.encode([], []);
 		AttestationRequestData memory requestData = AttestationRequestData({
-			recipient: newTreasury,
+			recipient: userAddress,
 			expirationTime: 0,
 			revocable: false,
-			refUID: communityUID,
-			data: treasuryData,
+			refUID: taskUID,
+			data: taskStartedData,
 			value: 0
 		});
 		AttestationRequest memory request = AttestationRequest({
-			schema: treasurySchemaUID,
+			schema: taskStartedSchemaUID,
 			data: requestData
 		});
 		_eas.attest{value: msg.value}(request);
 	}
 
-	// function addUserToCommunity(
-	// 	address _newMember,
-	// 	uint _communityId
-	// ) external {}
-
-	// function removeUserFromCommunity(
-	// 	uint _communityId,
-	// 	UserRole _role,
-	// 	uint256 index
-	// ) external {}
-
-	function isPayable() public pure override returns (bool) {
-		return true;
-	}
-
-	// External admin functions
-
-	function setUserRegistry(address _userRegistry) external onlyOwner {
-		userRegistry = IUserRegistry(_userRegistry);
-	}
-
-	// Internal functions
-
-	function _addUserToCommunity(
-		UserRecord memory _newUser,
-		uint _communityId
-	) internal {}
-
-	function _removeUserFromCommunity(
-		uint _communityId,
-		UserRole _role,
-		uint256 index
-	) internal returns (address userToRemove) {}
-
-	receive() external payable virtual override {}
 
 	function onAttest(
 		Attestation calldata attestation,
 		uint256 value
 	) internal virtual override returns (bool) {
-		if (attestation.schema == registrationSchemaUID) {
-			// Attestation is for a community registration
-			require(value == 0, "Community registration requires zero value");
+		if (attestation.schema == communityTaskSchemaUID) {
+			// Attestation is for a community Task registration
 			(
-				string memory name, 
-				string memory description, 
-				string memory country, 
-				string memory state, 
-				string memory postalCode
-			) = abi.decode(attestation.data, (string,string,string,string,string));
+				string memory name,
+				string memory description,
+				address memory creator,
+				uint memory startTime,
+				uint memory endTime,
+				bool memory recurring,
+				uint memory frequency,
+				uint memory reward
+			) = abi.decode(attestation.data, (string, string, address, uint, uint, bool, uint, uint));
 			require(bytes(name).length > 0, "Name cannot be empty");
-			require(communityUIDByName[name] == bytes32(0), "Community name already exists");
-			require(bytes(description).length > 0, "Description cannot be empty");
-			require(bytes(country).length > 0, "Country cannot be empty");
-			require(bytes(postalCode).length > 0, "Postal code cannot be empty");
-			communityUIDByName[name] = attestation.uid;
-			emit CommunityRegistered(attestation.uid, name, description, country, state, postalCode);
-			return true;
-		} else if (attestation.schema == treasurySchemaUID) {
-			// Attestation is for a new community treasury
-			(
-				address treasury,
-				address[] memory initialOwners
-			) = abi.decode(attestation.data, (address, address[]));
-			require(treasury != address(0) && initialOwners.length > 0, "Invalid treasury data");
-			treasuryUIDByCommunityUID[attestation.refUID] = attestation.uid;
-			communityUIDByTreasury[treasury] = attestation.refUID;
-			Attestation memory communityRegistration = _eas.getAttestation(attestation.refUID);
-			(string memory name, , , ,) = abi.decode(communityRegistration.data, (string, string, string, string, string));
-			emit CommunityTreasuryCreated(attestation.uid, name, attestation.refUID, treasury, initialOwners);
-			if (value > 0) {
-				require(msg.value == value, "Message value mismatch");
-				(bool success,) = treasury.call{value: value}("");
-				require(success, "Value transfer to treasury failed");
-			}
+			
+			taskUIDByName[name] = attestation.uid;
+			emit TaskRegistered(
+				attestation.uid,
+				name,
+				description,
+				creator,
+				startTime,
+				endTime,
+				recurring,
+				frequency,
+				reward
+			);
 			return true;
 		} 
 		return false;
