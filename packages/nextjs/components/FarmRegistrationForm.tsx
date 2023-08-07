@@ -25,8 +25,8 @@ export const FarmRegistrationForm = () => {
     const writeDisabled = !chain || chain?.id !== getTargetNetwork().id;
 
     /* configure Infura IPFS auth settings */
-    const projectId = process.env.INFURA_IPFS_PROJECT_ID;
-    const projectSecret = process.env.INFURA_IPFS_PROJECT_SECRET;
+    const projectId = "2TcFlGWq8noGJV2ylEnCVpqCr30";
+    const projectSecret = "9223442241ffe73e4c965a24b685c35a";
     const auth = 'Basic ' + Buffer.from(projectId + ':' + projectSecret).toString('base64');
 
     /* create the IPFS client */
@@ -50,11 +50,6 @@ export const FarmRegistrationForm = () => {
         ? contracts[chain.id][0]["contracts"]["EAS"].address
         : "0xC2679fBD37d54388Ce493F1DB75320D236e1815e"
       : "0xC2679fBD37d54388Ce493F1DB75320D236e1815e";
-    if (chain) {
-        console.log("EAS contract address on %s: %s", chain.name, easAddress);
-    } else {
-        console.log("network.chain is undefined");
-    }
     const eas = new EAS(easAddress);
     
     // Initialize SchemaEncoder with the schema string
@@ -155,15 +150,15 @@ export const FarmRegistrationForm = () => {
                     className='input input-ghost focus:outline-none focus:bg-transparent focus:text-gray-400 h-[2.2rem] min-h-[2.2rem] px-4 border w-full font-medium placeholder:text-accent/50 text-gray-400'
                     onChange={e => handleImage(e)}
                 />
-                {
-                    imageUrl && (
-                    <div>
-                        <img src={imageUrl} width="600px" />
-                        <a href={imageUrl} target="_blank">{imageUrl}</a>
-                    </div>
-                    )
-                }
             </div>
+            {
+                imageUrl && (
+                <div>
+                    <img src={imageUrl} width="600px" />
+                    {/* <a href={imageUrl} target="_blank">{imageUrl}</a> */}
+                </div>
+                )
+            }
             <button
               className={`btn btn-secondary btn-sm`}
               disabled={writeDisabled || loading}
