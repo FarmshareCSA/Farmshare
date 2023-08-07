@@ -46,6 +46,8 @@ const Home: NextPage = () => {
           location: decodedData[4].value.value.toString(),
           role: Number(decodedData[5].value.value)
         })
+      } else {
+        setUserRegistration(null)
       }
     }
     getUserAttestations();

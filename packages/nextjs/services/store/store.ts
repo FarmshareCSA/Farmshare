@@ -17,7 +17,7 @@ type TGlobalState = {
   userInfo: Partial<OpenloginUserInfo> | null;
   setUserInfo: (newUserInfo: Partial<OpenloginUserInfo>) => void;
   userRegistration: UserRegistration | null;
-  setUserRegistration: (newRegistration: UserRegistration) => void;
+  setUserRegistration: (newRegistration: UserRegistration | null) => void;
 };
 
 export const useGlobalState = create<TGlobalState>(set => ({
@@ -26,5 +26,5 @@ export const useGlobalState = create<TGlobalState>(set => ({
   userInfo: null,
   setUserInfo: (newUserInfo: Partial<OpenloginUserInfo>): void => set(() => ({ userInfo: newUserInfo })),
   userRegistration: null,
-  setUserRegistration: (newRegistration: UserRegistration): void => set(() => ({ userRegistration: newRegistration })),
+  setUserRegistration: (newRegistration: UserRegistration | null): void => set(() => ({ userRegistration: newRegistration })),
 }));
