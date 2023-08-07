@@ -138,7 +138,7 @@ export const FarmRegistrationForm = () => {
             <InputBase value={country} onChange={e => setState(e)} placeholder="Ontario" prefix={
                 <span className="self-center cursor-pointer text-xl font-semibold px-4 text-accent">📍</span>
             } />
-            <InputBase value={country} onChange={e => setState(e)} placeholder="M5A 1A4" prefix={
+            <InputBase value={country} onChange={e => setPostalCode(e)} placeholder="M5A 1A4" prefix={
                 <span className="self-center cursor-pointer text-xl font-semibold px-4 text-accent">✉️</span>
             } />
             <div className={`flex border-2 border-base-300 bg-base-200 rounded-full text-accent`}>
