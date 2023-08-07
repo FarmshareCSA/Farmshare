@@ -1,3 +1,4 @@
+//@ts-nocheck
 import Image  from 'next/image';
 import { useState } from "react";
 import { useGlobalState } from "~~/services/store/store";
@@ -29,8 +30,8 @@ export const UserRegistrationForm = () => {
 
     const easAddress =
     chain && contracts
-      ? contracts[chain.id][0]["contracts"]["EAS"]
-        ? contracts[chain.id][0]["contracts"]["EAS"].address
+      ? contracts[chain.id]?.[0]?.["contracts"]?.["EAS"]
+        ? contracts[chain.id]?.[0]?.["contracts"]?.["EAS"].address
         : "0xC2679fBD37d54388Ce493F1DB75320D236e1815e"
       : "0xC2679fBD37d54388Ce493F1DB75320D236e1815e";
     if (chain) {
@@ -50,6 +51,7 @@ export const UserRegistrationForm = () => {
         try {
             invariant(signer, "Signer must be defined");
             eas.connect(signer);
+            console.log("signer", schemaUID);
             const address = await signer.getAddress()
             invariant(schemaUID, "schema UID must be defined");
             const encodedData = schemaEncoder.encodeData([

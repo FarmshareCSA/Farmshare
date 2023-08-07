@@ -58,8 +58,9 @@ struct Task {
     string name;
     string description;
     address creator;
-    uint deadline;
+    uint startTime;
+    uint endTime;
+    bool recurring;
+    uint frequency;
     uint reward;
-    TaskStatus status;
-    bytes32[] attestations;
 }
