@@ -1,24 +1,22 @@
+import { useEffect, useState } from "react";
+import { SchemaEncoder } from "@ethereum-attestation-service/eas-sdk";
 import type { NextPage } from "next";
-import { MetaHeader } from "~~/components/MetaHeader";
 import { useAccount } from "wagmi";
-import { getUserAttestationsForAddress } from "~~/services/eas/utils";
-import { useState, useEffect } from "react";
-import type {
-  Attestation,
-} from "~~/services/eas/types";
+import { FarmRegistrationForm } from "~~/components/FarmRegistrationForm";
+import { MetaHeader } from "~~/components/MetaHeader";
 import { UserRegistrationForm } from "~~/components/UserRegistrationForm";
 import { useScaffoldContractRead } from "~~/hooks/scaffold-eth";
-import { useGlobalState } from "~~/services/store/store";
-import { SchemaEncoder } from "@ethereum-attestation-service/eas-sdk";
 import { UserRole } from "~~/services/eas/customSchemaTypes";
-import { FarmRegistrationForm } from "~~/components/FarmRegistrationForm";
+import type { Attestation } from "~~/services/eas/types";
+import { getUserAttestationsForAddress } from "~~/services/eas/utils";
+import { useGlobalState } from "~~/services/store/store";
 
 const Home: NextPage = () => {
   const { address } = useAccount();
   const userInfo = useGlobalState(state => state.userInfo);
   const userRegistration = useGlobalState(state => state.userRegistration);
   const setUserRegistration = useGlobalState(state => state.setUserRegistration);
-  const [userAttestations, setUserAttestations] = useState<Attestation[]>([])
+  const [userAttestations, setUserAttestations] = useState<Attestation[]>([]);
 
   const userSchemaEncoder = new SchemaEncoder(
     "address account,string name,bytes32 emailHash,string location,uint8 role",
@@ -31,10 +29,7 @@ const Home: NextPage = () => {
 
   useEffect(() => {
     const getUserAttestations = async () => {
-      const tmpAttestations = await getUserAttestationsForAddress(
-        address ? address : "",
-        schemaUID ? schemaUID : ""
-      )
+      const tmpAttestations = await getUserAttestationsForAddress(address ? address : "", schemaUID ? schemaUID : "");
       setUserAttestations(tmpAttestations);
       if (tmpAttestations.length > 0) {
         const decodedData = userSchemaEncoder.decodeData(tmpAttestations[0].data);
@@ -43,14 +38,14 @@ const Home: NextPage = () => {
           name: decodedData[1].value.value.toString(),
           emailHash: decodedData[2].value.value.toString(),
           location: decodedData[3].value.value.toString(),
-          role: Number(decodedData[4].value.value)
-        })
+          role: Number(decodedData[4].value.value),
+        });
       } else {
-        setUserRegistration(null)
+        setUserRegistration(null);
       }
-    }
+    };
     getUserAttestations();
-  }, [address, userRegistration])
+  }, [address, userRegistration]);
 
   return (
     <>
@@ -61,21 +56,21 @@ const Home: NextPage = () => {
             <span className="block text-2xl mb-2">Welcome to</span>
             <span className="block text-4xl font-bold">FarmShare</span>
           </h1>
-          { address ? 
+          {address ? (
             userAttestations.length > 0 || userRegistration ? (
               <p className="text-center text-lg">
-                Welcome back{ userInfo && userInfo.name ? " " + userInfo.name.split(" ")[0] : ""}!
+                Welcome back{userInfo && userInfo.name ? " " + userInfo.name.split(" ")[0] : ""}!
               </p>
             ) : (
               <UserRegistrationForm />
             )
-          : (
+          ) : (
             <p className="text-center text-lg">
-              Get started by logging in with your preferred social account, email, phone or wallet. 
-              Just hit <i>Log In</i> in the top-right corner!
+              Get started by logging in with your preferred social account, email, phone or wallet. Just hit{" "}
+              <i>Log In</i> in the top-right corner!
             </p>
-          ) }
-          { userRegistration && userRegistration.role == UserRole.Farmer && <FarmRegistrationForm /> }
+          )}
+          {userRegistration && userRegistration.role == UserRole.Farmer && <FarmRegistrationForm />}
         </div>
       </div>
     </>

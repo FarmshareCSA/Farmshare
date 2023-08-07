@@ -38,7 +38,6 @@ const scaffoldConfig = {
     process.env.NEXT_WEB3AUTH_CLIENT_ID ||
     "BJtKsACML8eLY8Wd_C_PzGazU7c9dsAfrhvZ79-1Hh7IkJJqPDPlevNt_DQPXv1VeQzgOwExN8FH6Mgrx8AeP2c",
 
-
   // Only show the Burner Wallet when running on hardhat network
   onlyLocalBurnerWallet: true,
 

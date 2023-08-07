@@ -86,7 +86,7 @@ export const Header = () => {
           )}
         </div>
         <Link href="/" passHref className="hidden lg:flex items-center gap-2 ml-4 mr-6">
-          <div className="flex relative" style={{height: "2.5rem", width: "4rem"}}>
+          <div className="flex relative" style={{ height: "2.5rem", width: "4rem" }}>
             <Image alt="FarmShare logo" className="cursor-pointer" fill src="/fs-logo-wide.png" />
           </div>
           <div className="flex flex-col">

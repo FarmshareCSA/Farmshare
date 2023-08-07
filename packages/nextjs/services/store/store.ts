@@ -1,6 +1,6 @@
-import create from "zustand";
-import { OpenloginUserInfo } from "@web3auth/openlogin-adapter";
 import { UserRegistration } from "../eas/customSchemaTypes";
+import { OpenloginUserInfo } from "@web3auth/openlogin-adapter";
+import create from "zustand";
 
 /**
  * Zustand Store
@@ -26,5 +26,6 @@ export const useGlobalState = create<TGlobalState>(set => ({
   userInfo: null,
   setUserInfo: (newUserInfo: Partial<OpenloginUserInfo>): void => set(() => ({ userInfo: newUserInfo })),
   userRegistration: null,
-  setUserRegistration: (newRegistration: UserRegistration | null): void => set(() => ({ userRegistration: newRegistration })),
+  setUserRegistration: (newRegistration: UserRegistration | null): void =>
+    set(() => ({ userRegistration: newRegistration })),
 }));
