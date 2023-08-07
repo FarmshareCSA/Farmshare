@@ -12,6 +12,7 @@ import { useScaffoldContractRead } from '~~/hooks/scaffold-eth';
 import { UserRegistration } from '~~/services/eas/customSchemaTypes';
 import { Spinner } from './Spinner';
 import { keccak256, stringToBytes } from 'viem';
+import AddressValidationForm from './AddressValidationForm';
 
 export const UserRegistrationForm = () => {
     const userInfo = useGlobalState(state => state.userInfo);
@@ -106,9 +107,10 @@ export const UserRegistrationForm = () => {
             <InputBase value={email} onChange={e => setEmail(e)} placeholder="janefarmer@gmail.com" prefix={
                 <span className="self-center cursor-pointer text-xl font-semibold px-4 text-accent">📧</span>
             } />
-            <InputBase value={location} onChange={e => setLocation(e)} placeholder="123 Main St., Farmtown, NY" prefix={
+            {/* <InputBase value={location} onChange={e => setLocation(e)} placeholder="123 Main St., Farmtown, NY" prefix={
                 <span className="self-center cursor-pointer text-xl font-semibold px-4 text-accent">📍</span>
-            } />
+            } /> */}
+            <AddressValidationForm />
             <div className={`flex border-2 border-base-300 bg-base-200 rounded-full text-accent`}>
                 <span className="self-center cursor-pointer text-xl font-semibold px-4 text-accent">🧑‍🌾</span>
                 <select 
