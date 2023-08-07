@@ -8,6 +8,7 @@ import { Balance, BlockieAvatar } from "~~/components/scaffold-eth";
 import { useNetworkColor } from "~~/hooks/scaffold-eth";
 import { web3AuthInstance } from "~~/services/web3/wagmiConnectors";
 import { getTargetNetwork } from "~~/utils/scaffold-eth";
+import { useGlobalState } from "~~/services/store/store";
 
 /**
  * Custom Wagmi Connect Button (watch balance + custom design)
@@ -18,22 +19,7 @@ export const RainbowKitCustomConnectButton = () => {
   const { connector } = useAccount();
   const { disconnect } = useDisconnect();
   const { switchNetwork } = useSwitchNetwork();
-  const [userInfo, setUserInfo] = useState<Partial<OpenloginUserInfo> | undefined>(undefined);
-
-  useEffect(() => {
-    const getUserInfo = async () => {
-      try {
-        if (web3AuthInstance) {
-          const userInfo = await web3AuthInstance.getUserInfo();
-          console.log(userInfo);
-          setUserInfo(userInfo);
-        }
-      } catch (error) {
-        console.error(error);
-      }
-    };
-    getUserInfo();
-  });
+  const userInfo = useGlobalState(state => state.userInfo);
 
   return (
     <ConnectButton.Custom>

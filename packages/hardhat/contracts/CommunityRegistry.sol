@@ -5,129 +5,110 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "@safe-global/safe-contracts/contracts/proxies/SafeProxyFactory.sol";
 import "@safe-global/safe-contracts/contracts/Safe.sol";
+import "@ethereum-attestation-service/eas-contracts/contracts/resolver/SchemaResolver.sol";
+import "@ethereum-attestation-service/eas-contracts/contracts/ISchemaRegistry.sol";
+import "@ethereum-attestation-service/eas-contracts/contracts/IEAS.sol";
 import "./interfaces/ICommunityRegistry.sol";
 import "./interfaces/IUserRegistry.sol";
+import "./interfaces/IFarmRegistry.sol";
 
-contract CommunityRegistry is ICommunityRegistry, Ownable {
-	IUserRegistry public userRegistry;
+contract CommunityRegistry is ICommunityRegistry, Ownable, SchemaResolver {
+	string public constant registrationSchema = "string name,string description,string country,string state,string postalCode";
+    bytes32 public immutable registrationSchemaUID;
+	string public constant treasurySchema = "address treasury,address[] initialOwners";
+	bytes32 public immutable treasurySchemaUID;
 
 	SafeProxyFactory private immutable safeProxyFactory;
 	address private immutable safeSingleton;
 	address private immutable safeFallbackHandler;
 
-	// Community mappings
-	Community[] public communities;
-	mapping(uint => Community) private _communitiesById;
-	mapping(string => uint) private _communityIdsByName;
+	IUserRegistry public userRegistry;
+	IFarmRegistry public farmRegistry;
 
-	// Membership mappings
-	mapping(address => uint[]) private _userToCommunityIds;
-	mapping(uint => UserRecord[]) private _communityToUsers;
-	mapping(uint => UserRecord[]) private _communityToDonors;
-	mapping(uint => UserRecord[]) private _communityToManagers;
-	mapping(uint => UserRecord[]) private _communityToFarmers;
-    mapping(uint => FarmRecord[]) private _communityToFarms;
-    mapping(address => uint) private _farmOwnerToCommunityId;
+	// Community mappings
+	mapping(address => bytes32) public communityUIDByTreasury;
+	mapping(string => bytes32) public	communityUIDByName;
+	mapping(string => address) public communityTreasuryByName;
+	mapping(bytes32 => bytes32) public treasuryUIDByCommunityUID;
 
 	constructor(
+		IEAS _easContract,
+		ISchemaRegistry _schemaRegistry,
+		IUserRegistry _userRegistry,
+		IFarmRegistry _farmRegistry,
 		address _safeProxyFactory,
 		address _safeSingleton,
 		address _safeFallbackHandler
-	) Ownable() {
+	) Ownable() SchemaResolver(_easContract) {
+		userRegistry = _userRegistry;
+		farmRegistry = _farmRegistry;
 		safeProxyFactory = SafeProxyFactory(_safeProxyFactory);
 		safeSingleton = _safeSingleton;
 		safeFallbackHandler = _safeFallbackHandler;
+		registrationSchemaUID = _schemaRegistry.register(registrationSchema, this, false);
+		treasurySchemaUID = _schemaRegistry.register(treasurySchema, this, false);
 	}
 
 	// External view functions
 
-	function communitiesByName(
-		string memory _name
-	) external view override returns (Community memory) {
-		return _communitiesById[_communityIdsByName[_name]];
+	function communityByUID(bytes32 uid) public view returns (Community memory) {
+		if (uid == bytes32(0)) {
+			return Community({
+				uid: bytes32(0),
+				name: "",
+				description: "",
+				country: "",
+				state: "",
+				postalCode: "",
+				treasury: payable(0)
+			});
+		}
+		Attestation memory communityRegistration = _eas.getAttestation(uid);
+		(
+			string memory name,
+			string memory description,
+			string memory country,
+			string memory state,
+			string memory postalCode
+		) = abi.decode(communityRegistration.data, (string, string, string, string, string));
+		require(bytes(name).length > 0, "Invalid community record");
+		address payable treasury;
+		bytes32 treasuryUID = treasuryUIDByCommunityUID[uid];
+		if (treasuryUID != bytes32(0)) {
+			Attestation memory treasuryAttestation = _eas.getAttestation(treasuryUID);
+			(treasury, ) = abi.decode(treasuryAttestation.data, (address, address[]));
+		}
+		return Community({
+			uid: uid,
+			name: name,
+			description: description,
+			country: country,
+			state: state,
+			postalCode: postalCode,
+			treasury: treasury
+		});
 	}
 
-	function communitiesById(
-		uint _id
-	) external view override returns (Community memory) {
-		return _communitiesById[_id];
+	function communityByName(string calldata name) external view returns (Community memory) {
+		return communityByUID(communityUIDByName[name]);
 	}
-
-	function communityIdByName(
-		string memory _name
-	) external view override returns (uint) {
-		return _communityIdsByName[_name];
-	}
-
-	function userToCommunityIds(
-		address _user
-	) external view override returns (uint[] memory) {
-		return _userToCommunityIds[_user];
-	}
-
-    function communityToUsers(
-		uint _communityId
-	) external view override returns (UserRecord[] memory) {
-        return _communityToUsers[_communityId];
-    }
-
-	function communityToDonors(
-		uint _communityId
-	) external view override returns (UserRecord[] memory) {
-        return _communityToDonors[_communityId];
-    }
-
-	function communityToManagers(
-		uint _communityId
-	) external view override returns (UserRecord[] memory) {
-        return _communityToManagers[_communityId];
-    }
-
-	function communityToFarmers(
-		uint _communityId
-	) external view override returns (UserRecord[] memory) {
-        return _communityToFarmers[_communityId];
-    }
-
-    function communityToFarms(
-        uint _communityId
-    ) external view override returns (FarmRecord[] memory) {
-        return _communityToFarms[_communityId];
-    }
 
 	// External registration functions
 
-	function registerCommunity(
-		string memory _name,
-		string memory _description,
-		string memory _location,
-		address[] memory _initialOwners
-	) external returns (address payable newTreasury) {
-		require(bytes(_name).length > 0, "Name cannot be empty");
-		require(bytes(_description).length > 0, "Description cannot be empty");
-		require(bytes(_location).length > 0, "Location cannot be empty");
-		require(
-			_initialOwners.length > 0,
-			"Must have at least one initial owner"
-		);
-		require(
-			_communitiesById[_communityIdsByName[_name]].treasury == address(0),
-			"Community already exists"
-		);
-		for (uint i = 0; i < _initialOwners.length; i++) {
-			UserRecord memory user = userRegistry.userRecordByAddress(
-				_initialOwners[i]
-			);
-			require(user.account != address(0), "User does not exist");
-			require(
-				user.role != UserRole.USER && user.role != UserRole.DONOR,
-				"Initial owners must be admins, farmers or managers"
-			);
-		}
+	function createTreasury(
+		bytes32 communityUID, 
+		address[] memory initialOwners
+	) external payable returns (address newTreasury) {
+		require(communityUID != bytes32(0), "Community UID cannot be 0");
+		require(initialOwners.length > 0, "Initial owners cannot be empty");
+		Attestation memory communityRegistration = _eas.getAttestation(communityUID);
+		require(communityRegistration.schema == registrationSchemaUID, "Invalid community registration schema");
+		(string memory name, , , ,) = abi.decode(communityRegistration.data, (string, string, string, string, string));
+		require(communityTreasuryByName[name] == address(0), "Community treasury already exists");
 		bytes memory setupData = abi.encodeWithSelector(
 			Safe.setup.selector,
-			_initialOwners,
-			_initialOwners.length,
+			initialOwners,
+			initialOwners.length,
 			address(0),
 			0,
 			safeFallbackHandler,
@@ -138,133 +119,40 @@ contract CommunityRegistry is ICommunityRegistry, Ownable {
 		SafeProxy treasuryProxy = safeProxyFactory.createProxyWithNonce(
 			safeSingleton,
 			setupData,
-			communities.length
+			uint256(communityUID)
 		);
 		newTreasury = payable(treasuryProxy);
-		uint communityId = communities.length + 1;
-		Community memory newCommunity = Community(
-			communityId,
-			_name,
-			_description,
-			_location,
-			newTreasury
-		);
-		_communitiesById[communityId] = newCommunity;
-		_communityIdsByName[_name] = communityId;
-		communities.push(newCommunity);
-        for (uint i = 0; i < _initialOwners.length; i++) {
-			UserRecord memory user = userRegistry.userRecordByAddress(
-				_initialOwners[i]
-			);
-			require(user.account != address(0), "User does not exist");
-			require(
-				user.role != UserRole.USER && user.role != UserRole.DONOR,
-				"Initial owners must be admins, farmers or managers"
-			);
-            _addUserToCommunity(user, communityId);
-		}
-		emit CommunityRegistered(_name, _location, msg.sender, newTreasury);
+		communityTreasuryByName[name] = newTreasury;
+		communityUIDByTreasury[newTreasury] = communityUID;
+		bytes memory treasuryData = abi.encode(newTreasury, initialOwners);
+		AttestationRequestData memory requestData = AttestationRequestData({
+			recipient: newTreasury,
+			expirationTime: 0,
+			revocable: false,
+			refUID: communityUID,
+			data: treasuryData,
+			value: 0
+		});
+		AttestationRequest memory request = AttestationRequest({
+			schema: treasurySchemaUID,
+			data: requestData
+		});
+		_eas.attest{value: msg.value}(request);
 	}
 
-	function addUserToCommunity(
-		address _newMember,
-		uint _communityId
-	) external {
-		require(_newMember != address(0), "Invalid address");
-		require(
-			userRegistry.userRecordByAddress(_newMember).account != address(0),
-			"User is not registered"
-		);
-		require(
-			_communitiesById[_communityId].treasury != address(0),
-			"Community does not exist"
-		);
-		if (_userToCommunityIds[_newMember].length > 0) {
-			for (uint i; i < _userToCommunityIds[_newMember].length; ++i) {
-				require(
-					_userToCommunityIds[_newMember][i] != _communityId,
-					"User already in community"
-				);
-			}
-		}
-		UserRecord memory newMember = userRegistry.userRecordByAddress(
-			_newMember
-		);
-		if (
-			newMember.role != UserRole.USER && newMember.role != UserRole.DONOR
-		) {
-			require(
-				msg.sender != newMember.account,
-				"Farmers, managers and admins cannot add themselves"
-			);
-			UserRecord memory senderUser = userRegistry.userRecordByAddress(
-				msg.sender
-			);
-			require(
-				senderUser.role != UserRole.USER &&
-					senderUser.role != UserRole.DONOR,
-				"Only farmers, managers and admins can add other farmers, managers and admins"
-			);
-		}
-		_addUserToCommunity(newMember, _communityId);
-		emit UserJoinedCommunity(
-			newMember.account,
-			_communitiesById[_communityId].name,
-			newMember.role
-		);
-	}
+	// function addUserToCommunity(
+	// 	address _newMember,
+	// 	uint _communityId
+	// ) external {}
 
-    function addFarmToCommunity(
-        address _farmOwner,
-        uint _communityId
-    ) external {
-        require(_farmOwner != address(0), "Invalid farm owner address");
-        require(
-			userRegistry.userRecordByAddress(_farmOwner).account != address(0),
-			"Farm owner is not registered"
-		);
-        Community memory community = _communitiesById[_communityId];
-        require(
-            community.treasury != address(0),
-            "Community does not exist"
-        );
-        require(_farmOwnerToCommunityId[_farmOwner] == 0, "Farm already in a community");
-        FarmRecord memory farm = userRegistry.farmRecordByOwner(_farmOwner);
-        require(
-            farm.farmOwner == _farmOwner,
-            "Farm owner does not match"
-        );
-        _farmOwnerToCommunityId[_farmOwner] = _communityId;
-        _communityToFarms[_communityId].push(farm);
-        emit FarmJoinedCommunity(_farmOwner, farm.farmName, community.name);
-    }
+	// function removeUserFromCommunity(
+	// 	uint _communityId,
+	// 	UserRole _role,
+	// 	uint256 index
+	// ) external {}
 
-	function removeUserFromCommunity(
-		uint _communityId,
-		UserRole _role,
-		uint256 index
-	) external {
-		require(
-			_communitiesById[_communityId].treasury != address(0),
-			"Community does not exist"
-		);
-		UserRecord memory senderUser = userRegistry.userRecordByAddress(
-			msg.sender
-		);
-		require(
-			senderUser.role == UserRole.ADMIN,
-			"Only admins can remove users from a community"
-		);
-		require(
-			_role != UserRole.ADMIN,
-			"Admins cannot be removed from a community"
-		);
-		address userToRemove = _removeUserFromCommunity(
-			_communityId,
-			_role,
-			index
-		);
-		emit UserRemovedFromCommunity(userToRemove, _communitiesById[_communityId].name);
+	function isPayable() public pure override returns (bool) {
+		return true;
 	}
 
 	// External admin functions
@@ -278,71 +166,64 @@ contract CommunityRegistry is ICommunityRegistry, Ownable {
 	function _addUserToCommunity(
 		UserRecord memory _newUser,
 		uint _communityId
-	) internal {
-		require(
-			_communitiesById[_communityId].treasury != address(0),
-			"Community does not exist"
-		);
-		_userToCommunityIds[msg.sender].push(
-			_communityId
-		);
-		Community memory community = _communitiesById[_communityId];
-		uint communityId = community.id;
-		if (_newUser.role == UserRole.USER) {
-			_communityToUsers[communityId].push(_newUser);
-		} else if (_newUser.role == UserRole.DONOR) {
-			_communityToDonors[communityId].push(_newUser);
-		} else if (_newUser.role == UserRole.MANAGER) {
-			_communityToManagers[communityId].push(_newUser);
-		} else if (_newUser.role == UserRole.FARMER) {
-			_communityToFarmers[communityId].push(_newUser);
-		} else {
-			revert("Invalid role");
-		}
-	}
+	) internal {}
 
 	function _removeUserFromCommunity(
 		uint _communityId,
 		UserRole _role,
 		uint256 index
-	) internal returns (address userToRemove) {
-		if (_role == UserRole.USER) {
-			require(
-				_communityToUsers[_communityId].length > index,
-				"Index out of bounds"
-			);
-			userToRemove = _communityToUsers[_communityId][index].account;
-			delete _communityToUsers[_communityId][index];
-		} else if (_role == UserRole.DONOR) {
-			require(
-				_communityToDonors[_communityId].length > index,
-				"Index out of bounds"
-			);
-			userToRemove = _communityToDonors[_communityId][index].account;
-			delete _communityToDonors[_communityId][index];
-		} else if (_role == UserRole.FARMER) {
-			require(
-				_communityToFarmers[_communityId].length > index,
-				"Index out of bounds"
-			);
-			userToRemove = _communityToFarmers[_communityId][index].account;
-			delete _communityToFarmers[_communityId][index];
-		} else if (_role == UserRole.MANAGER) {
-			require(
-				_communityToManagers[_communityId].length > index,
-				"Index out of bounds"
-			);
-			userToRemove = _communityToManagers[_communityId][index].account;
-			delete _communityToManagers[_communityId][index];
-		} else {
-			revert("Invalid role");
-		}
-		uint[] memory userCommunities = _userToCommunityIds[userToRemove];
-		for (uint i; i < userCommunities.length; ++i) {
-			if (userCommunities[i] == _communityId) {
-				delete _userToCommunityIds[userToRemove][i];
-				break;
+	) internal returns (address userToRemove) {}
+
+	receive() external payable virtual override {}
+
+	function onAttest(
+		Attestation calldata attestation,
+		uint256 value
+	) internal virtual override returns (bool) {
+		if (attestation.schema == registrationSchemaUID) {
+			// Attestation is for a community registration
+			require(value == 0, "Community registration requires zero value");
+			(
+				string memory name, 
+				string memory description, 
+				string memory country, 
+				string memory state, 
+				string memory postalCode
+			) = abi.decode(attestation.data, (string,string,string,string,string));
+			require(bytes(name).length > 0, "Name cannot be empty");
+			require(communityUIDByName[name] == bytes32(0), "Community name already exists");
+			require(bytes(description).length > 0, "Description cannot be empty");
+			require(bytes(country).length > 0, "Country cannot be empty");
+			require(bytes(postalCode).length > 0, "Postal code cannot be empty");
+			communityUIDByName[name] = attestation.uid;
+			emit CommunityRegistered(attestation.uid, name, description, country, state, postalCode);
+			return true;
+		} else if (attestation.schema == treasurySchemaUID) {
+			// Attestation is for a new community treasury
+			(
+				address treasury,
+				address[] memory initialOwners
+			) = abi.decode(attestation.data, (address, address[]));
+			require(treasury != address(0) && initialOwners.length > 0, "Invalid treasury data");
+			treasuryUIDByCommunityUID[attestation.refUID] = attestation.uid;
+			communityUIDByTreasury[treasury] = attestation.refUID;
+			Attestation memory communityRegistration = _eas.getAttestation(attestation.refUID);
+			(string memory name, , , ,) = abi.decode(communityRegistration.data, (string, string, string, string, string));
+			emit CommunityTreasuryCreated(attestation.uid, name, attestation.refUID, treasury, initialOwners);
+			if (value > 0) {
+				require(msg.value == value, "Message value mismatch");
+				(bool success,) = treasury.call{value: value}("");
+				require(success, "Value transfer to treasury failed");
 			}
-		}
+			return true;
+		} 
+		return false;
+	}
+
+	function onRevoke(
+		Attestation calldata,
+		uint256
+	) internal virtual override returns (bool) {
+		return false;
 	}
 }

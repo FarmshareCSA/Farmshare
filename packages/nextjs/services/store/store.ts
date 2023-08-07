@@ -1,4 +1,6 @@
 import create from "zustand";
+import { OpenloginUserInfo } from "@web3auth/openlogin-adapter";
+import { UserRegistration } from "../eas/customSchemaTypes";
 
 /**
  * Zustand Store
@@ -12,9 +14,17 @@ import create from "zustand";
 type TGlobalState = {
   nativeCurrencyPrice: number;
   setNativeCurrencyPrice: (newNativeCurrencyPriceState: number) => void;
+  userInfo: Partial<OpenloginUserInfo> | null;
+  setUserInfo: (newUserInfo: Partial<OpenloginUserInfo>) => void;
+  userRegistration: UserRegistration | null;
+  setUserRegistration: (newRegistration: UserRegistration | null) => void;
 };
 
 export const useGlobalState = create<TGlobalState>(set => ({
   nativeCurrencyPrice: 0,
   setNativeCurrencyPrice: (newValue: number): void => set(() => ({ nativeCurrencyPrice: newValue })),
+  userInfo: null,
+  setUserInfo: (newUserInfo: Partial<OpenloginUserInfo>): void => set(() => ({ userInfo: newUserInfo })),
+  userRegistration: null,
+  setUserRegistration: (newRegistration: UserRegistration | null): void => set(() => ({ userRegistration: newRegistration })),
 }));

@@ -1,9 +1,57 @@
-import Link from "next/link";
 import type { NextPage } from "next";
-import { BugAntIcon, MagnifyingGlassIcon, SparklesIcon } from "@heroicons/react/24/outline";
 import { MetaHeader } from "~~/components/MetaHeader";
+import { useAccount } from "wagmi";
+import { getUserAttestationsForAddress } from "~~/services/eas/utils";
+import { useState, useEffect } from "react";
+import type {
+  Attestation,
+} from "~~/services/eas/types";
+import { UserRegistrationForm } from "~~/components/UserRegistrationForm";
+import { useScaffoldContractRead } from "~~/hooks/scaffold-eth";
+import { useGlobalState } from "~~/services/store/store";
+import { SchemaEncoder } from "@ethereum-attestation-service/eas-sdk";
+import { UserRole } from "~~/services/eas/customSchemaTypes";
+import { FarmRegistrationForm } from "~~/components/FarmRegistrationForm";
 
 const Home: NextPage = () => {
+  const { address } = useAccount();
+  const userInfo = useGlobalState(state => state.userInfo);
+  const userRegistration = useGlobalState(state => state.userRegistration);
+  const setUserRegistration = useGlobalState(state => state.setUserRegistration);
+  const [userAttestations, setUserAttestations] = useState<Attestation[]>([])
+
+  const userSchemaEncoder = new SchemaEncoder(
+    "address account,string name,bytes32 emailHash,string location,uint8 role",
+  );
+
+  const { data: schemaUID } = useScaffoldContractRead({
+    contractName: "UserRegistry",
+    functionName: "registrationSchemaUID",
+  });
+
+  useEffect(() => {
+    const getUserAttestations = async () => {
+      const tmpAttestations = await getUserAttestationsForAddress(
+        address ? address : "",
+        schemaUID ? schemaUID : ""
+      )
+      setUserAttestations(tmpAttestations);
+      if (tmpAttestations.length > 0) {
+        const decodedData = userSchemaEncoder.decodeData(tmpAttestations[0].data);
+        setUserRegistration({
+          account: decodedData[0].value.value.toString(),
+          name: decodedData[1].value.value.toString(),
+          emailHash: decodedData[2].value.value.toString(),
+          location: decodedData[3].value.value.toString(),
+          role: Number(decodedData[4].value.value)
+        })
+      } else {
+        setUserRegistration(null)
+      }
+    }
+    getUserAttestations();
+  }, [address, userRegistration])
+
   return (
     <>
       <MetaHeader />
@@ -11,51 +59,23 @@ const Home: NextPage = () => {
         <div className="px-5">
           <h1 className="text-center mb-8">
             <span className="block text-2xl mb-2">Welcome to</span>
-            <span className="block text-4xl font-bold">Scaffold-ETH 2</span>
+            <span className="block text-4xl font-bold">FarmShare</span>
           </h1>
-          <p className="text-center text-lg">
-            Get started by editing{" "}
-            <code className="italic bg-base-300 text-base font-bold">packages/nextjs/pages/index.tsx</code>
-          </p>
-          <p className="text-center text-lg">
-            Edit your smart contract <code className="italic bg-base-300 text-base font-bold">YourContract.sol</code> in{" "}
-            <code className="italic bg-base-300 text-base font-bold">packages/hardhat/contracts</code>
-          </p>
-        </div>
-
-        <div className="flex-grow bg-base-300 w-full mt-16 px-8 py-12">
-          <div className="flex justify-center items-center gap-12 flex-col sm:flex-row">
-            <div className="flex flex-col bg-base-100 px-10 py-10 text-center items-center max-w-xs rounded-3xl">
-              <BugAntIcon className="h-8 w-8 fill-secondary" />
-              <p>
-                Tinker with your smart contract using the{" "}
-                <Link href="/debug" passHref className="link">
-                  Debug Contract
-                </Link>{" "}
-                tab.
+          { address ? 
+            userAttestations.length > 0 || userRegistration ? (
+              <p className="text-center text-lg">
+                Welcome back{ userInfo && userInfo.name ? " " + userInfo.name.split(" ")[0] : ""}!
               </p>
-            </div>
-            <div className="flex flex-col bg-base-100 px-10 py-10 text-center items-center max-w-xs rounded-3xl">
-              <SparklesIcon className="h-8 w-8 fill-secondary" />
-              <p>
-                Experiment with{" "}
-                <Link href="/example-ui" passHref className="link">
-                  Example UI
-                </Link>{" "}
-                to build your own UI.
-              </p>
-            </div>
-            <div className="flex flex-col bg-base-100 px-10 py-10 text-center items-center max-w-xs rounded-3xl">
-              <MagnifyingGlassIcon className="h-8 w-8 fill-secondary" />
-              <p>
-                Explore your local transactions with the{" "}
-                <Link href="/blockexplorer" passHref className="link">
-                  Block Explorer
-                </Link>{" "}
-                tab.
-              </p>
-            </div>
-          </div>
+            ) : (
+              <UserRegistrationForm />
+            )
+          : (
+            <p className="text-center text-lg">
+              Get started by logging in with your preferred social account, email, phone or wallet. 
+              Just hit <i>Log In</i> in the top-right corner!
+            </p>
+          ) }
+          { userRegistration && userRegistration.role == UserRole.Farmer && <FarmRegistrationForm /> }
         </div>
       </div>
     </>
