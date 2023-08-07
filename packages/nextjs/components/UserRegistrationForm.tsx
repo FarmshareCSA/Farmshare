@@ -11,13 +11,13 @@ import { useEthersSigner } from '~~/services/web3/ethers';
 import { useScaffoldContractRead } from '~~/hooks/scaffold-eth';
 import { UserRegistration } from '~~/services/eas/customSchemaTypes';
 import { Spinner } from './Spinner';
+import { keccak256, stringToBytes } from 'viem';
 
 export const UserRegistrationForm = () => {
     const userInfo = useGlobalState(state => state.userInfo);
     const setUserRegistration = useGlobalState(state => state.setUserRegistration);
     const [name, setName] = useState(userInfo?.name || "");
     const [email, setEmail] = useState(userInfo?.email || "");
-    const [phone, setPhone] = useState("");
     const [location, setLocation] = useState("");
     const [role, setRole] = useState("");
     const [submitting, setSubmitting] = useState(false);
@@ -45,7 +45,7 @@ export const UserRegistrationForm = () => {
     
     // Initialize SchemaEncoder with the schema string
     const schemaEncoder = new SchemaEncoder(
-        "address account,string name,string email,string phone,string location,uint8 role",
+        "address account,string name,bytes32 emailHash,string location,uint8 role",
     );
 
     const handleSubmit = async () => {
@@ -55,11 +55,11 @@ export const UserRegistrationForm = () => {
             eas.connect(signer);
             const address = await signer.getAddress()
             invariant(schemaUID, "schema UID must be defined");
+            const emailHash = keccak256(stringToBytes(email));
             const encodedData = schemaEncoder.encodeData([
                 { name: "account", value: address, type: "address" },
                 { name: "name", value: name, type: "string" },
-                { name: "email", value: email, type: "string" },
-                { name: "phone", value: phone, type: "string" },
+                { name: "emailHash", value: emailHash, type: "string" },
                 { name: "location", value: location, type: "string" },
                 { name: "role", value: role, type: "uint8" },
               ]);
@@ -80,8 +80,7 @@ export const UserRegistrationForm = () => {
             const userRegistration: UserRegistration = {
                 account: address,
                 name: name,
-                email: email,
-                phone: phone,
+                emailHash: emailHash,
                 location: location,
                 role: Number(role)
             };
@@ -106,9 +105,6 @@ export const UserRegistrationForm = () => {
             } />
             <InputBase value={email} onChange={e => setEmail(e)} placeholder="janefarmer@gmail.com" prefix={
                 <span className="self-center cursor-pointer text-xl font-semibold px-4 text-accent">📧</span>
-            } />
-            <InputBase value={phone} onChange={e => setPhone(e)} placeholder="123-456-7890" prefix={
-                <span className="self-center cursor-pointer text-xl font-semibold px-4 text-accent">☎️</span>
             } />
             <InputBase value={location} onChange={e => setLocation(e)} placeholder="123 Main St., Farmtown, NY" prefix={
                 <span className="self-center cursor-pointer text-xl font-semibold px-4 text-accent">📍</span>

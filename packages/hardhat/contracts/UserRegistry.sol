@@ -8,11 +8,11 @@ import "@ethereum-attestation-service/eas-contracts/contracts/ISchemaRegistry.so
 import "./interfaces/IUserRegistry.sol";
 
 contract UserRegistry is IUserRegistry, Ownable, SchemaResolver {
-    string public constant registrationSchema = "address account,string name,string email,string phone,string location,uint8 role";
+    string public constant registrationSchema = "address account,string name,bytes32 emailHash,string location,uint8 role";
     bytes32 public immutable registrationSchemaUID;
 
     mapping(address => bytes32) public userRegistrations;
-    mapping(string => address) public userEmailToAddress;
+    mapping(bytes32 => address) public userEmailHashToAddress;
 
     constructor(IEAS eas, ISchemaRegistry registry) SchemaResolver(eas) Ownable() {
         registrationSchemaUID = registry.register(registrationSchema, this, true);
@@ -25,8 +25,7 @@ contract UserRegistry is IUserRegistry, Ownable, SchemaResolver {
             return UserRecord({
                 account: address(0),
                 name: "",
-                email: "",
-                phone: "",
+                emailHash: 0,
                 location: "",
                 role: UserRole.NONE
             });
@@ -35,16 +34,14 @@ contract UserRegistry is IUserRegistry, Ownable, SchemaResolver {
         (
             address _account, 
             string memory _name, 
-            string memory _email, 
-            string memory _phone, 
+            bytes32 _emailHash, 
             string memory _location, 
             UserRole _role
-        ) = abi.decode(attestation.data, (address, string, string, string, string, UserRole));
+        ) = abi.decode(attestation.data, (address, string, bytes32, string, UserRole));
         return UserRecord({
             account: _account,
 			name: _name,
-			email: _email,
-			phone: _phone,
+			emailHash: _emailHash,
 			location: _location,
 			role: _role
         });
@@ -55,7 +52,8 @@ contract UserRegistry is IUserRegistry, Ownable, SchemaResolver {
     }
 
     function userRecordByEmail(string calldata email) external view returns (UserRecord memory) {
-        return userRecordByAddress(userEmailToAddress[email]);
+        bytes32 emailHash = keccak256(bytes(email));
+        return userRecordByAddress(userEmailHashToAddress[emailHash]);
     } 
 
     // Internal SchemaResolver functions
@@ -69,16 +67,15 @@ contract UserRegistry is IUserRegistry, Ownable, SchemaResolver {
         (
             address _account, 
             string memory _name, 
-            string memory _email, 
-            string memory _phone, 
+            bytes32 _emailHash, 
             string memory _location, 
             UserRole _role
-        ) = abi.decode(attestation.data, (address, string, string, string, string, UserRole));
+        ) = abi.decode(attestation.data, (address, string, bytes32, string, UserRole));
         require(userRegistrations[_account] == bytes32(0), "User already registered");
-        require(userEmailToAddress[_email] == address(0), "Email already registered");
+        require(userEmailHashToAddress[_emailHash] == address(0), "Email already registered");
         userRegistrations[_account] = attestation.uid;
-        userEmailToAddress[_email] = _account;
-        emit UserRegistered(_account, attestation.uid, _name, _email, _phone, _location, _role);
+        userEmailHashToAddress[_emailHash] = _account;
+        emit UserRegistered(_account, attestation.uid, _name, _emailHash, _location, _role);
         return true;
     }
 
@@ -91,16 +88,15 @@ contract UserRegistry is IUserRegistry, Ownable, SchemaResolver {
         (
             address _account, 
             string memory _name, 
-            string memory _email, 
-            string memory _phone, 
+            bytes32 _emailHash, 
             string memory _location, 
             UserRole _role
-        ) = abi.decode(attestation.data, (address, string, string, string, string, UserRole));
+        ) = abi.decode(attestation.data, (address, string, bytes32, string, UserRole));
         require(userRegistrations[_account] != bytes32(0), "User is not registered");
-        require(userEmailToAddress[_email] == _account, "Registered email does not match");
+        require(userEmailHashToAddress[_emailHash] == _account, "Registered email does not match");
         delete userRegistrations[_account];
-        delete userEmailToAddress[_email];
-        emit UserRevoked(_account, attestation.uid, _name, _email, _phone, _location, _role);
+        delete userEmailHashToAddress[_emailHash];
+        emit UserRevoked(_account, attestation.uid, _name, _emailHash, _location, _role);
         return true;
     }
 }

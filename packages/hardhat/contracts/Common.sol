@@ -19,8 +19,7 @@ enum TaskStatus {
 struct UserRecord {
     address account;
     string name;
-    string email;
-    string phone;
+    bytes32 emailHash;
     string location;
     UserRole role;
 }

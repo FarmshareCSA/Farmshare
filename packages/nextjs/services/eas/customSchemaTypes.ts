@@ -10,8 +10,7 @@ export enum UserRole {
 export type UserRegistration = {
     account: string,
     name: string,
-    email: string,
-    phone: string,
+    emailHash: string,
     location: string,
     role: UserRole
 }

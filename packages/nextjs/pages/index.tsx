@@ -21,7 +21,7 @@ const Home: NextPage = () => {
   const [userAttestations, setUserAttestations] = useState<Attestation[]>([])
 
   const userSchemaEncoder = new SchemaEncoder(
-    "address account,string name,string email,string phone,string location,uint8 role",
+    "address account,string name,bytes32 emailHash,string location,uint8 role",
   );
 
   const { data: schemaUID } = useScaffoldContractRead({
@@ -41,10 +41,9 @@ const Home: NextPage = () => {
         setUserRegistration({
           account: decodedData[0].value.value.toString(),
           name: decodedData[1].value.value.toString(),
-          email: decodedData[2].value.value.toString(),
-          phone: decodedData[3].value.value.toString(),
-          location: decodedData[4].value.value.toString(),
-          role: Number(decodedData[5].value.value)
+          emailHash: decodedData[2].value.value.toString(),
+          location: decodedData[3].value.value.toString(),
+          role: Number(decodedData[4].value.value)
         })
       } else {
         setUserRegistration(null)
