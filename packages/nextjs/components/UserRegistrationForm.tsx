@@ -34,11 +34,7 @@ export const UserRegistrationForm = () => {
     const easAddress =
     chain && contracts
       ? contracts[chain.id]?.[0]?.["contracts"]?.["EAS"]
-<<<<<<< HEAD
         ? contracts[chain.id]?.[0]?.["contracts"]?.["EAS"].address
-=======
-        ? contracts[chain.id]?.[0]?.["contracts"]?.["EAS"]?.address
->>>>>>> user-registry
         : "0xC2679fBD37d54388Ce493F1DB75320D236e1815e"
       : "0xC2679fBD37d54388Ce493F1DB75320D236e1815e";
     if (chain) {
