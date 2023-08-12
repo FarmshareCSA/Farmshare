@@ -6,12 +6,48 @@ import Tab from '@mui/material/Tab';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
 import React from "react";
+import moment from "moment";
+import Card from '@mui/material/Card';
+import CardActions from '@mui/material/CardActions';
+import CardContent from '@mui/material/CardContent';
+import Button from '@mui/material/Button';
 
 interface TabPanelProps {
     children?: React.ReactNode;
     index: number;
     value: number;
 }
+
+const sampleTasks = [
+    {
+      id: 1,
+      title: "Harvest Apples",
+      startTime: moment(),
+      endTime: moment().add(1,'hour'),
+      reward: 100
+    },
+    {
+      id: 1,
+      title: "Pick Blueberries",
+      startTime: moment(),
+      endTime: moment().add(1,'hour'),
+      reward: 100
+    },
+    {
+      id: 1,
+      title: "Pick Strawberries",
+      startTime: moment(),
+      endTime: moment().add(1,'hour'),
+      reward: 100
+    },
+    {
+      id: 1,
+      title: "Deliver Tomatoes",
+      startTime: moment(),
+      endTime: moment().add(1,'hour'),
+      reward: 120
+    }
+]
 
 function CustomTabPanel(props: TabPanelProps) {
     const { children, value, index, ...other } = props;
@@ -26,7 +62,7 @@ function CustomTabPanel(props: TabPanelProps) {
       >
         {value === index && (
           <Box sx={{ p: 3 }}>
-            <Typography>{children}</Typography>
+            {children}
           </Box>
         )}
       </div>
@@ -40,6 +76,25 @@ function CustomTabPanel(props: TabPanelProps) {
     };
   }
 
+  const card = (title:any, startTime: any, endTime: any,rewards:any)=> (
+    <div>
+      <CardContent>
+        <Typography variant="h5" component="div">
+          {title}
+        </Typography>
+        <Typography sx={{ mb: 1.5 }} color="text.secondary">
+            {startTime.format("h:mm a")} - {endTime.format("h:mm a")}
+        </Typography>
+        <Typography variant="body2">
+            {"Reward: "+rewards}
+        </Typography>
+      </CardContent>
+      <CardActions>
+        <Button size="small">Details</Button>
+      </CardActions>
+    </div>
+  );
+
 
 const Farms: NextPage = () => {
     const [value, setValue] = React.useState(0);
@@ -51,20 +106,40 @@ const Farms: NextPage = () => {
     return (
       <Box sx={{ width: '100%' }}>
         <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-          <Tabs value={value} onChange={handleChange} aria-label="basic tabs example">
-            <Tab label="Item One" {...a11yProps(0)} />
-            <Tab label="Item Two" {...a11yProps(1)} />
-            <Tab label="Item Three" {...a11yProps(2)} />
+          <Tabs value={value} onChange={handleChange} aria-label="basic tabs example" variant="fullWidth">
+            <Tab label="Today" {...a11yProps(0)} />
+            <Tab label="Tommorow" {...a11yProps(1)} />
+            <Tab label={moment().add(2,'days').format("MMMM DD")} {...a11yProps(2)} />
+            <Tab label={moment().add(3,'days').format("MMMM DD")} {...a11yProps(3)} />
           </Tabs>
         </Box>
         <CustomTabPanel value={value} index={0}>
-          Item One
+          {
+              sampleTasks.map((task)=>(
+                <Card variant="outlined" style={{marginBottom: '1rem'}}>{card(task.title,task.startTime,task.endTime,task.reward)}</Card>
+              ))
+          }
         </CustomTabPanel>
         <CustomTabPanel value={value} index={1}>
-          Item Two
+          {
+              sampleTasks.map((task)=>(
+                <Card variant="outlined" style={{marginBottom: '1rem'}}>{card(task.title,task.startTime,task.endTime,task.reward)}</Card>
+              ))
+          }
         </CustomTabPanel>
         <CustomTabPanel value={value} index={2}>
-          Item Three
+          {
+              sampleTasks.map((task)=>(
+                <Card variant="outlined" style={{marginBottom: '1rem'}}>{card(task.title,task.startTime,task.endTime,task.reward)}</Card>
+              ))
+          }
+        </CustomTabPanel>
+        <CustomTabPanel value={value} index={3}>
+          {
+              sampleTasks.map((task)=>(
+                <Card variant="outlined" style={{marginBottom: '1rem'}}>{card(task.title,task.startTime,task.endTime,task.reward)}</Card>
+              ))
+          }
         </CustomTabPanel>
       </Box>
     );

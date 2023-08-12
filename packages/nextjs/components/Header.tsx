@@ -63,6 +63,12 @@ export const Header = () => {
           Farms
         </NavLink>
       </li>
+      <li>
+        <NavLink href="/tasks">
+          <MagnifyingGlassIcon className="h-4 w-4" />
+          Tasks
+        </NavLink>
+      </li>
     </>
   );
 
