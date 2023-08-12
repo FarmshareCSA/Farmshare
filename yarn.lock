@@ -4603,6 +4603,7 @@ __metadata:
     eslint-plugin-prettier: ^4.2.1
     ipfs-http-client: ^60.0.1
     magic-sdk: ^18.4.1
+    moment: ^2.29.4
     next: ^13.1.6
     nextjs-progressbar: ^0.0.16
     postcss: ^8.4.16
@@ -16096,6 +16097,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"moment@npm:^2.29.4":
+  version: 2.29.4
+  resolution: "moment@npm:2.29.4"
+  checksum: 0ec3f9c2bcba38dc2451b1daed5daded747f17610b92427bebe1d08d48d8b7bdd8d9197500b072d14e326dd0ccf3e326b9e3d07c5895d3d49e39b6803b76e80e
+  languageName: node
+  linkType: hard
+
 "motion@npm:10.16.2":
   version: 10.16.2
   resolution: "motion@npm:10.16.2"
@@ -18941,6 +18949,7 @@ __metadata:
   dependencies:
     husky: ^8.0.1
     lint-staged: ^13.0.3
+    moment: ^2.29.4
   languageName: unknown
   linkType: soft
 
