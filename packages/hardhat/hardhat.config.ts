@@ -99,6 +99,7 @@ const config: HardhatUserConfig = {
     baseGoerli: {
       url: `https://base-goerli.public.blastapi.io`,
       accounts: [deployerPrivateKey],
+      chainId: 84531
     },
     zkSyncTestnet: {
       url: "https://testnet.era.zksync.dev",
