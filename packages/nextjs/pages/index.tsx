@@ -58,7 +58,7 @@ const Home: NextPage = () => {
 
   useEffect(() => {
     const tryZeroDevSigner = async () => {
-      if (web3AuthInstance) {
+      if (web3AuthInstance && address) {
         const tmpSigner = await getZeroDevSigner({
           projectId: defaultProjectId,
           owner: getRPCProviderOwner(web3AuthInstance.provider),
