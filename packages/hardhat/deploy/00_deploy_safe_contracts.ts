@@ -10,21 +10,21 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         from: deployer,
         args: [],
         log: true,
-        deterministicDeployment: true,
+        deterministicDeployment: true
     });
 
     await deploy("Safe", {
         from: deployer,
         args: [],
         log: true,
-        deterministicDeployment: true,
+        deterministicDeployment: true
     });
 
     await deploy("CompatibilityFallbackHandler", {
         from: deployer,
         args: [],
         log: true,
-        deterministicDeployment: true,
+        deterministicDeployment: true
     });
 };
 

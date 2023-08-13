@@ -67,6 +67,7 @@ const config: HardhatUserConfig = {
       url: `https://eth-sepolia.g.alchemy.com/v2/${providerApiKey}`,
       accounts: [deployerPrivateKey],
       chainId: 11155111,
+      blockGasLimit: 40000000
     },
     goerli: {
       url: `https://eth-goerli.alchemyapi.io/v2/${providerApiKey}`,

@@ -21,17 +21,16 @@ contract TaskRegistry is ITaskRegistry, Ownable, SchemaResolver {
 	string public constant taskCompletedSchema = "uint256 taskId, uint256 communityId, address userAddress , uint256 timeStamp";
 	bytes32 public immutable taskCompletedSchemaUID;
 	string public constant taskReviewSchema = "uint256 taskId, uint256 communityId, address userAddress , string comments";
-	bytes32 public immutable taskCompletedSchemaUID;
+	bytes32 public immutable taskReviewSchemaUID;
 
 	ICommunityRegistry public communityRegistry;
-
 
 
 	constructor(
 		IEAS eas,
 		ISchemaRegistry _schemaRegistry,
 		ICommunityRegistry _communityRegistry
-	) Ownable() SchemaResolver(_easContract) {
+	) Ownable() SchemaResolver(eas) {
 		communityRegistry = _communityRegistry;
 		communityTaskSchemaUID = _schemaRegistry.register(communityTaskSchema, this, false);
 		taskStartedSchemaUID = _schemaRegistry.register(taskStartedSchema, this, false);
@@ -39,7 +38,7 @@ contract TaskRegistry is ITaskRegistry, Ownable, SchemaResolver {
 		taskReviewSchemaUID = _schemaRegistry.register(taskReviewSchema, this, false);
 	}
 
-	mapping(string => bytes32) public communityUIDByName;
+	mapping(string => bytes32) public taskUIDByName;
 
 	// External view functions
 
@@ -50,35 +49,35 @@ contract TaskRegistry is ITaskRegistry, Ownable, SchemaResolver {
 				name: "",
 				description: "",
 				creator: address(0),
-				startTime: bytes32(0),
-				endTime: bytes32(0),
+				startTime: uint(0),
+				endTime: uint(0),
 				recurring: false,
-				frequency: bytes32(0),
-				reward: bytes32(0)
+				frequency: uint(0),
+				reward: uint(0)
 			});
 		}
 		Attestation memory communityTaskRegistration = _eas.getAttestation(uid);
 		(
 			string memory name,
 			string memory description,
-			address memory creator,
-			uint memory startTime,
-			uint memory endTime,
-			bool memory recurring,
-			uint memory frequency,
-			uint memory reward
+			address _creator,
+			uint _startTime,
+			uint _endTime,
+			bool _recurring,
+			uint _frequency,
+			uint _reward
 		) = abi.decode(communityTaskRegistration.data, (string, string, address, uint, uint, bool, uint, uint));
 		require(bytes(name).length > 0, "Invalid community task record");
 		return Task({
 			uid: uid,
 			name: name,
 			description: description,
-			creator: creator,
-			startTime: startTime,
-			endTime: endTime,
-			recurring: recurring,
-			frequency: frequency,
-			reward: reward
+			creator: _creator,
+			startTime: _startTime,
+			endTime: _endTime,
+			recurring: _recurring,
+			frequency: _frequency,
+			reward: _reward
 		});
 	}
 
@@ -88,30 +87,30 @@ contract TaskRegistry is ITaskRegistry, Ownable, SchemaResolver {
 
 	function createTaskStarted(
 		bytes32 taskUID, 
-		address memory userAddress,
-		uint256 memory timeStamp
-	) external returns (address newTaskStared) {
+		address userAddress,
+		uint256 timeStamp
+	) external payable returns (address newTaskStarted) {
 		require(taskUID != bytes32(0), "Task UID cannot be 0");
-		require(bytes(userAddress).length > 0, "Initial owners cannot be empty");
 		Attestation memory communityTaskRegistration = _eas.getAttestation(taskUID);
 		require(communityTaskRegistration.schema == communityTaskSchemaUID, "Invalid community task schema");
 
 
-		bytes memory taskStartedData = abi.encode([
-			uint,
-			address,
-			uint
-		], [
-			taskUID,
-			userAddress,
-			timeStamp
-		]);
+		bytes memory taskStartedData = abi.encode(
+		(	TaskStarted(
+				taskUID,
+				userAddress,
+				timeStamp
+			)
+		)
+		);
+
 		AttestationRequestData memory requestData = AttestationRequestData({
 			recipient: userAddress,
 			expirationTime: 0,
 			revocable: false,
 			refUID: taskUID,
-			data: taskStartedData
+			data: taskStartedData,
+			value: 0
 		});
 		AttestationRequest memory request = AttestationRequest({
 			schema: taskStartedSchemaUID,
@@ -122,33 +121,35 @@ contract TaskRegistry is ITaskRegistry, Ownable, SchemaResolver {
 
 	function createTaskCompleted(
 		bytes32 taskUID, 
-		address memory userAddress,
-		uint256 memory timeStamp
-	) external returns (address newTaskStared) {
+		address userAddress,
+		uint256 timeStamp
+	) external payable returns (address newTaskCompleted) {
 		require(taskUID != bytes32(0), "Task UID cannot be 0");
-		require(bytes(userAddress).length > 0, "Initial owners cannot be empty");
 		Attestation memory communityTaskRegistration = _eas.getAttestation(taskUID);
 		require(communityTaskRegistration.schema == communityTaskSchemaUID, "Invalid community task schema");
 
 
-		bytes memory taskCompletedData = abi.encode([
-			uint,
-			address,
-			uint
-		], [
-			taskUID,
-			userAddress,
-			timeStamp
-		]);
+		bytes memory taskCompletedData = abi.encode(
+		(	TaskCompleted(
+				taskUID,
+				userAddress,
+				timeStamp
+			)
+		)
+		);
+
+
+		
 		AttestationRequestData memory requestData = AttestationRequestData({
 			recipient: userAddress,
 			expirationTime: 0,
 			revocable: false,
 			refUID: taskUID,
-			data: taskCompletedData
+			data: taskCompletedData,
+			value: 0
 		});
 		AttestationRequest memory request = AttestationRequest({
-			schema: taskCompletedDataSchemaUID,
+			schema: taskCompletedSchemaUID,
 			data: requestData
 		});
 		_eas.attest{value: msg.value}(request);
@@ -164,15 +165,15 @@ contract TaskRegistry is ITaskRegistry, Ownable, SchemaResolver {
 			(
 				string memory name,
 				string memory description,
-				address memory creator,
-				uint memory startTime,
-				uint memory endTime,
-				bool memory recurring,
-				uint memory frequency,
-				uint memory reward
+				address creator,
+				uint startTime,
+				uint endTime,
+				bool recurring,
+				uint frequency,
+				uint reward
 			) = abi.decode(attestation.data, (string, string, address, uint, uint, bool, uint, uint));
 			require(bytes(name).length > 0, "Name cannot be empty");
-			
+			require(bytes(description).length > 0, "Description cannot be empty");
 			taskUIDByName[name] = attestation.uid;
 			emit TaskRegistered(
 				attestation.uid,

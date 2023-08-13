@@ -83,6 +83,7 @@ export const FarmRegistrationForm = () => {
             });
             invariant(userUID && userUID != "0x0", "user must be registered")
             invariant(schemaUID, "schema UID must be defined");
+
             const encodedData = schemaEncoder.encodeData([
                 { name: "ownerUID", value: userUID, type: "address" },
                 { name: "farmName", value: name, type: "string" },
@@ -93,6 +94,8 @@ export const FarmRegistrationForm = () => {
                 { name: "websiteUrl", value: website, type: "string" },
                 { name: "imageUrl", value: website, type: "string" },
               ]);
+
+            
       
               const tx = await eas.attest({
                 schema: schemaUID,

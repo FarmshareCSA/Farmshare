@@ -53,7 +53,7 @@ struct ProductType {
 }
 
 struct Task {
-    uint id;
+    bytes32 uid;
     string name;
     string description;
     address creator;
@@ -63,3 +63,16 @@ struct Task {
     uint frequency;
     uint reward;
 }
+
+struct TaskCompleted {
+    bytes32 uid;
+    address userAddress;
+    uint timeStamp;
+}
+
+struct TaskStarted {
+    bytes32 uid;
+    address userAddress;
+    uint timeStamp;
+}
+
