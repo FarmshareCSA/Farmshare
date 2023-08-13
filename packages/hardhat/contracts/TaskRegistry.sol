@@ -16,11 +16,11 @@ import "./interfaces/ICommunityRegistry.sol";
 contract TaskRegistry is ITaskRegistry, Ownable, SchemaResolver {
     string public constant communityTaskSchema = "string name,string description,address creator,uint256 startTime,uint256 endTime,bool recurring,uint256 frequency,uint256 reward";
     bytes32 public immutable communityTaskSchemaUID;
-	string public constant taskStartedSchema = "uint256 taskId, uint256 communityId, address userAddress , uint256 timeStamp";
+	string public constant taskStartedSchema = "uint256 taskId,uint256 communityId,address userAddress,uint256 startTimestamp";
 	bytes32 public immutable taskStartedSchemaUID;
-	string public constant taskCompletedSchema = "uint256 taskId, uint256 communityId, address userAddress , uint256 timeStamp";
+	string public constant taskCompletedSchema = "uint256 taskId,uint256 communityId,address userAddress,uint256 completeTimestamp";
 	bytes32 public immutable taskCompletedSchemaUID;
-	string public constant taskReviewSchema = "uint256 taskId, uint256 communityId, address userAddress , string comments";
+	string public constant taskReviewSchema = "uint256 taskId,uint256 communityId,address userAddress,string comments";
 	bytes32 public immutable taskReviewSchemaUID;
 
 	ICommunityRegistry public communityRegistry;
