@@ -15,9 +15,7 @@ export const FarmRegistrationForm = () => {
     const [name, setName] = useState("");
     const [description, setDescription] = useState("");
     const [website, setWebsite] = useState("");
-    const [country, setCountry] = useState("");
-    const [state, setState] = useState("");
-    const [postalCode, setPostalCode] = useState("");
+    const [location, setLocation] = useState("");
     const [imageUrl, setImageUrl] = useState("");
     const [loading, setLoading] = useState(false);
     const { chain } = useNetwork();
@@ -54,7 +52,7 @@ export const FarmRegistrationForm = () => {
     
     // Initialize SchemaEncoder with the schema string
     const schemaEncoder = new SchemaEncoder(
-        "bytes32 ownerUID,string farmName,string description,string country,string state,string postalCode,string websiteUrl,string imageURL",
+        "bytes32 ownerUID,string farmName,string description,string location,string websiteUrl,string imageURL",
     );
 
     const handleImage = async (e: ChangeEvent<HTMLInputElement>) => {
@@ -88,9 +86,7 @@ export const FarmRegistrationForm = () => {
                 { name: "ownerUID", value: userUID, type: "address" },
                 { name: "farmName", value: name, type: "string" },
                 { name: "description", value: description, type: "string" },
-                { name: "country", value: country, type: "string" },
-                { name: "state", value: state, type: "string" },
-                { name: "postalCode", value: postalCode, type: "string" },
+                { name: "location", value: location, type: "string" },
                 { name: "websiteUrl", value: website, type: "string" },
                 { name: "imageUrl", value: website, type: "string" },
               ]);
@@ -135,14 +131,8 @@ export const FarmRegistrationForm = () => {
             <InputBase value={website} onChange={e => setWebsite(e)} placeholder="www.applepondfarm.com" prefix={
                 <span className="self-center cursor-pointer text-xl font-semibold px-4 text-accent">🌐</span>
             } />
-            <InputBase value={country} onChange={e => setCountry(e)} placeholder="Canada" prefix={
-                <span className="self-center cursor-pointer text-xl font-semibold px-4 text-accent">🇨🇦</span>
-            } />
-            <InputBase value={country} onChange={e => setState(e)} placeholder="Ontario" prefix={
+            <InputBase value={location} onChange={e => setLocation(e)} placeholder="80 Hahn Rd, Callicoon Center, NY 12724" prefix={
                 <span className="self-center cursor-pointer text-xl font-semibold px-4 text-accent">📍</span>
-            } />
-            <InputBase value={country} onChange={e => setPostalCode(e)} placeholder="M5A 1A4" prefix={
-                <span className="self-center cursor-pointer text-xl font-semibold px-4 text-accent">✉️</span>
             } />
             <div className={`flex border-2 border-base-300 bg-base-200 rounded-full text-accent`}>
                 <span className="self-center cursor-pointer text-xl font-semibold px-4 text-accent">📷</span>
