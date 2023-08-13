@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Image from "next/image";
 import { Spinner } from "./Spinner";
 import { InputBase } from "./scaffold-eth";
@@ -9,10 +9,8 @@ import { useNetwork } from "wagmi";
 import { useScaffoldContractRead } from "~~/hooks/scaffold-eth";
 import { UserRegistration } from "~~/services/eas/customSchemaTypes";
 import { useGlobalState } from "~~/services/store/store";
-import { useEthersSigner } from "~~/services/web3/ethers";
 import { getTargetNetwork, notification } from "~~/utils/scaffold-eth";
 import { contracts } from "~~/utils/scaffold-eth/contract";
-import { Signer } from "ethers";
 
 export const UserRegistrationForm = () => {
   const userInfo = useGlobalState(state => state.userInfo);
