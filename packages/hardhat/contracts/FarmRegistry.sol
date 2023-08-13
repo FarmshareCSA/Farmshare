@@ -10,7 +10,7 @@ import "./interfaces/IFarmRegistry.sol";
 
 contract FarmRegistry is IFarmRegistry, Ownable, SchemaResolver {
 	string public constant registrationSchema =
-		"address owner,string name,string description,string country,string state,string postalCode,string websiteUrl,string imageUrl";
+		"address owner,string name,string description,string location,string websiteUrl,string imageUrl";
 	bytes32 public immutable registrationSchemaUID;
 
 	IUserRegistry public userRegistry;
@@ -49,9 +49,7 @@ contract FarmRegistry is IFarmRegistry, Ownable, SchemaResolver {
                 farmName: "",
                 farmOwner: address(0),
                 description: "",
-                country: "",
-				state: "",
-				postalCode: "",
+                location: "",
                 websiteUrl: "",
                 imageUrl: ""
             });
@@ -62,23 +60,19 @@ contract FarmRegistry is IFarmRegistry, Ownable, SchemaResolver {
 			bytes32 _ownerUID,
 			string memory _name,
 			string memory _description,
-			string memory _country,
-			string memory _state,
-			string memory _postalCode,
+			string memory _location,
 			string memory _websiteUrl,
 			string memory _imageUrl
 		) = abi.decode(
 				farmRegistration.data,
-				(bytes32, string, string, string, string, string, string, string)
+				(bytes32, string, string, string, string, string)
 			);
         require(_ownerUID == farmOwnerUID, "Farm owner UID mismatch");
         return FarmRecord({
             farmName: _name,
             farmOwner: farmOwner.account,
             description: _description,
-            country: _country,
-            state: _state,
-            postalCode: _postalCode,
+            location: _location,
             websiteUrl: _websiteUrl,
             imageUrl: _imageUrl
         });
@@ -92,9 +86,7 @@ contract FarmRegistry is IFarmRegistry, Ownable, SchemaResolver {
                 farmName: "",
                 farmOwner: address(0),
                 description: "",
-                country: "",
-				state: "",
-				postalCode: "",
+                location: "",
                 websiteUrl: "",
                 imageUrl: ""
             });
@@ -104,23 +96,19 @@ contract FarmRegistry is IFarmRegistry, Ownable, SchemaResolver {
 			bytes32 _ownerUID,
 			string memory _name,
 			string memory _description,
-			string memory _country,
-			string memory _state,
-			string memory _postalCode,
+			string memory _location,
 			string memory _websiteUrl,
 			string memory _imageUrl
 		) = abi.decode(
 				farmRegistration.data,
-				(bytes32, string, string, string, string, string, string, string)
+				(bytes32, string, string, string, string, string)
 			);
         UserRecord memory farmOwner = userRegistry.userRecordByUID(_ownerUID);
         return FarmRecord({
             farmName: _name,
             farmOwner: farmOwner.account,
             description: _description,
-            country: _country,
-            state: _state,
-            postalCode: _postalCode,
+            location: _location,
             websiteUrl: _websiteUrl,
             imageUrl: _imageUrl
         });
@@ -144,13 +132,11 @@ contract FarmRegistry is IFarmRegistry, Ownable, SchemaResolver {
 			bytes32 _ownerUID,
 			string memory _name,
 			string memory _description,
-			string memory _country,
-			string memory _state,
-			string memory _postalCode,
+			string memory _location,
 			string memory _websiteUrl,
 		) = abi.decode(
 				attestation.data,
-				(bytes32, string, string, string, string, string, string, string)
+				(bytes32, string, string, string, string, string)
 			);
         farmUIDByFarmer[_ownerUID] = attestation.uid;
         farmUIDByName[_name] = attestation.uid;        
@@ -159,9 +145,7 @@ contract FarmRegistry is IFarmRegistry, Ownable, SchemaResolver {
 			_ownerUID,
 			_name,
 			_description,
-			_country,
-            _state,
-            _postalCode,
+			_location,
 			_websiteUrl
 		);
 		return true;
@@ -176,10 +160,10 @@ contract FarmRegistry is IFarmRegistry, Ownable, SchemaResolver {
         (
 			bytes32 _ownerUID,
 			string memory _name,
-			, , , , ,
+			, , ,
 		) = abi.decode(
 				attestation.data,
-				(bytes32, string, string, string, string, string, string, string)
+				(bytes32, string, string, string, string, string)
 			);
         require(farmUIDByFarmer[_ownerUID] == attestation.uid, "UID mismatch");
         require(farmUIDByName[_name] == attestation.uid, "UID mismatch");

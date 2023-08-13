@@ -28,9 +28,7 @@ struct FarmRecord {
     string farmName;
     address farmOwner;
     string description;
-    string country;
-    string state;
-    string postalCode;
+    string location;
     string websiteUrl;
     string imageUrl;
 }
