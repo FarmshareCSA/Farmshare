@@ -12,11 +12,15 @@ contract FarmRegistry is IFarmRegistry, Ownable, SchemaResolver {
 	string public constant registrationSchema =
 		"address owner,string name,string description,string location,string websiteUrl,string imageUrl";
 	bytes32 public immutable registrationSchemaUID;
+	string public constant managerSchema = "bytes32 farmUID,bytes32 managerUID";
+	bytes32 public immutable managerSchemaUID;
 
 	IUserRegistry public userRegistry;
 
-	mapping(bytes32 => bytes32) public farmUIDByFarmer;
+	mapping(bytes32 => bytes32) public farmUIDByFarmerUID;
 	mapping(string => bytes32) public farmUIDByName;
+	mapping(address => bytes32) public farmUIDByFarmerAddress;
+	mapping(address => bytes32) public farmUIDByManagerAddress;
 
 	constructor(
 		IEAS eas,
@@ -26,6 +30,11 @@ contract FarmRegistry is IFarmRegistry, Ownable, SchemaResolver {
 		userRegistry = _userRegistry;
 		registrationSchemaUID = _schemaRegistry.register(
 			registrationSchema,
+			this,
+			true
+		);
+		managerSchemaUID = _schemaRegistry.register(
+			managerSchema,
 			this,
 			true
 		);
@@ -43,7 +52,7 @@ contract FarmRegistry is IFarmRegistry, Ownable, SchemaResolver {
 	function farmRecordByOwnerUID(
 		bytes32 farmOwnerUID
 	) public view override returns (FarmRecord memory) {
-        bytes32 farmUID = farmUIDByFarmer[farmOwnerUID];
+        bytes32 farmUID = farmUIDByFarmerUID[farmOwnerUID];
         if (farmUID == bytes32(0)) {
             return FarmRecord({
                 farmName: "",
@@ -120,57 +129,90 @@ contract FarmRegistry is IFarmRegistry, Ownable, SchemaResolver {
         return farmRecordByUID(farmUIDByName[farmName]);
     }
 
+	function requireFarmerOrManager(
+		bytes32 farmUID,
+		address account
+	) public view {
+		require(
+			farmUIDByFarmerAddress[account] == farmUID ||
+			farmUIDByManagerAddress[account] == farmUID,
+			"Account not authorized for farm"
+		);
+	}
+
 	// Internal SchemaResolver functions
 
 	function onAttest(
 		Attestation calldata attestation,
 		uint256 value
 	) internal virtual override returns (bool) {
-		require(value == 0, "Farm registration requires zero value");
-        require(attestation.schema == registrationSchemaUID, "Invalid attestation schema");
-		(
-			bytes32 _ownerUID,
-			string memory _name,
-			string memory _description,
-			string memory _location,
-			string memory _websiteUrl,
-		) = abi.decode(
-				attestation.data,
-				(bytes32, string, string, string, string, string)
+		require(value == 0, "Farm and manager registration require zero value");
+        if (attestation.schema == registrationSchemaUID) {
+			(
+				bytes32 _ownerUID,
+				string memory _name,
+				string memory _description,
+				string memory _location,
+				string memory _websiteUrl,
+			) = abi.decode(
+					attestation.data,
+					(bytes32, string, string, string, string, string)
+				);
+			UserRecord memory farmer = userRegistry.userRecordByUID(_ownerUID);
+			require(farmer.account != address(0), "Farmer not registered");
+			require(farmer.role == UserRole.FARMER, "User must be a farmer");
+			farmUIDByFarmerUID[_ownerUID] = attestation.uid;
+			farmUIDByName[_name] = attestation.uid;
+			farmUIDByFarmerAddress[farmer.account] = attestation.uid;
+			emit FarmRegistered(
+				attestation.uid,
+				_ownerUID,
+				_name,
+				_description,
+				_location,
+				_websiteUrl
 			);
-        farmUIDByFarmer[_ownerUID] = attestation.uid;
-        farmUIDByName[_name] = attestation.uid;        
-		emit FarmRegistered(
-			attestation.uid,
-			_ownerUID,
-			_name,
-			_description,
-			_location,
-			_websiteUrl
-		);
-		return true;
+			return true;
+		} else if (attestation.schema == managerSchemaUID) {
+			(bytes32 _farmUID, bytes32 _managerUID) = abi.decode(attestation.data, (bytes32, bytes32));
+			requireFarmerOrManager(_farmUID, attestation.attester);
+			UserRecord memory manager = userRegistry.userRecordByUID(_managerUID);
+			require(manager.account != address(0), "Manager not registered");
+			farmUIDByManagerAddress[manager.account] = _farmUID;
+			emit FarmManagerAdded(_farmUID, _managerUID);
+			return true;
+		}
+		return false;
 	}
 
 	function onRevoke(
 		Attestation calldata attestation,
 		uint256 value
 	) internal virtual override returns (bool) {
-		require(value == 0, "Revoking farm registration requires zero value");
-        require(attestation.schema == registrationSchemaUID, "Invalid attestation schema");
-        (
-			bytes32 _ownerUID,
-			string memory _name,
-			, , ,
-		) = abi.decode(
-				attestation.data,
-				(bytes32, string, string, string, string, string)
-			);
-        require(farmUIDByFarmer[_ownerUID] == attestation.uid, "UID mismatch");
-        require(farmUIDByName[_name] == attestation.uid, "UID mismatch");
-        farmUIDByFarmer[_ownerUID] = bytes32(0);
-        farmUIDByName[_name] = bytes32(0);
-        emit FarmRevoked(attestation.uid, _ownerUID, _name);
-		return true;
+		require(value == 0, "Revoking farm or manager registration requires zero value");
+        if (attestation.schema == registrationSchemaUID) {
+			(
+				bytes32 _ownerUID,
+				string memory _name,
+				, , ,
+			) = abi.decode(
+					attestation.data,
+					(bytes32, string, string, string, string, string)
+				);
+			require(farmUIDByFarmerUID[_ownerUID] == attestation.uid, "UID mismatch");
+			require(farmUIDByName[_name] == attestation.uid, "UID mismatch");
+			farmUIDByFarmerUID[_ownerUID] = bytes32(0);
+			farmUIDByName[_name] = bytes32(0);
+			emit FarmRevoked(attestation.uid, _ownerUID, _name);
+			return true;
+		} else if (attestation.schema == managerSchemaUID) {
+			(bytes32 _farmUID, bytes32 _managerUID) = abi.decode(attestation.data, (bytes32, bytes32));
+			requireFarmerOrManager(_farmUID, attestation.attester);
+			UserRecord memory manager = userRegistry.userRecordByUID(_managerUID);
+			farmUIDByManagerAddress[manager.account] = 0;
+			emit FarmManagerRemoved(_farmUID, _managerUID);
+			return true;
+		}
+        return false;
 	}
-
 }

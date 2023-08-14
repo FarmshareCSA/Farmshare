@@ -17,6 +17,14 @@ interface IFarmRegistry {
         bytes32 ownerUID, 
         string name
     );
+    event FarmManagerAdded(
+        bytes32 indexed farmUID,
+        bytes32 indexed managerUID
+    );
+    event FarmManagerRemoved(
+        bytes32 indexed farmUID,
+        bytes32 indexed managerUID
+    );
 
     function farmRecordByOwnerAddress(address) external view returns (FarmRecord memory);
     function farmRecordByOwnerUID(bytes32) external view returns (FarmRecord memory);
