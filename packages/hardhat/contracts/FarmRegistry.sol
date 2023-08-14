@@ -129,15 +129,18 @@ contract FarmRegistry is IFarmRegistry, Ownable, SchemaResolver {
         return farmRecordByUID(farmUIDByName[farmName]);
     }
 
-	function requireFarmerOrManager(
+	function authorizedFarmerOrManager(
 		bytes32 farmUID,
 		address account
-	) public view {
-		require(
+	) public view returns (bool) {
+		if (
 			farmUIDByFarmerAddress[account] == farmUID ||
-			farmUIDByManagerAddress[account] == farmUID,
-			"Account not authorized for farm"
-		);
+			farmUIDByManagerAddress[account] == farmUID
+		) {
+			return true;
+		} else {
+			return false;
+		}
 	}
 
 	// Internal SchemaResolver functions
@@ -175,7 +178,7 @@ contract FarmRegistry is IFarmRegistry, Ownable, SchemaResolver {
 			return true;
 		} else if (attestation.schema == managerSchemaUID) {
 			(bytes32 _farmUID, bytes32 _managerUID) = abi.decode(attestation.data, (bytes32, bytes32));
-			requireFarmerOrManager(_farmUID, attestation.attester);
+			require(authorizedFarmerOrManager(_farmUID, attestation.attester), "Not authorized farmer/manager");
 			UserRecord memory manager = userRegistry.userRecordByUID(_managerUID);
 			require(manager.account != address(0), "Manager not registered");
 			farmUIDByManagerAddress[manager.account] = _farmUID;
@@ -207,7 +210,7 @@ contract FarmRegistry is IFarmRegistry, Ownable, SchemaResolver {
 			return true;
 		} else if (attestation.schema == managerSchemaUID) {
 			(bytes32 _farmUID, bytes32 _managerUID) = abi.decode(attestation.data, (bytes32, bytes32));
-			requireFarmerOrManager(_farmUID, attestation.attester);
+			require(authorizedFarmerOrManager(_farmUID, attestation.attester), "Not authorized farmer/manager");
 			UserRecord memory manager = userRegistry.userRecordByUID(_managerUID);
 			farmUIDByManagerAddress[manager.account] = 0;
 			emit FarmManagerRemoved(_farmUID, _managerUID);
