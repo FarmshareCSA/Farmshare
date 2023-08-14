@@ -32,4 +32,19 @@ contract FarmShareTokens is ERC1155 {
         );
         _mint(to, id, amount, "");
     }
+
+    function _beforeTokenTransfer(
+        address, 
+        address, 
+        address to, 
+        uint256[] memory, 
+        uint256[] memory, 
+        bytes memory
+    ) internal virtual override {
+        if (to != address(0)) {
+            // Check if receiver address is a registered user
+            bytes32 userUID = userRegistry.userRegistrations(to);
+            require(userUID != bytes32(0), "Receiver must be a registered user");
+        }
+    }
 }
