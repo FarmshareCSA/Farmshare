@@ -3,8 +3,8 @@ pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
+import "@openzeppelin/contracts/token/ERC1155/IERC1155Receiver.sol";
 import "@safe-global/safe-contracts/contracts/proxies/SafeProxyFactory.sol";
-import "@safe-global/safe-contracts/contracts/Safe.sol";
 import "@ethereum-attestation-service/eas-contracts/contracts/resolver/SchemaResolver.sol";
 import "@ethereum-attestation-service/eas-contracts/contracts/ISchemaRegistry.sol";
 import "@ethereum-attestation-service/eas-contracts/contracts/IEAS.sol";
@@ -13,10 +13,10 @@ import "./interfaces/ICommunityRegistry.sol";
 // import "./interfaces/IUserRegistry.sol";
 // import "./interfaces/IFarmRegistry.sol";
 
-contract TaskRegistry is ITaskRegistry, Ownable, SchemaResolver {
+contract TaskRegistry is ITaskRegistry, IERC1155Receiver, Ownable, SchemaResolver {
     string public constant taskCreationSchema = "string name,string description,address creator,uint256 startTime,uint256 endTime,bool recurring,uint256 frequency";
     bytes32 public immutable taskCreationSchemaUID;
-	string public constant taskFundedSchema = "address tokenAddress,uint256 amount,uint256 tokenId";
+	string public constant taskFundedSchema = "address tokenAddress,uint256 amount,bool is1155,uint256 tokenId";
 	bytes32 public immutable taskFundedSchemaUID;
 	string public constant taskStartedSchema = "uint256 taskId,uint256 communityId,address userAddress,uint256 startTimestamp";
 	bytes32 public immutable taskStartedSchemaUID;
@@ -25,8 +25,10 @@ contract TaskRegistry is ITaskRegistry, Ownable, SchemaResolver {
 	string public constant taskReviewSchema = "uint256 taskId,uint256 communityId,address userAddress,string comments";
 	bytes32 public immutable taskReviewSchemaUID;
 
-	ICommunityRegistry public communityRegistry;
+	bytes4 public constant ERC1155_RECEIVED = 0xf23a6e61;
+	bytes4 public constant ERC1155_BATCH_RECEIVED = 0xbc197c81;
 
+	ICommunityRegistry public communityRegistry;
 
 	constructor(
 		IEAS eas,
@@ -164,11 +166,42 @@ contract TaskRegistry is ITaskRegistry, Ownable, SchemaResolver {
 		taskCompletedUID = _eas.attest{ value: msg.value }(request);
 	}
 
+	// External ERC-1155 Receiver functions
+
+	function supportsInterface(bytes4 interfaceID) external view override returns (bool) {
+      	return  interfaceID == 0x01ffc9a7 ||    // ERC-165 support (i.e. `bytes4(keccak256('supportsInterface(bytes4)'))`).
+              	interfaceID == 0x4e2312e0;      // ERC-1155 `ERC1155TokenReceiver` support (i.e. `bytes4(keccak256("onERC1155Received(address,address,uint256,uint256,bytes)")) ^ bytes4(keccak256("onERC1155BatchReceived(address,address,uint256[],uint256[],bytes)"))`).
+  	}
+
+	function onERC1155Received(
+		address _operator,
+		address _from,
+		uint256 _id,
+		uint256 _value,
+		bytes calldata _data
+	) public override returns (bytes4) {
+		
+		return ERC1155_RECEIVED;
+	}
+
+	function onERC1155BatchReceived(
+		address _operator,
+		address _from,
+		uint256[] calldata _ids,
+		uint256[] calldata _values,
+		bytes calldata _data
+	) external returns (bytes4) {
+
+		return ERC1155_BATCH_RECEIVED;
+	}
+
+	// Internal SchemaResolver functions
 
 	function onAttest(
 		Attestation calldata attestation,
 		uint256 value
 	) internal virtual override returns (bool) {
+		require(value == 0, "Task attestations must have zero ETH value");
 		if (attestation.schema == taskCreationSchemaUID) {
 			// Attestation is for a community Task registration
 			(
@@ -194,7 +227,7 @@ contract TaskRegistry is ITaskRegistry, Ownable, SchemaResolver {
 				frequency
 			);
 			return true;
-		} 
+		}
 		return false;
 	}
 
