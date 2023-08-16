@@ -14,7 +14,14 @@ interface ITaskRegistry {
       uint256 startTime,
       uint256 endTime,
       bool recurring,
-      uint256 frequency,
-      uint256 reward
+      uint256 frequency
+    );
+
+    event TaskFunded(
+      bytes32 indexed taskUID,
+      address tokenAddress,
+      uint256 amount,
+      bool is1155,
+      uint256 tokenId
     );
 }

@@ -178,9 +178,8 @@ contract TaskRegistry is ITaskRegistry, Ownable, SchemaResolver {
 				uint startTime,
 				uint endTime,
 				bool recurring,
-				uint frequency,
-				uint reward
-			) = abi.decode(attestation.data, (string, string, address, uint, uint, bool, uint, uint));
+				uint frequency
+			) = abi.decode(attestation.data, (string, string, address, uint, uint, bool, uint));
 			require(bytes(name).length > 0, "Name cannot be empty");
 			require(bytes(description).length > 0, "Description cannot be empty");
 			taskUIDByName[name] = attestation.uid;
@@ -192,8 +191,7 @@ contract TaskRegistry is ITaskRegistry, Ownable, SchemaResolver {
 				startTime,
 				endTime,
 				recurring,
-				frequency,
-				reward
+				frequency
 			);
 			return true;
 		} 
