@@ -6,6 +6,7 @@ type InputBaseProps<T> = CommonInputProps<T> & {
   disabled?: boolean;
   prefix?: ReactNode;
   suffix?: ReactNode;
+  autoComplete?: string;
 };
 
 export const InputBase = <T extends { toString: () => string } | undefined = string>({
@@ -17,6 +18,7 @@ export const InputBase = <T extends { toString: () => string } | undefined = str
   disabled,
   prefix,
   suffix,
+  autoComplete,
 }: InputBaseProps<T>) => {
   let modifier = "";
   if (error) {
@@ -42,7 +44,7 @@ export const InputBase = <T extends { toString: () => string } | undefined = str
         value={value?.toString()}
         onChange={handleChange}
         disabled={disabled}
-        autoComplete="off"
+        autoComplete={autoComplete || "off"}
       />
       {suffix}
     </div>
