@@ -11,7 +11,7 @@ import "@matterlabs/hardhat-zksync-verify";
 const providerApiKey = process.env.ALCHEMY_API_KEY || "oKxs-03sij-U_N0iOlrSsZFr29-IqbuF";
 // If not set, it uses the hardhat account 0 private key.
 const deployerPrivateKey =
-  process.env.DEPLOYER_PRIVATE_KEY ?? "cf6cbb8ba6e242ea27357830d60f4bace2f99128337999018a52d69653ee0197";
+  process.env.DEPLOYER_PRIVATE_KEY ?? "a772a2ef432bc46e919faf0ed2026e92c0ad8ce2e51a7949bc874a57e39181b9";
 // If not set, it uses ours Etherscan default API key.
 const etherscanApiKey = process.env.ETHERSCAN_API_KEY || "DNXJA8RX2Q3VZ4URQIWP7Z68CJXQZSC6AW";
 
