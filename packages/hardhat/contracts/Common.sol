@@ -59,7 +59,14 @@ struct Task {
     uint endTime;
     bool recurring;
     uint frequency;
-    uint reward;
+    TaskReward[] rewards;
+}
+
+struct TaskReward {
+    address tokenAddress;
+    uint amount;
+    bool is1155;
+    uint tokenId;
 }
 
 struct TaskCompleted {
