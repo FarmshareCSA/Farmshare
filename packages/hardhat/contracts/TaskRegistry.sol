@@ -96,10 +96,10 @@ contract TaskRegistry is ITaskRegistry, Ownable, SchemaResolver {
 	}
 
 	function createTaskStarted(
-		bytes32 taskUID, 
+		bytes32 taskUID,
 		address userAddress,
 		uint256 timeStamp
-	) external payable returns (address newTaskStarted) {
+	) external payable returns (bytes32 taskStartedUID) {
 		require(taskUID != bytes32(0), "Task UID cannot be 0");
 		Attestation memory communityTaskRegistration = _eas.getAttestation(taskUID);
 		require(communityTaskRegistration.schema == taskCreationSchemaUID, "Invalid community task schema");
@@ -126,14 +126,15 @@ contract TaskRegistry is ITaskRegistry, Ownable, SchemaResolver {
 			schema: taskStartedSchemaUID,
 			data: requestData
 		});
-		_eas.attest{value: msg.value}(request);
+
+		taskStartedUID = _eas.attest{ value: msg.value }(request);
 	}
 
 	function createTaskCompleted(
-		bytes32 taskUID, 
+		bytes32 taskUID,
 		address userAddress,
 		uint256 timeStamp
-	) external payable returns (address newTaskCompleted) {
+	) external payable returns (bytes32 taskCompletedUID) {
 		require(taskUID != bytes32(0), "Task UID cannot be 0");
 		Attestation memory communityTaskRegistration = _eas.getAttestation(taskUID);
 		require(communityTaskRegistration.schema == taskCreationSchemaUID, "Invalid community task schema");
@@ -147,9 +148,6 @@ contract TaskRegistry is ITaskRegistry, Ownable, SchemaResolver {
 			)
 		)
 		);
-
-
-		
 		AttestationRequestData memory requestData = AttestationRequestData({
 			recipient: userAddress,
 			expirationTime: 0,
@@ -162,7 +160,8 @@ contract TaskRegistry is ITaskRegistry, Ownable, SchemaResolver {
 			schema: taskCompletedSchemaUID,
 			data: requestData
 		});
-		_eas.attest{value: msg.value}(request);
+
+		taskCompletedUID = _eas.attest{ value: msg.value }(request);
 	}
 
 
