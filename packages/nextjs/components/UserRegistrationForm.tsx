@@ -9,12 +9,12 @@ import { useNetwork } from "wagmi";
 import { useScaffoldContractRead } from "~~/hooks/scaffold-eth";
 import { UserRegistration } from "~~/services/eas/customSchemaTypes";
 import { useGlobalState } from "~~/services/store/store";
-import { useEthersSigner } from "~~/services/web3/ethers";
 import { getTargetNetwork, notification } from "~~/utils/scaffold-eth";
 import { contracts } from "~~/utils/scaffold-eth/contract";
 
 export const UserRegistrationForm = () => {
   const userInfo = useGlobalState(state => state.userInfo);
+  const signer = useGlobalState(state => state.userSigner);
   const setUserRegistration = useGlobalState(state => state.setUserRegistration);
   const [name, setName] = useState(userInfo?.name || "");
   const [email, setEmail] = useState(userInfo?.email || "");
@@ -22,7 +22,6 @@ export const UserRegistrationForm = () => {
   const [role, setRole] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const { chain } = useNetwork();
-  const signer = useEthersSigner();
   const writeDisabled = !chain || chain?.id !== getTargetNetwork().id;
 
   const { data: schemaUID } = useScaffoldContractRead({
@@ -34,11 +33,13 @@ export const UserRegistrationForm = () => {
     chain && contracts
       ? contracts[chain.id]?.[0]?.["contracts"]?.["EAS"]
         ? contracts[chain.id]?.[0]?.["contracts"]?.["EAS"]?.address
-        : "0xC2679fBD37d54388Ce493F1DB75320D236e1815e"
+        : chain.name == "Sepolia" 
+          ? "0xC2679fBD37d54388Ce493F1DB75320D236e1815e"
+          : chain.name == "Base Goerli"
+            ? "0xAcfE09Fd03f7812F022FBf636700AdEA18Fd2A7A"
+            : "0x87A33bc39A49Bd3e50aa053Bee91a988A510ED6a"
       : "0xC2679fBD37d54388Ce493F1DB75320D236e1815e";
-  if (chain) {
-    console.log("EAS contract address on %s: %s", chain.name, easAddress);
-  } else {
+  if (!chain) {
     console.log("network.chain is undefined");
   }
   const eas = new EAS(easAddress);
@@ -50,7 +51,7 @@ export const UserRegistrationForm = () => {
     setSubmitting(true);
     try {
       invariant(signer, "Signer must be defined");
-      eas.connect(signer);
+      eas.connect(signer as any);
       const address = await signer.getAddress();
       invariant(schemaUID, "schema UID must be defined");
       const emailHash = keccak256(stringToBytes(email));
@@ -66,12 +67,13 @@ export const UserRegistrationForm = () => {
         schema: schemaUID,
         data: {
           recipient: address,
-          expirationTime: 0,
+          expirationTime: BigInt(0),
           revocable: false,
           data: encodedData,
         },
       });
 
+      console.log(await tx.tx.wait());
       const newAttestationUID = await tx.wait();
 
       console.log("New attestation UID:", newAttestationUID);

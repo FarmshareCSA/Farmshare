@@ -18,6 +18,17 @@ export const EAS_CHAIN_CONFIGS: EASChainConfig[] = [
     contractStartBlock: 2958570,
     rpcProvider: `https://sepolia.infura.io/v3/`,
   },
+  {
+    chainId: 84531,
+    chainName: "base-goerli",
+    subdomain: "base-goerli.",
+    version: "0.26",
+    contractAddress: "0xAcfE09Fd03f7812F022FBf636700AdEA18Fd2A7A",
+    schemaRegistryAddress: "0x720c2bA66D19A725143FBf5fDC5b4ADA2742682E",
+    etherscanURL: "https://goerli.basescan.io",
+    contractStartBlock: 4843438,
+    rpcProvider: `https://base-goerli.public.blastapi.io`,
+  },
 ];
 
 invariant(chain, "No supported chain connected");

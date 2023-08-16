@@ -7,9 +7,9 @@ import { create } from "ipfs-http-client";
 import invariant from "tiny-invariant";
 import { useNetwork } from "wagmi";
 import { useScaffoldContractRead } from "~~/hooks/scaffold-eth";
-import { useEthersSigner } from "~~/services/web3/ethers";
 import { getTargetNetwork, notification } from "~~/utils/scaffold-eth";
 import { contracts } from "~~/utils/scaffold-eth/contract";
+import { useGlobalState } from "~~/services/store/store";
 
 export const FarmRegistrationForm = () => {
   const [name, setName] = useState("");
@@ -21,7 +21,7 @@ export const FarmRegistrationForm = () => {
   const [imageUrl, setImageUrl] = useState("");
   const [loading, setLoading] = useState(false);
   const { chain } = useNetwork();
-  const signer = useEthersSigner();
+  const signer = useGlobalState(state => state.userSigner);
   const writeDisabled = !chain || chain?.id !== getTargetNetwork().id;
 
   /* configure Infura IPFS auth settings */
@@ -48,7 +48,11 @@ export const FarmRegistrationForm = () => {
     chain && contracts
       ? contracts[chain.id]?.[0]?.["contracts"]?.["EAS"]
         ? contracts[chain.id]?.[0]?.["contracts"]?.["EAS"]?.address
-        : "0xC2679fBD37d54388Ce493F1DB75320D236e1815e"
+        : chain.name == "Sepolia" 
+          ? "0xC2679fBD37d54388Ce493F1DB75320D236e1815e"
+          : chain.name == "Base Goerli"
+            ? "0xAcfE09Fd03f7812F022FBf636700AdEA18Fd2A7A"
+            : "0x87A33bc39A49Bd3e50aa053Bee91a988A510ED6a"
       : "0xC2679fBD37d54388Ce493F1DB75320D236e1815e";
   const eas = new EAS(easAddress);
 
@@ -74,7 +78,7 @@ export const FarmRegistrationForm = () => {
     setLoading(true);
     try {
       invariant(signer, "Signer must be defined");
-      eas.connect(signer);
+      eas.connect(signer as any);
       const address = await signer.getAddress();
       const { data: userUID } = useScaffoldContractRead({
         contractName: "UserRegistry",
@@ -98,7 +102,7 @@ export const FarmRegistrationForm = () => {
         schema: schemaUID,
         data: {
           recipient: address,
-          expirationTime: 0,
+          expirationTime: BigInt(0),
           revocable: false,
           data: encodedData,
         },

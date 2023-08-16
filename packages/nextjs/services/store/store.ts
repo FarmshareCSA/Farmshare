@@ -1,6 +1,9 @@
 import { UserRegistration } from "../eas/customSchemaTypes";
 import { OpenloginUserInfo } from "@web3auth/openlogin-adapter";
+import { Address } from "viem";
 import create from "zustand";
+import { JsonRpcSigner } from "@ethersproject/providers";
+import { ZeroDevSigner } from "@zerodevapp/sdk";
 
 /**
  * Zustand Store
@@ -18,6 +21,10 @@ type TGlobalState = {
   setUserInfo: (newUserInfo: Partial<OpenloginUserInfo>) => void;
   userRegistration: UserRegistration | null;
   setUserRegistration: (newRegistration: UserRegistration | null) => void;
+  userSmartAccount: Address | null;
+  setUserSmartAccount: (newAccount: Address | null) => void;
+  userSigner: JsonRpcSigner | ZeroDevSigner | null;
+  setUserSigner: (newSigner: JsonRpcSigner | ZeroDevSigner | null) => void;
 };
 
 export const useGlobalState = create<TGlobalState>(set => ({
@@ -28,4 +35,8 @@ export const useGlobalState = create<TGlobalState>(set => ({
   userRegistration: null,
   setUserRegistration: (newRegistration: UserRegistration | null): void =>
     set(() => ({ userRegistration: newRegistration })),
+  userSmartAccount: null,
+  setUserSmartAccount: (newAccount: Address | null): void => set(() => ({ userSmartAccount: newAccount })),
+  userSigner: null,
+  setUserSigner: (newSigner: JsonRpcSigner | ZeroDevSigner | null): void => set(() => ({ userSigner: newSigner })),
 }));

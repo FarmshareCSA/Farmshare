@@ -24,12 +24,19 @@ const deployRegistryContracts: DeployFunction = async function (hre: HardhatRunt
 
   let eas;
   let schemaRegistry;
+  let safeProxyFactory, safeSingleton, safeFallbackHandler;
   if (developmentChains.includes(hre.network.name)) {
     eas = await hre.ethers.getContract("EAS");
     schemaRegistry = await hre.ethers.getContract("SchemaRegistry")
+    safeProxyFactory = await hre.ethers.getContract("SafeProxyFactory");
+    safeSingleton = await hre.ethers.getContract("Safe");
+    safeFallbackHandler = await hre.ethers.getContract("CompatibilityFallbackHandler");
   } else if (chainId && networkConfig[chainId]) {
     eas = await hre.ethers.getContractAt("EAS", networkConfig[chainId]["easContractAddress"]);
     schemaRegistry = await hre.ethers.getContractAt("SchemaRegistry", networkConfig[chainId]["schemaRegistryAddress"]);
+    safeProxyFactory = await hre.ethers.getContractAt("SafeProxyFactory", networkConfig[chainId]["safeFactoryAddress"]);
+    safeSingleton = await hre.ethers.getContractAt("Safe", networkConfig[chainId]["safeAddress"]);
+    safeFallbackHandler = await hre.ethers.getContractAt("CompatibilityFallbackHandler", networkConfig[chainId]["safeFallbackHandlerAddress"]);
   } else if (chainId) {
     throw new Error("No EAS contracts configured for this network.");
   } else {
@@ -59,10 +66,6 @@ const deployRegistryContracts: DeployFunction = async function (hre: HardhatRunt
   });
 
   const farmRegistry = await hre.ethers.getContract("FarmRegistry", deployer);
-
-  const safeProxyFactory = await hre.ethers.getContract("SafeProxyFactory");
-  const safeSingleton = await hre.ethers.getContract("Safe");
-  const safeFallbackHandler = await hre.ethers.getContract("CompatibilityFallbackHandler");
 
   await deploy("CommunityRegistry", {
     from: deployer,

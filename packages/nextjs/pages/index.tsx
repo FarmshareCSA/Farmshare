@@ -10,13 +10,19 @@ import { UserRole } from "~~/services/eas/customSchemaTypes";
 import type { Attestation } from "~~/services/eas/types";
 import { getUserAttestationsForAddress } from "~~/services/eas/utils";
 import { useGlobalState } from "~~/services/store/store";
+import { getZeroDevSigner, getRPCProviderOwner } from "@zerodevapp/sdk";
+import { web3AuthInstance } from "~~/services/web3/wagmiConnectors";
 
 const Home: NextPage = () => {
   const { address } = useAccount();
   const userInfo = useGlobalState(state => state.userInfo);
+  const userSmartAccount = useGlobalState(state => state.userSmartAccount);
   const userRegistration = useGlobalState(state => state.userRegistration);
   const setUserRegistration = useGlobalState(state => state.setUserRegistration);
+  const setUserSmartAccount = useGlobalState(state => state.setUserSmartAccount);
+  const setUserSigner = useGlobalState(state => state.setUserSigner);
   const [userAttestations, setUserAttestations] = useState<Attestation[]>([]);
+  const defaultProjectId = process.env.REACT_APP_ZERODEV_PROJECT_ID || 'ec01b08b-f7a8-4f47-924d-0a1b1879a468'
 
   const userSchemaEncoder = new SchemaEncoder(
     "address account,string name,bytes32 emailHash,string location,uint8 role",
@@ -29,7 +35,10 @@ const Home: NextPage = () => {
 
   useEffect(() => {
     const getUserAttestations = async () => {
-      const tmpAttestations = await getUserAttestationsForAddress(address ? address : "", schemaUID ? schemaUID : "");
+      const tmpAttestations = await getUserAttestationsForAddress(
+        userSmartAccount ? userSmartAccount : address ? address : "", 
+        schemaUID ? schemaUID : ""
+      );
       setUserAttestations(tmpAttestations);
       if (tmpAttestations.length > 0) {
         const decodedData = userSchemaEncoder.decodeData(tmpAttestations[0].data);
@@ -45,7 +54,27 @@ const Home: NextPage = () => {
       }
     };
     getUserAttestations();
-  }, [address, userRegistration]);
+  }, [address, userRegistration, userSmartAccount]);
+
+  useEffect(() => {
+    const tryZeroDevSigner = async () => {
+      if (web3AuthInstance && address) {
+        const tmpSigner = await getZeroDevSigner({
+          projectId: defaultProjectId,
+          owner: getRPCProviderOwner(web3AuthInstance.provider),
+        })
+        setUserSigner(tmpSigner);
+        console.log(tmpSigner);
+        const tmpAddress = await tmpSigner.getAddress()
+        console.log("Smart account address: %s", tmpAddress)
+        if (tmpAddress) {
+          setUserSmartAccount(tmpAddress)
+        }
+      }
+    };
+    tryZeroDevSigner();
+    
+  }, [web3AuthInstance, address]);
 
   return (
     <>

@@ -14,7 +14,7 @@
     "vercel:yolo": "vercel --build-env NEXT_PUBLIC_IGNORE_BUILD_ERROR=true"
   },
   "dependencies": {
-    "@ethereum-attestation-service/eas-sdk": "^0.29.1",
+    "@ethereum-attestation-service/eas-sdk": "1.1.0-beta.2",
     "@ethersproject/providers": "^5.7.2",
     "@heroicons/react": "^2.0.11",
     "@rainbow-me/rainbowkit": "^1.0.4",
@@ -25,6 +25,8 @@
     "@web3auth/no-modal": "^6.1.4",
     "@web3auth/openlogin-adapter": "^6.1.4",
     "@web3auth/web3auth-wagmi-connector": "^4.0.1",
+    "@zerodevapp/sdk": "^3.2.3",
+    "@zerodevapp/wagmi": "^3.2.2",
     "axios": "^1.4.0",
     "buffer": "^6.0.3",
     "daisyui": "^2.31.0",
