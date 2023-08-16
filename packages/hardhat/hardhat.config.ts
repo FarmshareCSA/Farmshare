@@ -11,7 +11,7 @@ import "@matterlabs/hardhat-zksync-verify";
 const providerApiKey = process.env.ALCHEMY_API_KEY || "oKxs-03sij-U_N0iOlrSsZFr29-IqbuF";
 // If not set, it uses the hardhat account 0 private key.
 const deployerPrivateKey =
-  process.env.DEPLOYER_PRIVATE_KEY ?? "5054efa6f6aa152452f10eb6d4550bfe027f337def08720ab074b1b5241b7dbd";
+  process.env.DEPLOYER_PRIVATE_KEY ?? "cf6cbb8ba6e242ea27357830d60f4bace2f99128337999018a52d69653ee0197";
 // If not set, it uses ours Etherscan default API key.
 const etherscanApiKey = process.env.ETHERSCAN_API_KEY || "DNXJA8RX2Q3VZ4URQIWP7Z68CJXQZSC6AW";
 
@@ -67,7 +67,7 @@ const config: HardhatUserConfig = {
       url: `https://eth-sepolia.g.alchemy.com/v2/${providerApiKey}`,
       accounts: [deployerPrivateKey],
       chainId: 11155111,
-      blockGasLimit: 40000000
+      gasPrice: 100000000000,
     },
     goerli: {
       url: `https://eth-goerli.alchemyapi.io/v2/${providerApiKey}`,

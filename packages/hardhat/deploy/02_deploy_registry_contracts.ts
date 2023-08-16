@@ -94,7 +94,7 @@ const deployRegistryContracts: DeployFunction = async function (hre: HardhatRunt
     // autoMine: can be passed to the deploy function to make the deployment process faster on local networks by
     // automatically mining the contract deployment transaction. There is no effect on live networks.
     autoMine: true,
-    // gasLimit: 30000000,
+    nonce: 2
   });
 
  

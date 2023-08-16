@@ -8,6 +8,7 @@ import "@safe-global/safe-contracts/contracts/Safe.sol";
 import "@ethereum-attestation-service/eas-contracts/contracts/resolver/SchemaResolver.sol";
 import "@ethereum-attestation-service/eas-contracts/contracts/ISchemaRegistry.sol";
 import "@ethereum-attestation-service/eas-contracts/contracts/IEAS.sol";
+import "@openzeppelin/contracts/utils/Strings.sol";
 import "./interfaces/ITaskRegistry.sol";
 import "./interfaces/ICommunityRegistry.sol";
 // import "./interfaces/IUserRegistry.sol";
@@ -16,9 +17,9 @@ import "./interfaces/ICommunityRegistry.sol";
 contract TaskRegistry is ITaskRegistry, Ownable, SchemaResolver {
     string public constant communityTaskSchema = "string name,string description,address creator,uint256 startTime,uint256 endTime,bool recurring,uint256 frequency,uint256 reward";
     bytes32 public immutable communityTaskSchemaUID;
-	string public constant taskStartedSchema = "uint256 taskId,uint256 communityId,address userAddress,uint256 startTimestamp";
+	string public constant taskStartedSchema = "uint256 taskId,uint256 communityId,address userAddress,uint256 startTime";
 	bytes32 public immutable taskStartedSchemaUID;
-	string public constant taskCompletedSchema = "uint256 taskId,uint256 communityId,address userAddress,uint256 completeTimestamp";
+	string public constant taskCompletedSchema = "uint256 taskId,uint256 communityId,address userAddress,uint256 completeTime";
 	bytes32 public immutable taskCompletedSchemaUID;
 	string public constant taskReviewSchema = "uint256 taskId,uint256 communityId,address userAddress,string comments";
 	bytes32 public immutable taskReviewSchemaUID;
@@ -38,7 +39,7 @@ contract TaskRegistry is ITaskRegistry, Ownable, SchemaResolver {
 		taskReviewSchemaUID = _schemaRegistry.register(taskReviewSchema, this, false);
 	}
 
-	mapping(string => bytes32) public taskUIDByName;
+	mapping(string => bytes32) public taskUIDByNameAddressStartTime;
 
 	// External view functions
 
@@ -81,8 +82,8 @@ contract TaskRegistry is ITaskRegistry, Ownable, SchemaResolver {
 		});
 	}
 
-	function taskByName(string calldata name) external view returns (Task memory) {
-		return taskByUID(taskUIDByName[name]);
+	function taskByNameCreatorStartTime(string calldata name,address creator,uint startTime) external view returns (Task memory) {
+		return taskByUID(taskUIDByNameAddressStartTime[string.concat(name,toAsciiString(creator),Strings.toString(startTime))]);
 	}
 
 	function createTaskStarted(
@@ -155,6 +156,23 @@ contract TaskRegistry is ITaskRegistry, Ownable, SchemaResolver {
 		_eas.attest{value: msg.value}(request);
 	}
 
+	function toAsciiString(address x) internal pure returns (string memory) {
+    bytes memory s = new bytes(40);
+    for (uint i = 0; i < 20; i++) {
+        bytes1 b = bytes1(uint8(uint(uint160(x)) / (2**(8*(19 - i)))));
+        bytes1 hi = bytes1(uint8(b) / 16);
+        bytes1 lo = bytes1(uint8(b) - 16 * uint8(hi));
+        s[2*i] = char(hi);
+        s[2*i+1] = char(lo);            
+    }
+    return string(s);
+}
+
+function char(bytes1 b) internal pure returns (bytes1 c) {
+    if (uint8(b) < 10) return bytes1(uint8(b) + 0x30);
+    else return bytes1(uint8(b) + 0x57);
+}
+
 
 	function onAttest(
 		Attestation calldata attestation,
@@ -174,7 +192,7 @@ contract TaskRegistry is ITaskRegistry, Ownable, SchemaResolver {
 			) = abi.decode(attestation.data, (string, string, address, uint, uint, bool, uint, uint));
 			require(bytes(name).length > 0, "Name cannot be empty");
 			require(bytes(description).length > 0, "Description cannot be empty");
-			taskUIDByName[name] = attestation.uid;
+			taskUIDByNameAddressStartTime[string.concat(name,toAsciiString(creator),Strings.toString(startTime))] = attestation.uid;
 			emit TaskRegistered(
 				attestation.uid,
 				name,
