@@ -12,14 +12,18 @@ import { useScaffoldContractRead } from '~~/hooks/scaffold-eth';
 import { UserRegistration } from '~~/services/eas/customSchemaTypes';
 import { Spinner } from './Spinner';
 import { keccak256, stringToBytes } from 'viem';
-import AddressValidationForm from './AddressValidationForm';
+// import AddressValidationForm from ''~~/components/AddressValidationForm';
+import dynamic from 'next/dynamic'
+const AddressMapBoxForm = dynamic(() => import('~~/components/AddressMapBoxForm'), {
+    ssr: false,
+  })
 
 export const UserRegistrationForm = () => {
     const userInfo = useGlobalState(state => state.userInfo);
     const setUserRegistration = useGlobalState(state => state.setUserRegistration);
     const [name, setName] = useState(userInfo?.name || "");
     const [email, setEmail] = useState(userInfo?.email || "");
-    const [location, setLocation] = useState("");
+    // const [location, setLocation] = useState("");
     const [role, setRole] = useState("");
     const [submitting, setSubmitting] = useState(false);
     const { chain } = useNetwork();
@@ -110,7 +114,8 @@ export const UserRegistrationForm = () => {
             {/* <InputBase value={location} onChange={e => setLocation(e)} placeholder="123 Main St., Farmtown, NY" prefix={
                 <span className="self-center cursor-pointer text-xl font-semibold px-4 text-accent">📍</span>
             } /> */}
-            <AddressValidationForm />
+            {/* <AddressValidationForm /> */}
+            <AddressMapBoxForm/>
             <div className={`flex border-2 border-base-300 bg-base-200 rounded-full text-accent`}>
                 <span className="self-center cursor-pointer text-xl font-semibold px-4 text-accent">🧑‍🌾</span>
                 <select 
