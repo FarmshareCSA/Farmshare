@@ -64,7 +64,7 @@ struct Task {
     uint endTime;
     bool recurring;
     uint frequency;
-    TaskReward[] rewards;
+    bytes32[] rewardUIDs;
     TaskStatus status;
 }
 
