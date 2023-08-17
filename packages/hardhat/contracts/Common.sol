@@ -58,6 +58,7 @@ struct Task {
     bytes32 uid;
     string name;
     string description;
+    bytes32 farmUID;
     address creator;
     uint startTime;
     uint endTime;
