@@ -68,8 +68,9 @@ struct Task {
 
 struct TaskReward {
     address tokenAddress;
+    bool isErc1155;
+    bool isErc20;
     uint amount;
-    bool is1155;
     uint tokenId;
 }
 

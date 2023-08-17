@@ -16,7 +16,7 @@ import "./FarmShareTokens.sol";
 contract TaskRegistry is ITaskRegistry, IERC1155Receiver, Ownable, SchemaResolver {
     string public constant taskCreationSchema = "string name,string description,address creator,uint256 startTime,uint256 endTime,bool recurring,uint256 frequency";
     bytes32 public immutable taskCreationSchemaUID;
-	string public constant taskFundedSchema = "address tokenAddress,uint256 amount,bool is1155,uint256 tokenId";
+	string public constant taskFundedSchema = "address tokenAddress,uint256 amount,bool isErc1155,bool isErc20,uint256 tokenId";
 	bytes32 public immutable taskFundedSchemaUID;
 	string public constant taskStartedSchema = "uint256 taskId,uint256 communityId,address userAddress,uint256 startTimestamp";
 	bytes32 public immutable taskStartedSchemaUID;
@@ -191,10 +191,11 @@ contract TaskRegistry is ITaskRegistry, IERC1155Receiver, Ownable, SchemaResolve
 		
 		bytes memory taskFundedData = abi.encode(
 			TaskReward(
-				msg.sender,
-				_value,
-				true,
-				_id
+				msg.sender,	// tokenAddress
+				true,		// isErc1155
+				false,		// isErc20
+				_value,		// amount
+				_id			// tokenId
 			)
 		);
 		AttestationRequestData memory requestData = AttestationRequestData({
@@ -268,6 +269,16 @@ contract TaskRegistry is ITaskRegistry, IERC1155Receiver, Ownable, SchemaResolve
 				frequency
 			);
 			return true;
+		} else if (attestation.schema == taskFundedSchemaUID) {
+			// Attestation if for a TaskFunded event
+			(
+				address tokenAddress,
+				bool isErc1155,
+				bool isErc20,
+				uint amount,
+				uint tokenId
+			) = abi.decode(attestation.data, (address, bool, bool, uint, uint));
+			bytes32 taskUID = attestation.refUID;
 		}
 		return false;
 	}
