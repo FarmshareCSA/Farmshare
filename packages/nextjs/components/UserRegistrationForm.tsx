@@ -63,7 +63,7 @@ export const UserRegistrationForm = () => {
       const encodedData = schemaEncoder.encodeData([
         { name: "account", value: address, type: "address" },
         { name: "name", value: name, type: "string" },
-        { name: "emailHash", value: emailHash, type: "string" },
+        { name: "emailHash", value: emailHash, type: "bytes32" },
         { name: "location", value: location, type: "string" },
         { name: "role", value: role, type: "uint8" },
       ]);
