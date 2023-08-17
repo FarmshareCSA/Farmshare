@@ -4,6 +4,8 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "@openzeppelin/contracts/token/ERC1155/IERC1155Receiver.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@safe-global/safe-contracts/contracts/proxies/SafeProxyFactory.sol";
 import "@ethereum-attestation-service/eas-contracts/contracts/resolver/SchemaResolver.sol";
 import "@ethereum-attestation-service/eas-contracts/contracts/ISchemaRegistry.sol";
@@ -14,6 +16,8 @@ import "./interfaces/IFarmRegistry.sol";
 import "./FarmShareTokens.sol";
 
 contract TaskRegistry is ITaskRegistry, IERC1155Receiver, Ownable, SchemaResolver {
+	using SafeERC20 for IERC20;
+
     string public constant taskCreationSchema = "string name,string description,address creator,uint256 startTime,uint256 endTime,bool recurring,uint256 frequency";
     bytes32 public immutable taskCreationSchemaUID;
 	string public constant taskFundedSchema = "address tokenAddress,uint256 amount,bool isErc1155,bool isErc20,uint256 tokenId";
@@ -49,132 +53,69 @@ contract TaskRegistry is ITaskRegistry, IERC1155Receiver, Ownable, SchemaResolve
 		shareTokens = new FarmShareTokens(_userRegistry, _farmRegistry, this);
 	}
 
-	mapping(string => bytes32) public taskUIDByName;
+	mapping(bytes32 => Task) public taskByUID;
 	mapping(bytes32 => bytes32[]) public taskRewardsByTaskUID;
+	mapping(bytes32 => address[]) public taskApplicantsByTaskUID;
+	mapping(bytes32 => bool) public isTaskRewardPaid;
 
-	// External view functions
 
-	function taskByUID(bytes32 uid) public view returns (Task memory) {
-		if (uid == bytes32(0)) {
-			return Task({
-				uid: bytes32(0),
-				name: "",
-				description: "",
-				creator: address(0),
-				startTime: uint(0),
-				endTime: uint(0),
-				recurring: false,
-				frequency: uint(0),
-				rewards: new TaskReward[](0)
-			});
-		}
-		Attestation memory farmTaskRegistration = _eas.getAttestation(uid);
-		(
-			string memory name,
-			string memory description,
-			address _creator,
-			uint _startTime,
-			uint _endTime,
-			bool _recurring,
-			uint _frequency
-		) = abi.decode(farmTaskRegistration.data, (string, string, address, uint, uint, bool, uint));
-		require(bytes(name).length > 0, "Invalid community task record");
-		bytes32[] memory rewardUIDs = taskRewardsByTaskUID[uid];
-		TaskReward[] memory rewards = new TaskReward[](rewardUIDs.length);
-		for (uint i; i < rewardUIDs.length; ++i) {
-			Attestation memory rewardAttestation = _eas.getAttestation(rewardUIDs[i]);
-			(address tokenAddress, uint amount, bool is1155, uint tokenId) = abi.decode(rewardAttestation.data, (address, uint, bool, uint));
-			rewards[i] = TaskReward(tokenAddress, amount, is1155, tokenId);
-		}
-		return Task({
-			uid: uid,
-			name: name,
-			description: description,
-			creator: _creator,
-			startTime: _startTime,
-			endTime: _endTime,
-			recurring: _recurring,
-			frequency: _frequency,
-			rewards: rewards
-		});
-	}
+	// External funding functions
 
-	function taskByName(string calldata name) external view returns (Task memory) {
-		return taskByUID(taskUIDByName[name]);
-	}
-
-	function createTaskStarted(
+	/// Funds a task with shares from the caller's farm
+	/// @dev sender must be authorized to mint shares for the farm
+	/// @param taskUID the task to fund
+	/// @param farmUID the farm providing the shares
+	/// @param amount the amount of shares to fund with
+	function fundTaskWithFarmShares(
 		bytes32 taskUID,
-		address userAddress,
-		uint256 timeStamp
-	) external payable returns (bytes32 taskStartedUID) {
-		require(taskUID != bytes32(0), "Task UID cannot be 0");
-		Attestation memory farmTaskRegistration = _eas.getAttestation(taskUID);
-		require(farmTaskRegistration.schema == taskCreationSchemaUID, "Invalid community task schema");
+		bytes32 farmUID,
+		uint amount
+	) external returns (bytes32 taskFundedUID) {
+		uint tokenId = uint(farmUID);
+		uint prevRewards = taskRewardsByTaskUID[taskUID].length;
+		shareTokens.mint(address(this), tokenId, amount, abi.encode(taskUID));
+		require(taskRewardsByTaskUID[taskUID].length == prevRewards + 1);
+		return taskRewardsByTaskUID[taskUID][prevRewards];
+	}
 
-
-		bytes memory taskStartedData = abi.encode(
-		(	TaskStarted(
-				taskUID,
-				userAddress,
-				timeStamp
-			)
-		)
+	/// Funds a task with an ERC-20 token
+	/// @dev sender must have already approved this contract for the amount
+	/// @param taskUID the task to fund
+	/// @param tokenAddress the token to fund it with
+	/// @param amount the amount of tokens to fund with
+	function fundTaskWithERC20(
+		bytes32 taskUID,
+		address tokenAddress,
+		uint amount
+	) external returns (bytes32 taskFundedUID) {
+		IERC20 token = IERC20(tokenAddress);
+		token.safeTransferFrom(msg.sender, address(this), amount);
+		bytes memory taskFundedData = abi.encode(
+			tokenAddress,	// tokenAddress
+			false,			// isErc1155
+			true,			// isErc20
+			amount,			// amount
+			0				// tokenId
 		);
-
 		AttestationRequestData memory requestData = AttestationRequestData({
-			recipient: userAddress,
+			recipient: msg.sender,
 			expirationTime: 0,
-			revocable: false,
+			revocable: true,
 			refUID: taskUID,
-			data: taskStartedData,
+			data: taskFundedData,
 			value: 0
 		});
 		AttestationRequest memory request = AttestationRequest({
-			schema: taskStartedSchemaUID,
+			schema: taskFundedSchemaUID,
 			data: requestData
 		});
-
-		taskStartedUID = _eas.attest{ value: msg.value }(request);
-	}
-
-	function createTaskCompleted(
-		bytes32 taskUID,
-		address userAddress,
-		uint256 timeStamp
-	) external payable returns (bytes32 taskCompletedUID) {
-		require(taskUID != bytes32(0), "Task UID cannot be 0");
-		Attestation memory farmTaskRegistration = _eas.getAttestation(taskUID);
-		require(farmTaskRegistration.schema == taskCreationSchemaUID, "Invalid community task schema");
-
-
-		bytes memory taskCompletedData = abi.encode(
-		(	TaskCompleted(
-				taskUID,
-				userAddress,
-				timeStamp
-			)
-		)
-		);
-		AttestationRequestData memory requestData = AttestationRequestData({
-			recipient: userAddress,
-			expirationTime: 0,
-			revocable: false,
-			refUID: taskUID,
-			data: taskCompletedData,
-			value: 0
-		});
-		AttestationRequest memory request = AttestationRequest({
-			schema: taskCompletedSchemaUID,
-			data: requestData
-		});
-
-		taskCompletedUID = _eas.attest{ value: msg.value }(request);
+		taskFundedUID = _eas.attest(request);
+		taskRewardsByTaskUID[taskUID].push(taskFundedUID);
 	}
 
 	// External ERC-1155 Receiver functions
 
-	function supportsInterface(bytes4 interfaceID) external view override returns (bool) {
+	function supportsInterface(bytes4 interfaceID) external pure override returns (bool) {
       	return  interfaceID == 0x01ffc9a7 ||    // ERC-165 support (i.e. `bytes4(keccak256('supportsInterface(bytes4)'))`).
               	interfaceID == 0x4e2312e0;      // ERC-1155 `ERC1155TokenReceiver` support (i.e. `bytes4(keccak256("onERC1155Received(address,address,uint256,uint256,bytes)")) ^ bytes4(keccak256("onERC1155BatchReceived(address,address,uint256[],uint256[],bytes)"))`).
   	}
@@ -188,15 +129,13 @@ contract TaskRegistry is ITaskRegistry, IERC1155Receiver, Ownable, SchemaResolve
 	) public override returns (bytes4) {
 		bytes32 taskUID = abi.decode(_data, (bytes32));
 		require(taskUID != bytes32(0), "Invalid task UID");
-		
+		require(taskByUID[taskUID].creator != address(0), "Invalid task UID");
 		bytes memory taskFundedData = abi.encode(
-			TaskReward(
-				msg.sender,	// tokenAddress
-				true,		// isErc1155
-				false,		// isErc20
-				_value,		// amount
-				_id			// tokenId
-			)
+			msg.sender,	// tokenAddress
+			true,		// isErc1155
+			false,		// isErc20
+			_value,		// amount
+			_id			// tokenId
 		);
 		AttestationRequestData memory requestData = AttestationRequestData({
 			recipient: tx.origin,
@@ -247,6 +186,7 @@ contract TaskRegistry is ITaskRegistry, IERC1155Receiver, Ownable, SchemaResolve
 		if (attestation.schema == taskCreationSchemaUID) {
 			// Attestation is for a FarmTask registration
 			(
+				bytes32 communityUID,
 				string memory name,
 				string memory description,
 				address creator,
@@ -254,12 +194,26 @@ contract TaskRegistry is ITaskRegistry, IERC1155Receiver, Ownable, SchemaResolve
 				uint endTime,
 				bool recurring,
 				uint frequency,
-			) = abi.decode(attestation.data, (string, string, address, uint, uint, bool, uint, uint));
+			) = abi.decode(attestation.data, (bytes32, string, string, address, uint, uint, bool, uint, uint));
 			require(bytes(name).length > 0, "Name cannot be empty");
 			require(bytes(description).length > 0, "Description cannot be empty");
-			taskUIDByName[name] = attestation.uid;
+			Task memory newTask = Task({
+				taskUID: attestation.uid,
+				communityUID: communityUID,
+				name: name,
+				description: description,
+				creator: creator,
+				startTime: startTime,
+				endTime: endTime,
+				recurring: recurring,
+				frequency: frequency,
+				rewards: new TaskReward[](0),
+				status: TaskStatus.TODO
+			});
+			taskByUID[attestation.uid] = newTask;
 			emit TaskRegistered(
 				attestation.uid,
+				communityUID,
 				name,
 				description,
 				creator,
@@ -271,6 +225,7 @@ contract TaskRegistry is ITaskRegistry, IERC1155Receiver, Ownable, SchemaResolve
 			return true;
 		} else if (attestation.schema == taskFundedSchemaUID) {
 			// Attestation if for a TaskFunded event
+			require(attestation.attester == address(this), "Only task registry contract can attest to funding rewards");
 			(
 				address tokenAddress,
 				bool isErc1155,
@@ -279,6 +234,19 @@ contract TaskRegistry is ITaskRegistry, IERC1155Receiver, Ownable, SchemaResolve
 				uint tokenId
 			) = abi.decode(attestation.data, (address, bool, bool, uint, uint));
 			bytes32 taskUID = attestation.refUID;
+			taskByUID[taskUID].rewards.push(
+				TaskReward(attestation.uid, tokenAddress, isErc1155, isErc20, amount, tokenId)
+			);
+		} else if (attestation.schema == taskStartedSchemaUID) {
+			(
+				bytes32 taskUID,
+				bytes32 userUID,
+				uint startTimestamp
+			) = abi.decode(attestation.data, (bytes32, bytes32, uint));
+			require(attestation.attester == taskByUID[taskUID].creator, "Only task creator can attest that their task has been started");
+			UserRecord memory user = userRegistry.userRecordByUID(userUID);
+			require(user.account != address(0), "User UID not found");
+			taskByUID[taskUID].status = TaskStatus.INPROGRESS;
 		}
 		return false;
 	}
