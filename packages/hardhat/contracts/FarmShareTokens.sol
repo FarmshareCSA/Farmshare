@@ -21,7 +21,7 @@ contract FarmShareTokens is ERC1155 {
         taskRegistry = _taskRegistry;
     }
 
-    function mint(address to, uint256 id, uint256 amount) public {
+    function mint(address to, uint256 id, uint256 amount, bytes calldata data) public {
         bytes32 farmUID = bytes32(id);
         FarmRecord memory farmRecord = farmRegistry.farmRecordByUID(farmUID);
         require(farmRecord.farmOwner != address(0), "Farm not found");
@@ -30,7 +30,7 @@ contract FarmShareTokens is ERC1155 {
             || msg.sender == address(taskRegistry) && farmRegistry.authorizedFarmerOrManager(farmUID, tx.origin), 
             "Only farm owner or manager can mint shares"
         );
-        _mint(to, id, amount, "");
+        _mint(to, id, amount, data);
     }
 
     function _beforeTokenTransfer(
