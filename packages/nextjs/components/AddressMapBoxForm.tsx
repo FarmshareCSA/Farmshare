@@ -1,18 +1,32 @@
 import React from "react";
-import { useState } from "react";
 import { InputBase } from "./scaffold-eth";
 import { AddressAutofill } from "@mapbox/search-js-react";
 
 const MAPBOX_TOKEN = "pk.eyJ1IjoidW1hcjk2IiwiYSI6ImNsbDl5ZHBxcTBocjgzcG56aXZrMzUzNWkifQ.ysIeMTq4U_kJpQSniYOmCA";
 
-export const AddressMapBoxForm = () => {
-  const [address, setAddress] = useState("");
-  const [city, setCity] = useState("");
-  const [state, setState] = useState("");
-  const [country, setCountry] = useState("");
-
-  const [postalCode, setPostalCode] = useState("");
-
+export const AddressMapBoxForm = ({
+  address,
+  setAddress,
+  city,
+  setCity,
+  state,
+  setState,
+  country,
+  setCountry,
+  postalCode,
+  setPostalCode,
+}: {
+  address: string;
+  setAddress: (newAddress: string) => void;
+  city: string;
+  setCity: (newCity: string) => void;
+  state: string;
+  setState: (newState: string) => void;
+  country: string;
+  setCountry: (newCountry: string) => void;
+  postalCode: string;
+  setPostalCode: (newPostalCode: string) => void;
+}) => {
   const handleCountry = (e: any) => {
     setCountry(e.toUpperCase());
   };

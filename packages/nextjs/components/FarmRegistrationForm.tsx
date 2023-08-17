@@ -1,5 +1,6 @@
 import React from "react";
 import { ChangeEvent, useState } from "react";
+import dynamic from "next/dynamic";
 import Image from "next/image";
 import { InputBase } from "./scaffold-eth";
 import { EAS, SchemaEncoder } from "@ethereum-attestation-service/eas-sdk";
@@ -13,11 +14,15 @@ import { useEthersSigner } from "~~/services/web3/ethers";
 import { getTargetNetwork, notification } from "~~/utils/scaffold-eth";
 import { contracts } from "~~/utils/scaffold-eth/contract";
 
+const AddressMapBoxForm = dynamic(() => import("~~/components/AddressMapBoxForm"), {
+  ssr: false,
+});
+
 export const FarmRegistrationForm = () => {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [website, setWebsite] = useState("");
-  const [address, setAddress] = useState("");
+  const [streetAddress, setStreetAddress] = useState("");
   const [city, setCity] = useState("");
   const [state, setState] = useState("");
   const [country, setCountry] = useState("");
@@ -27,8 +32,6 @@ export const FarmRegistrationForm = () => {
   const { chain } = useNetwork();
   const signer = useEthersSigner();
   const writeDisabled = !chain || chain?.id !== getTargetNetwork().id;
-
-  const MAPBOX_TOKEN = "pk.eyJ1IjoidW1hcjk2IiwiYSI6ImNsbDl5ZHBxcTBocjgzcG56aXZrMzUzNWkifQ.ysIeMTq4U_kJpQSniYOmCA";
 
   /* configure Infura IPFS auth settings */
   const projectId = "2TcFlGWq8noGJV2ylEnCVpqCr30";
@@ -62,10 +65,6 @@ export const FarmRegistrationForm = () => {
   const schemaEncoder = new SchemaEncoder(
     "bytes32 ownerUID,string farmName,string description,string streetAddress,string city,string state,string country,string postalCode,string websiteUrl,string imageURL",
   );
-
-  const handleCountry = (e: any) => {
-    setCountry(e.toUpperCase());
-  };
 
   const handleImage = async (e: ChangeEvent<HTMLInputElement>) => {
     if (e.target.files == null) return;
@@ -154,45 +153,18 @@ export const FarmRegistrationForm = () => {
         placeholder="www.applepondfarm.com"
         prefix={<span className="self-center cursor-pointer text-xl font-semibold px-4 text-accent">🌐</span>}
       />
-      <form className="flex flex-col gap-3">
-        <AddressAutofill accessToken={MAPBOX_TOKEN}>
-          <InputBase
-            value={address}
-            onChange={e => setAddress(e)}
-            placeholder="123 Main St."
-            prefix={<span className="self-center cursor-pointer text-xl font-semibold px-4 text-accent">📍</span>}
-            autoComplete="address-line1"
-          />
-        </AddressAutofill>
-        <InputBase
-          value={city}
-          onChange={e => setCity(e)}
-          placeholder="Farmtown"
-          prefix={<span className="self-center cursor-pointer text-xl font-semibold px-4 text-accent">🎡</span>}
-          autoComplete="address-level2"
-        />
-        <InputBase
-          value={state}
-          onChange={e => setState(e)}
-          placeholder="NY"
-          prefix={<span className="self-center cursor-pointer text-xl font-semibold px-4 text-accent">🏛️</span>}
-          autoComplete="address-level1"
-        />
-        <InputBase
-          value={country}
-          onChange={handleCountry}
-          placeholder="US"
-          prefix={<span className="self-center cursor-pointer text-xl font-semibold px-4 text-accent">🏔️</span>}
-          autoComplete="country"
-        />
-        <InputBase
-          value={postalCode}
-          onChange={e => setPostalCode(e)}
-          placeholder="12345"
-          prefix={<span className="self-center cursor-pointer text-xl font-semibold px-4 text-accent">⛱️</span>}
-          autoComplete="postal-code"
-        />
-      </form>
+      <AddressMapBoxForm
+        address={streetAddress}
+        setAddress={setStreetAddress}
+        city={city}
+        setCity={setCity}
+        state={state}
+        setState={setState}
+        country={country}
+        setCountry={setCountry}
+        postalCode={postalCode}
+        setPostalCode={setPostalCode}
+      />
       <div className={`flex border-2 border-base-300 bg-base-200 rounded-full text-accent`}>
         <span className="self-center cursor-pointer text-xl font-semibold px-4 text-accent">📷</span>
         <input
