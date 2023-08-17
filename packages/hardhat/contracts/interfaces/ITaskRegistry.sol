@@ -8,7 +8,8 @@ import "../FarmShareTokens.sol";
 interface ITaskRegistry {
 
     event TaskRegistered(
-      bytes32 indexed uid, 
+      bytes32 indexed taskUID, 
+      bytes32 indexed communityUID,
       string name, 
       string description, 
       address creator,

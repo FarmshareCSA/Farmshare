@@ -55,7 +55,8 @@ struct ProductType {
 }
 
 struct Task {
-    bytes32 uid;
+    bytes32 taskUID;
+    bytes32 communityUID;
     string name;
     string description;
     address creator;
@@ -64,9 +65,11 @@ struct Task {
     bool recurring;
     uint frequency;
     TaskReward[] rewards;
+    TaskStatus status;
 }
 
 struct TaskReward {
+    bytes32 fundingUID;
     address tokenAddress;
     bool isErc1155;
     bool isErc20;
@@ -75,14 +78,14 @@ struct TaskReward {
 }
 
 struct TaskCompleted {
-    bytes32 uid;
-    address userAddress;
-    uint timeStamp;
+    bytes32 taskUID;
+    bytes32 userUID;
+    uint endTimestamp;
 }
 
 struct TaskStarted {
-    bytes32 uid;
-    address userAddress;
-    uint timeStamp;
+    bytes32 taskUID;
+    bytes32 userUID;
+    uint startTimestamp;
 }
 
