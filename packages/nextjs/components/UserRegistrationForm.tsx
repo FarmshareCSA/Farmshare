@@ -79,6 +79,7 @@ export const UserRegistrationForm = () => {
 
       console.log("New attestation UID:", newAttestationUID);
       const userRegistration: UserRegistration = {
+        uid: newAttestationUID,
         account: address,
         name: name,
         emailHash: emailHash,

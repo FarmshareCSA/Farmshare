@@ -1,6 +1,7 @@
 import { ChangeEvent, useState } from "react";
 import dynamic from "next/dynamic";
 import Image from "next/image";
+import { Spinner } from "./Spinner";
 import { InputBase } from "./scaffold-eth";
 import { EAS, SchemaEncoder } from "@ethereum-attestation-service/eas-sdk";
 import { Buffer } from "buffer";
@@ -26,9 +27,10 @@ export const FarmRegistrationForm = () => {
   const [country, setCountry] = useState("");
   const [postalCode, setPostalCode] = useState("");
   const [imageUrl, setImageUrl] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const { chain } = useNetwork();
   const signer = useGlobalState(state => state.userSigner);
+  const userRegistration = useGlobalState(state => state.userRegistration);
   const writeDisabled = !chain || chain?.id !== getTargetNetwork().id;
 
   /* configure Infura IPFS auth settings */
@@ -65,7 +67,7 @@ export const FarmRegistrationForm = () => {
 
   // Initialize SchemaEncoder with the schema string
   const schemaEncoder = new SchemaEncoder(
-    "bytes32 ownerUID,string farmName,string description,string streetAddress,string city,string state,string country,string postalCode,string websiteUrl,string imageURL",
+    "bytes32 ownerUID,string farmName,string description,string streetAddress,string city,string state,string country,string postalCode,string websiteUrl,string imageUrl",
   );
 
   const handleImage = async (e: ChangeEvent<HTMLInputElement>) => {
@@ -82,20 +84,16 @@ export const FarmRegistrationForm = () => {
   };
 
   const handleSubmit = async () => {
-    setLoading(true);
+    setSubmitting(true);
     try {
       invariant(signer, "Signer must be defined");
       eas.connect(signer as any);
       const address = await signer.getAddress();
-      const { data: userUID } = useScaffoldContractRead({
-        contractName: "UserRegistry",
-        functionName: "userRegistrations",
-        args: [address],
-      });
+      const userUID = userRegistration?.uid;
       invariant(userUID && userUID != "0x0", "user must be registered");
       invariant(schemaUID, "schema UID must be defined");
       const encodedData = schemaEncoder.encodeData([
-        { name: "ownerUID", value: userUID, type: "address" },
+        { name: "ownerUID", value: userUID, type: "bytes32" },
         { name: "farmName", value: name, type: "string" },
         { name: "description", value: description, type: "string" },
         { name: "streetAddress", value: address, type: "string" },
@@ -104,7 +102,7 @@ export const FarmRegistrationForm = () => {
         { name: "country", value: country, type: "string" },
         { name: "postalCode", value: postalCode, type: "string" },
         { name: "websiteUrl", value: website, type: "string" },
-        { name: "imageUrl", value: website, type: "string" },
+        { name: "imageUrl", value: imageUrl, type: "string" },
       ]);
 
       const tx = await eas.attest({
@@ -121,12 +119,12 @@ export const FarmRegistrationForm = () => {
 
       console.log("New attestation UID:", newAttestationUID);
 
-      setLoading(false);
-      notification.success("You successfully registered!");
+      setSubmitting(false);
+      notification.success("You successfully registered your farm!");
     } catch (error: any) {
       console.error("⚡️ ~ file: RegistrationForm.tsx:handleSubmit ~ error", error);
       notification.error(error.toString());
-      setLoading(false);
+      setSubmitting(false);
     }
   };
 
@@ -183,8 +181,8 @@ export const FarmRegistrationForm = () => {
           {/* <a href={imageUrl} target="_blank">{imageUrl}</a> */}
         </div>
       )}
-      <button className={`btn btn-secondary btn-sm`} disabled={writeDisabled || loading} onClick={handleSubmit}>
-        Register 📝
+      <button className={`btn btn-secondary btn-sm`} disabled={writeDisabled || submitting} onClick={handleSubmit}>
+        {submitting ? <Spinner /> : "Register 📝"}
       </button>
     </div>
   );

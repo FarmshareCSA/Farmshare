@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { SchemaEncoder } from "@ethereum-attestation-service/eas-sdk";
+import { getRPCProviderOwner, getZeroDevSigner } from "@zerodevapp/sdk";
 import type { NextPage } from "next";
 import { useAccount } from "wagmi";
 import { FarmRegistrationForm } from "~~/components/FarmRegistrationForm";
@@ -10,11 +11,11 @@ import { UserRole } from "~~/services/eas/customSchemaTypes";
 import type { Attestation } from "~~/services/eas/types";
 import { getUserAttestationsForAddress } from "~~/services/eas/utils";
 import { useGlobalState } from "~~/services/store/store";
-import { getZeroDevSigner, getRPCProviderOwner } from "@zerodevapp/sdk";
 import { web3AuthInstance } from "~~/services/web3/wagmiConnectors";
 
 const Home: NextPage = () => {
   const { address } = useAccount();
+  const [userRegIsNull, setUserRegIsNull] = useState(true);
   const userInfo = useGlobalState(state => state.userInfo);
   const userSmartAccount = useGlobalState(state => state.userSmartAccount);
   const userRegistration = useGlobalState(state => state.userRegistration);
@@ -22,7 +23,7 @@ const Home: NextPage = () => {
   const setUserSmartAccount = useGlobalState(state => state.setUserSmartAccount);
   const setUserSigner = useGlobalState(state => state.setUserSigner);
   const [userAttestations, setUserAttestations] = useState<Attestation[]>([]);
-  const defaultProjectId = process.env.REACT_APP_ZERODEV_PROJECT_ID || 'ec01b08b-f7a8-4f47-924d-0a1b1879a468'
+  const defaultProjectId = process.env.REACT_APP_ZERODEV_PROJECT_ID || "ec01b08b-f7a8-4f47-924d-0a1b1879a468";
 
   const userSchemaEncoder = new SchemaEncoder(
     "address account,string name,bytes32 emailHash,string location,uint8 role",
@@ -36,25 +37,30 @@ const Home: NextPage = () => {
   useEffect(() => {
     const getUserAttestations = async () => {
       const tmpAttestations = await getUserAttestationsForAddress(
-        userSmartAccount ? userSmartAccount : address ? address : "", 
-        schemaUID ? schemaUID : ""
+        userSmartAccount ? userSmartAccount : address ? address : "",
+        schemaUID ? schemaUID : "",
       );
       setUserAttestations(tmpAttestations);
       if (tmpAttestations.length > 0) {
+        console.log("Found user registration...");
         const decodedData = userSchemaEncoder.decodeData(tmpAttestations[0].data);
         setUserRegistration({
+          uid: tmpAttestations[0].id,
           account: decodedData[0].value.value.toString(),
           name: decodedData[1].value.value.toString(),
           emailHash: decodedData[2].value.value.toString(),
           location: decodedData[3].value.value.toString(),
           role: Number(decodedData[4].value.value),
         });
+        setUserRegIsNull(false);
       } else {
+        console.log("Did not find user registration");
         setUserRegistration(null);
       }
     };
     getUserAttestations();
-  }, [address, userRegistration, userSmartAccount]);
+    console.log("User registration UID: %s", userRegistration?.uid);
+  }, [address, userRegIsNull, userSmartAccount]);
 
   useEffect(() => {
     const tryZeroDevSigner = async () => {
@@ -62,18 +68,17 @@ const Home: NextPage = () => {
         const tmpSigner = await getZeroDevSigner({
           projectId: defaultProjectId,
           owner: getRPCProviderOwner(web3AuthInstance.provider),
-        })
+        });
         setUserSigner(tmpSigner);
         console.log(tmpSigner);
-        const tmpAddress = await tmpSigner.getAddress()
-        console.log("Smart account address: %s", tmpAddress)
+        const tmpAddress = await tmpSigner.getAddress();
+        console.log("Smart account address: %s", tmpAddress);
         if (tmpAddress) {
-          setUserSmartAccount(tmpAddress)
+          setUserSmartAccount(tmpAddress);
         }
       }
     };
     tryZeroDevSigner();
-    
   }, [web3AuthInstance, address]);
 
   return (
