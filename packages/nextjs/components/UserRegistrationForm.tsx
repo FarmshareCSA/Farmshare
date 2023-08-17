@@ -15,6 +15,7 @@ import { contracts } from "~~/utils/scaffold-eth/contract";
 export const UserRegistrationForm = () => {
   const userInfo = useGlobalState(state => state.userInfo);
   const signer = useGlobalState(state => state.userSigner);
+
   const setUserRegistration = useGlobalState(state => state.setUserRegistration);
   const [name, setName] = useState(userInfo?.name || "");
   const [email, setEmail] = useState(userInfo?.email || "");
@@ -33,11 +34,11 @@ export const UserRegistrationForm = () => {
     chain && contracts
       ? contracts[chain.id]?.[0]?.["contracts"]?.["EAS"]
         ? contracts[chain.id]?.[0]?.["contracts"]?.["EAS"]?.address
-        : chain.name == "Sepolia" 
-          ? "0xC2679fBD37d54388Ce493F1DB75320D236e1815e"
-          : chain.name == "Base Goerli"
-            ? "0xAcfE09Fd03f7812F022FBf636700AdEA18Fd2A7A"
-            : "0x87A33bc39A49Bd3e50aa053Bee91a988A510ED6a"
+        : chain.name == "Sepolia"
+        ? "0xC2679fBD37d54388Ce493F1DB75320D236e1815e"
+        : chain.name == "Base Goerli"
+        ? "0xAcfE09Fd03f7812F022FBf636700AdEA18Fd2A7A"
+        : "0x87A33bc39A49Bd3e50aa053Bee91a988A510ED6a"
       : "0xC2679fBD37d54388Ce493F1DB75320D236e1815e";
   if (!chain) {
     console.log("network.chain is undefined");
@@ -116,7 +117,7 @@ export const UserRegistrationForm = () => {
       <InputBase
         value={location}
         onChange={e => setLocation(e)}
-        placeholder="123 Main St., Farmtown, NY"
+        placeholder="Your location (optional)"
         prefix={<span className="self-center cursor-pointer text-xl font-semibold px-4 text-accent">📍</span>}
       />
       <div className={`flex border-2 border-base-300 bg-base-200 rounded-full text-accent`}>

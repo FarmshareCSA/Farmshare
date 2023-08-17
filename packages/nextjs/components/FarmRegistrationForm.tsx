@@ -1,4 +1,5 @@
 import { ChangeEvent, useState } from "react";
+import dynamic from "next/dynamic";
 import Image from "next/image";
 import { InputBase } from "./scaffold-eth";
 import { EAS, SchemaEncoder } from "@ethereum-attestation-service/eas-sdk";
@@ -7,16 +8,22 @@ import { create } from "ipfs-http-client";
 import invariant from "tiny-invariant";
 import { useNetwork } from "wagmi";
 import { useScaffoldContractRead } from "~~/hooks/scaffold-eth";
+import { useGlobalState } from "~~/services/store/store";
 import { getTargetNetwork, notification } from "~~/utils/scaffold-eth";
 import { contracts } from "~~/utils/scaffold-eth/contract";
-import { useGlobalState } from "~~/services/store/store";
+
+const AddressMapBoxForm = dynamic(() => import("~~/components/AddressMapBoxForm"), {
+  ssr: false,
+});
 
 export const FarmRegistrationForm = () => {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [website, setWebsite] = useState("");
-  const [country, setCountry] = useState("");
+  const [streetAddress, setStreetAddress] = useState("");
+  const [city, setCity] = useState("");
   const [state, setState] = useState("");
+  const [country, setCountry] = useState("");
   const [postalCode, setPostalCode] = useState("");
   const [imageUrl, setImageUrl] = useState("");
   const [loading, setLoading] = useState(false);
@@ -48,17 +55,17 @@ export const FarmRegistrationForm = () => {
     chain && contracts
       ? contracts[chain.id]?.[0]?.["contracts"]?.["EAS"]
         ? contracts[chain.id]?.[0]?.["contracts"]?.["EAS"]?.address
-        : chain.name == "Sepolia" 
-          ? "0xC2679fBD37d54388Ce493F1DB75320D236e1815e"
-          : chain.name == "Base Goerli"
-            ? "0xAcfE09Fd03f7812F022FBf636700AdEA18Fd2A7A"
-            : "0x87A33bc39A49Bd3e50aa053Bee91a988A510ED6a"
+        : chain.name == "Sepolia"
+        ? "0xC2679fBD37d54388Ce493F1DB75320D236e1815e"
+        : chain.name == "Base Goerli"
+        ? "0xAcfE09Fd03f7812F022FBf636700AdEA18Fd2A7A"
+        : "0x87A33bc39A49Bd3e50aa053Bee91a988A510ED6a"
       : "0xC2679fBD37d54388Ce493F1DB75320D236e1815e";
   const eas = new EAS(easAddress);
 
   // Initialize SchemaEncoder with the schema string
   const schemaEncoder = new SchemaEncoder(
-    "bytes32 ownerUID,string farmName,string description,string country,string state,string postalCode,string websiteUrl,string imageURL",
+    "bytes32 ownerUID,string farmName,string description,string streetAddress,string city,string state,string country,string postalCode,string websiteUrl,string imageURL",
   );
 
   const handleImage = async (e: ChangeEvent<HTMLInputElement>) => {
@@ -91,8 +98,10 @@ export const FarmRegistrationForm = () => {
         { name: "ownerUID", value: userUID, type: "address" },
         { name: "farmName", value: name, type: "string" },
         { name: "description", value: description, type: "string" },
-        { name: "country", value: country, type: "string" },
+        { name: "streetAddress", value: address, type: "string" },
+        { name: "city", value: city, type: "string" },
         { name: "state", value: state, type: "string" },
+        { name: "country", value: country, type: "string" },
         { name: "postalCode", value: postalCode, type: "string" },
         { name: "websiteUrl", value: website, type: "string" },
         { name: "imageUrl", value: website, type: "string" },
@@ -146,23 +155,17 @@ export const FarmRegistrationForm = () => {
         placeholder="www.applepondfarm.com"
         prefix={<span className="self-center cursor-pointer text-xl font-semibold px-4 text-accent">🌐</span>}
       />
-      <InputBase
-        value={country}
-        onChange={e => setCountry(e)}
-        placeholder="Canada"
-        prefix={<span className="self-center cursor-pointer text-xl font-semibold px-4 text-accent">🇨🇦</span>}
-      />
-      <InputBase
-        value={country}
-        onChange={e => setState(e)}
-        placeholder="Ontario"
-        prefix={<span className="self-center cursor-pointer text-xl font-semibold px-4 text-accent">📍</span>}
-      />
-      <InputBase
-        value={country}
-        onChange={e => setPostalCode(e)}
-        placeholder="M5A 1A4"
-        prefix={<span className="self-center cursor-pointer text-xl font-semibold px-4 text-accent">✉️</span>}
+      <AddressMapBoxForm
+        address={streetAddress}
+        setAddress={setStreetAddress}
+        city={city}
+        setCity={setCity}
+        state={state}
+        setState={setState}
+        country={country}
+        setCountry={setCountry}
+        postalCode={postalCode}
+        setPostalCode={setPostalCode}
       />
       <div className={`flex border-2 border-base-300 bg-base-200 rounded-full text-accent`}>
         <span className="self-center cursor-pointer text-xl font-semibold px-4 text-accent">📷</span>

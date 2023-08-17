@@ -9,8 +9,10 @@ interface IFarmRegistry {
         bytes32 ownerUID, 
         string name, 
         string description, 
+        string streetAddress,
+        string city, 
+        string state,
         string country, 
-        string state, 
         string postalCode, 
         string website
     );

@@ -37,9 +37,8 @@ const config: HardhatUserConfig = {
             runs: 200,
           },
         },
-      }
+      },
     ],
-    
   },
   defaultNetwork: "baseGoerli",
   namedAccounts: {
@@ -100,7 +99,7 @@ const config: HardhatUserConfig = {
       url: `https://base-goerli.public.blastapi.io`,
       accounts: [deployerPrivateKey],
       chainId: 84531,
-      gasPrice: 1000000000
+      gasPrice: 1000000000,
     },
     zkSyncTestnet: {
       url: "https://testnet.era.zksync.dev",
