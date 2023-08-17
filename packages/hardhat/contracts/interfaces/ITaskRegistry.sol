@@ -21,8 +21,9 @@ interface ITaskRegistry {
     event TaskFunded(
       bytes32 indexed taskUID,
       address tokenAddress,
+      bool isErc1155,
+      bool isErc20,
       uint256 amount,
-      bool is1155,
       uint256 tokenId
     );
 
