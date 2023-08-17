@@ -9,9 +9,9 @@ import "@ethereum-attestation-service/eas-contracts/contracts/resolver/SchemaRes
 import "@ethereum-attestation-service/eas-contracts/contracts/ISchemaRegistry.sol";
 import "@ethereum-attestation-service/eas-contracts/contracts/IEAS.sol";
 import "./interfaces/ITaskRegistry.sol";
-import "./interfaces/ICommunityRegistry.sol";
-// import "./interfaces/IUserRegistry.sol";
-// import "./interfaces/IFarmRegistry.sol";
+import "./interfaces/IUserRegistry.sol";
+import "./interfaces/IFarmRegistry.sol";
+import "./FarmShareTokens.sol";
 
 contract TaskRegistry is ITaskRegistry, IERC1155Receiver, Ownable, SchemaResolver {
     string public constant taskCreationSchema = "string name,string description,address creator,uint256 startTime,uint256 endTime,bool recurring,uint256 frequency";
@@ -28,19 +28,25 @@ contract TaskRegistry is ITaskRegistry, IERC1155Receiver, Ownable, SchemaResolve
 	bytes4 public constant ERC1155_RECEIVED = 0xf23a6e61;
 	bytes4 public constant ERC1155_BATCH_RECEIVED = 0xbc197c81;
 
-	ICommunityRegistry public communityRegistry;
+	IUserRegistry public userRegistry;
+	IFarmRegistry public farmRegistry;
+
+	FarmShareTokens public shareTokens;
 
 	constructor(
 		IEAS eas,
 		ISchemaRegistry _schemaRegistry,
-		ICommunityRegistry _communityRegistry
+		IUserRegistry _userRegistry,
+		IFarmRegistry _farmRegistry
 	) Ownable() SchemaResolver(eas) {
-		communityRegistry = _communityRegistry;
+		userRegistry = _userRegistry;
+		farmRegistry = _farmRegistry;
 		taskCreationSchemaUID = _schemaRegistry.register(taskCreationSchema, this, false);
 		taskFundedSchemaUID = _schemaRegistry.register(taskFundedSchema, this, true);
 		taskStartedSchemaUID = _schemaRegistry.register(taskStartedSchema, this, false);
 		taskCompletedSchemaUID = _schemaRegistry.register(taskCompletedSchema, this, false);
 		taskReviewSchemaUID = _schemaRegistry.register(taskReviewSchema, this, true);
+		shareTokens = new FarmShareTokens(_userRegistry, _farmRegistry, this);
 	}
 
 	mapping(string => bytes32) public taskUIDByName;
@@ -62,7 +68,7 @@ contract TaskRegistry is ITaskRegistry, IERC1155Receiver, Ownable, SchemaResolve
 				rewards: new TaskReward[](0)
 			});
 		}
-		Attestation memory communityTaskRegistration = _eas.getAttestation(uid);
+		Attestation memory farmTaskRegistration = _eas.getAttestation(uid);
 		(
 			string memory name,
 			string memory description,
@@ -71,7 +77,7 @@ contract TaskRegistry is ITaskRegistry, IERC1155Receiver, Ownable, SchemaResolve
 			uint _endTime,
 			bool _recurring,
 			uint _frequency
-		) = abi.decode(communityTaskRegistration.data, (string, string, address, uint, uint, bool, uint));
+		) = abi.decode(farmTaskRegistration.data, (string, string, address, uint, uint, bool, uint));
 		require(bytes(name).length > 0, "Invalid community task record");
 		bytes32[] memory rewardUIDs = taskRewardsByTaskUID[uid];
 		TaskReward[] memory rewards = new TaskReward[](rewardUIDs.length);
@@ -103,8 +109,8 @@ contract TaskRegistry is ITaskRegistry, IERC1155Receiver, Ownable, SchemaResolve
 		uint256 timeStamp
 	) external payable returns (bytes32 taskStartedUID) {
 		require(taskUID != bytes32(0), "Task UID cannot be 0");
-		Attestation memory communityTaskRegistration = _eas.getAttestation(taskUID);
-		require(communityTaskRegistration.schema == taskCreationSchemaUID, "Invalid community task schema");
+		Attestation memory farmTaskRegistration = _eas.getAttestation(taskUID);
+		require(farmTaskRegistration.schema == taskCreationSchemaUID, "Invalid community task schema");
 
 
 		bytes memory taskStartedData = abi.encode(
@@ -138,8 +144,8 @@ contract TaskRegistry is ITaskRegistry, IERC1155Receiver, Ownable, SchemaResolve
 		uint256 timeStamp
 	) external payable returns (bytes32 taskCompletedUID) {
 		require(taskUID != bytes32(0), "Task UID cannot be 0");
-		Attestation memory communityTaskRegistration = _eas.getAttestation(taskUID);
-		require(communityTaskRegistration.schema == taskCreationSchemaUID, "Invalid community task schema");
+		Attestation memory farmTaskRegistration = _eas.getAttestation(taskUID);
+		require(farmTaskRegistration.schema == taskCreationSchemaUID, "Invalid community task schema");
 
 
 		bytes memory taskCompletedData = abi.encode(
@@ -180,7 +186,31 @@ contract TaskRegistry is ITaskRegistry, IERC1155Receiver, Ownable, SchemaResolve
 		uint256 _value,
 		bytes calldata _data
 	) public override returns (bytes4) {
+		bytes32 taskUID = abi.decode(_data, (bytes32));
+		require(taskUID != bytes32(0), "Invalid task UID");
 		
+		bytes memory taskFundedData = abi.encode(
+			TaskReward(
+				msg.sender,
+				_value,
+				true,
+				_id
+			)
+		);
+		AttestationRequestData memory requestData = AttestationRequestData({
+			recipient: tx.origin,
+			expirationTime: 0,
+			revocable: true,
+			refUID: taskUID,
+			data: taskFundedData,
+			value: 0
+		});
+		AttestationRequest memory request = AttestationRequest({
+			schema: taskFundedSchemaUID,
+			data: requestData
+		});
+		bytes32 tokenFundedUID = _eas.attest(request);
+		taskRewardsByTaskUID[taskUID].push(tokenFundedUID);
 		return ERC1155_RECEIVED;
 	}
 
@@ -191,7 +221,18 @@ contract TaskRegistry is ITaskRegistry, IERC1155Receiver, Ownable, SchemaResolve
 		uint256[] calldata _values,
 		bytes calldata _data
 	) external returns (bytes4) {
-
+		require(_ids.length == _values.length, "Array length mismatch");
+		for (uint i; i < _ids.length; ++i) {
+			require(
+				onERC1155Received(
+					_operator,
+					_from,
+					_ids[i],
+					_values[i],
+					_data
+				) == ERC1155_RECEIVED
+			);
+		}
 		return ERC1155_BATCH_RECEIVED;
 	}
 
@@ -203,7 +244,7 @@ contract TaskRegistry is ITaskRegistry, IERC1155Receiver, Ownable, SchemaResolve
 	) internal virtual override returns (bool) {
 		require(value == 0, "Task attestations must have zero ETH value");
 		if (attestation.schema == taskCreationSchemaUID) {
-			// Attestation is for a community Task registration
+			// Attestation is for a FarmTask registration
 			(
 				string memory name,
 				string memory description,
@@ -211,8 +252,8 @@ contract TaskRegistry is ITaskRegistry, IERC1155Receiver, Ownable, SchemaResolve
 				uint startTime,
 				uint endTime,
 				bool recurring,
-				uint frequency
-			) = abi.decode(attestation.data, (string, string, address, uint, uint, bool, uint));
+				uint frequency,
+			) = abi.decode(attestation.data, (string, string, address, uint, uint, bool, uint, uint));
 			require(bytes(name).length > 0, "Name cannot be empty");
 			require(bytes(description).length > 0, "Description cannot be empty");
 			taskUIDByName[name] = attestation.uid;
