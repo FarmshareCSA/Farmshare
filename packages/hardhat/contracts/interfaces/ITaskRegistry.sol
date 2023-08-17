@@ -11,7 +11,6 @@ interface ITaskRegistry {
       bytes32 indexed uid, 
       string name, 
       string description, 
-      bytes32 farmUID,
       address creator,
       uint256 startTime,
       uint256 endTime,
