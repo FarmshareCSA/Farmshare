@@ -6,9 +6,9 @@ import { useAccount, useDisconnect, useSwitchNetwork } from "wagmi";
 import { ArrowLeftOnRectangleIcon, ArrowsRightLeftIcon, ChevronDownIcon } from "@heroicons/react/24/solid";
 import { Balance, BlockieAvatar } from "~~/components/scaffold-eth";
 import { useNetworkColor } from "~~/hooks/scaffold-eth";
+import { useGlobalState } from "~~/services/store/store";
 import { web3AuthInstance } from "~~/services/web3/wagmiConnectors";
 import { getTargetNetwork } from "~~/utils/scaffold-eth";
-import { useGlobalState } from "~~/services/store/store";
 
 /**
  * Custom Wagmi Connect Button (watch balance + custom design)

@@ -37,11 +37,10 @@ const config: HardhatUserConfig = {
             runs: 200,
           },
         },
-      }
+      },
     ],
-    
   },
-  defaultNetwork: "sepolia",
+  defaultNetwork: "baseGoerli",
   namedAccounts: {
     deployer: {
       // By default, it will take the first Hardhat account as the deployer
@@ -100,6 +99,8 @@ const config: HardhatUserConfig = {
     baseGoerli: {
       url: `https://base-goerli.public.blastapi.io`,
       accounts: [deployerPrivateKey],
+      chainId: 84531,
+      gasPrice: 1000000000,
     },
     zkSyncTestnet: {
       url: "https://testnet.era.zksync.dev",

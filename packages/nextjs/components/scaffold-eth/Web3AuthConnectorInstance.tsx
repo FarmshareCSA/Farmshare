@@ -90,7 +90,7 @@ export default function Web3AuthConnectorInstance(chains: Chain[]) {
               },
               [WALLET_ADAPTERS.COINBASE]: {
                 showOnModal: false,
-              }
+              },
             } as any,
           },
         });

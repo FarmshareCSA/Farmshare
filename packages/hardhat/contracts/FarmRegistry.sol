@@ -10,7 +10,7 @@ import "./interfaces/IFarmRegistry.sol";
 
 contract FarmRegistry is IFarmRegistry, Ownable, SchemaResolver {
 	string public constant registrationSchema =
-		"address owner,string name,string description,string location,string websiteUrl,string imageUrl";
+		"address owner,string name,string description,string streetAddress,string city,string state,stringcountry,string postalCode,string websiteUrl,string imageUrl";
 	bytes32 public immutable registrationSchemaUID;
 	string public constant managerSchema = "bytes32 farmUID,bytes32 managerUID";
 	bytes32 public immutable managerSchemaUID;
@@ -58,7 +58,11 @@ contract FarmRegistry is IFarmRegistry, Ownable, SchemaResolver {
                 farmName: "",
                 farmOwner: address(0),
                 description: "",
-                location: "",
+                streetAddress: "",
+				city: "",
+				state: "",
+				country: "",
+				postalCode: "",
                 websiteUrl: "",
                 imageUrl: ""
             });
@@ -69,19 +73,27 @@ contract FarmRegistry is IFarmRegistry, Ownable, SchemaResolver {
 			bytes32 _ownerUID,
 			string memory _name,
 			string memory _description,
-			string memory _location,
+			string memory _streetAddress,
+			string memory _city,
+			string memory _state,
+			string memory _country,
+			string memory _postalCode,
 			string memory _websiteUrl,
 			string memory _imageUrl
 		) = abi.decode(
 				farmRegistration.data,
-				(bytes32, string, string, string, string, string)
+				(bytes32, string, string, string, string, string, string, string, string, string)
 			);
         require(_ownerUID == farmOwnerUID, "Farm owner UID mismatch");
         return FarmRecord({
             farmName: _name,
             farmOwner: farmOwner.account,
             description: _description,
-            location: _location,
+            streetAddress: _streetAddress,
+			city: _city,
+            state: _state,
+			country: _country,
+            postalCode: _postalCode,
             websiteUrl: _websiteUrl,
             imageUrl: _imageUrl
         });
@@ -95,7 +107,11 @@ contract FarmRegistry is IFarmRegistry, Ownable, SchemaResolver {
                 farmName: "",
                 farmOwner: address(0),
                 description: "",
-                location: "",
+                streetAddress: "",
+				city: "",
+				state: "",
+				country: "",
+				postalCode: "",
                 websiteUrl: "",
                 imageUrl: ""
             });
@@ -105,19 +121,27 @@ contract FarmRegistry is IFarmRegistry, Ownable, SchemaResolver {
 			bytes32 _ownerUID,
 			string memory _name,
 			string memory _description,
-			string memory _location,
+			string memory _streetAddress,
+			string memory _city,
+			string memory _state,
+			string memory _country,
+			string memory _postalCode,
 			string memory _websiteUrl,
 			string memory _imageUrl
 		) = abi.decode(
 				farmRegistration.data,
-				(bytes32, string, string, string, string, string)
+				(bytes32, string, string, string, string, string, string, string, string, string)
 			);
         UserRecord memory farmOwner = userRegistry.userRecordByUID(_ownerUID);
         return FarmRecord({
             farmName: _name,
             farmOwner: farmOwner.account,
             description: _description,
-            location: _location,
+            streetAddress: _streetAddress,
+			city: _city,
+            state: _state,
+			country: _country,
+            postalCode: _postalCode,
             websiteUrl: _websiteUrl,
             imageUrl: _imageUrl
         });
@@ -149,43 +173,37 @@ contract FarmRegistry is IFarmRegistry, Ownable, SchemaResolver {
 		Attestation calldata attestation,
 		uint256 value
 	) internal virtual override returns (bool) {
-		require(value == 0, "Farm and manager registration require zero value");
-        if (attestation.schema == registrationSchemaUID) {
-			(
-				bytes32 _ownerUID,
-				string memory _name,
-				string memory _description,
-				string memory _location,
-				string memory _websiteUrl,
-			) = abi.decode(
-					attestation.data,
-					(bytes32, string, string, string, string, string)
-				);
-			UserRecord memory farmer = userRegistry.userRecordByUID(_ownerUID);
-			require(farmer.account != address(0), "Farmer not registered");
-			require(farmer.role == UserRole.FARMER, "User must be a farmer");
-			farmUIDByFarmerUID[_ownerUID] = attestation.uid;
-			farmUIDByName[_name] = attestation.uid;
-			farmUIDByFarmerAddress[farmer.account] = attestation.uid;
-			emit FarmRegistered(
-				attestation.uid,
-				_ownerUID,
-				_name,
-				_description,
-				_location,
-				_websiteUrl
+		require(value == 0, "Farm registration requires zero value");
+        require(attestation.schema == registrationSchemaUID, "Invalid attestation schema");
+		(
+			bytes32 _ownerUID,
+			string memory _name,
+			string memory _description,
+			string memory _streetAddress,
+			string memory _city,
+			string memory _state,
+			string memory _country,
+			string memory _postalCode,
+			string memory _websiteUrl,
+		) = abi.decode(
+				attestation.data,
+				(bytes32, string, string, string, string, string, string, string, string, string)
 			);
-			return true;
-		} else if (attestation.schema == managerSchemaUID) {
-			(bytes32 _farmUID, bytes32 _managerUID) = abi.decode(attestation.data, (bytes32, bytes32));
-			require(authorizedFarmerOrManager(_farmUID, attestation.attester), "Not authorized farmer/manager");
-			UserRecord memory manager = userRegistry.userRecordByUID(_managerUID);
-			require(manager.account != address(0), "Manager not registered");
-			farmUIDByManagerAddress[manager.account] = _farmUID;
-			emit FarmManagerAdded(_farmUID, _managerUID);
-			return true;
-		}
-		return false;
+        farmUIDByFarmer[_ownerUID] = attestation.uid;
+        farmUIDByName[_name] = attestation.uid;        
+		emit FarmRegistered(
+			attestation.uid,
+			_ownerUID,
+			_name,
+			_description,
+			_streetAddress,
+			_city,
+            _state,
+			_country,
+            _postalCode,
+			_websiteUrl
+		);
+		return true;
 	}
 
 	function onRevoke(

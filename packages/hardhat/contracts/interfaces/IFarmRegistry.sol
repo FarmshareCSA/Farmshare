@@ -9,7 +9,11 @@ interface IFarmRegistry {
         bytes32 ownerUID, 
         string name, 
         string description, 
-        string location, 
+        string streetAddress,
+        string city, 
+        string state,
+        string country, 
+        string postalCode, 
         string website
     );
     event FarmRevoked(
