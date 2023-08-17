@@ -7,6 +7,7 @@ import "@ethereum-attestation-service/eas-contracts/contracts/resolver/SchemaRes
 import "@ethereum-attestation-service/eas-contracts/contracts/ISchemaRegistry.sol";
 import "./interfaces/IUserRegistry.sol";
 import "./interfaces/IFarmRegistry.sol";
+import "./FarmShareTokens.sol";
 
 contract FarmRegistry is IFarmRegistry, Ownable, SchemaResolver {
 	string public constant registrationSchema =
@@ -16,6 +17,8 @@ contract FarmRegistry is IFarmRegistry, Ownable, SchemaResolver {
 	bytes32 public immutable managerSchemaUID;
 
 	IUserRegistry public userRegistry;
+
+	FarmShareTokens public shareTokens;
 
 	mapping(bytes32 => bytes32) public farmUIDByFarmerUID;
 	mapping(string => bytes32) public farmUIDByName;
@@ -167,6 +170,13 @@ contract FarmRegistry is IFarmRegistry, Ownable, SchemaResolver {
 		}
 	}
 
+	// External owner functions
+
+	function setShareTokens(address erc1155TokenAddress) external onlyOwner {
+		require(ERC1155(erc1155TokenAddress).supportsInterface(type(IERC1155).interfaceId));
+		shareTokens = FarmShareTokens(erc1155TokenAddress);
+	}
+
 	// Internal SchemaResolver functions
 
 	function onAttest(
@@ -189,7 +199,7 @@ contract FarmRegistry is IFarmRegistry, Ownable, SchemaResolver {
 				attestation.data,
 				(bytes32, string, string, string, string, string, string, string, string, string)
 			);
-        farmUIDByFarmer[_ownerUID] = attestation.uid;
+        farmUIDByFarmerUID[_ownerUID] = attestation.uid;
         farmUIDByName[_name] = attestation.uid;        
 		emit FarmRegistered(
 			attestation.uid,
