@@ -13,6 +13,7 @@ import "@ethereum-attestation-service/eas-contracts/contracts/IEAS.sol";
 import "./interfaces/ITaskRegistry.sol";
 import "./interfaces/IUserRegistry.sol";
 import "./interfaces/IFarmRegistry.sol";
+import "./interfaces/ICommunityRegistry.sol";
 import "./FarmShareTokens.sol";
 
 contract TaskRegistry is ITaskRegistry, IERC1155Receiver, Ownable, SchemaResolver {
@@ -34,6 +35,7 @@ contract TaskRegistry is ITaskRegistry, IERC1155Receiver, Ownable, SchemaResolve
 
 	IUserRegistry public userRegistry;
 	IFarmRegistry public farmRegistry;
+	ICommunityRegistry public communityRegistry;
 
 	FarmShareTokens public shareTokens;
 
@@ -41,10 +43,12 @@ contract TaskRegistry is ITaskRegistry, IERC1155Receiver, Ownable, SchemaResolve
 		IEAS eas,
 		ISchemaRegistry _schemaRegistry,
 		IUserRegistry _userRegistry,
-		IFarmRegistry _farmRegistry
+		IFarmRegistry _farmRegistry,
+		ICommunityRegistry _communityRegistry
 	) Ownable() SchemaResolver(eas) {
 		userRegistry = _userRegistry;
 		farmRegistry = _farmRegistry;
+		communityRegistry = _communityRegistry;
 		taskCreationSchemaUID = _schemaRegistry.register(taskCreationSchema, this, false);
 		taskFundedSchemaUID = _schemaRegistry.register(taskFundedSchema, this, true);
 		taskStartedSchemaUID = _schemaRegistry.register(taskStartedSchema, this, false);
