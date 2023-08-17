@@ -58,7 +58,7 @@ contract TaskRegistry is ITaskRegistry, IERC1155Receiver, Ownable, SchemaResolve
 	}
 
 	mapping(bytes32 => Task) public taskByUID;
-	mapping(bytes32 => bytes32[]) public taskRewardsByTaskUID;
+	mapping(bytes32 => TaskReward[]) public taskRewardsByTaskUID;
 	mapping(bytes32 => address[]) public taskApplicantsByTaskUID;
 	mapping(bytes32 => bool) public isTaskRewardPaid;
 
@@ -76,10 +76,10 @@ contract TaskRegistry is ITaskRegistry, IERC1155Receiver, Ownable, SchemaResolve
 		uint amount
 	) external returns (bytes32 taskFundedUID) {
 		uint tokenId = uint(farmUID);
-		uint prevRewards = taskRewardsByTaskUID[taskUID].length;
+		uint prevRewards = taskByUID[taskUID].rewardUIDs.length;
 		shareTokens.mint(address(this), tokenId, amount, abi.encode(taskUID));
-		require(taskRewardsByTaskUID[taskUID].length == prevRewards + 1);
-		return taskRewardsByTaskUID[taskUID][prevRewards];
+		require(taskByUID[taskUID].rewardUIDs.length == prevRewards + 1);
+		return taskByUID[taskUID].rewardUIDs[prevRewards];
 	}
 
 	/// Funds a task with an ERC-20 token
@@ -114,7 +114,7 @@ contract TaskRegistry is ITaskRegistry, IERC1155Receiver, Ownable, SchemaResolve
 			data: requestData
 		});
 		taskFundedUID = _eas.attest(request);
-		taskRewardsByTaskUID[taskUID].push(taskFundedUID);
+		taskByUID[taskUID].rewardUIDs.push(taskFundedUID);
 	}
 
 	// External ERC-1155 Receiver functions
@@ -153,8 +153,8 @@ contract TaskRegistry is ITaskRegistry, IERC1155Receiver, Ownable, SchemaResolve
 			schema: taskFundedSchemaUID,
 			data: requestData
 		});
-		bytes32 tokenFundedUID = _eas.attest(request);
-		taskRewardsByTaskUID[taskUID].push(tokenFundedUID);
+		bytes32 taskFundedUID = _eas.attest(request);
+		taskByUID[taskUID].rewardUIDs.push(taskFundedUID);
 		return ERC1155_RECEIVED;
 	}
 
@@ -201,6 +201,7 @@ contract TaskRegistry is ITaskRegistry, IERC1155Receiver, Ownable, SchemaResolve
 			) = abi.decode(attestation.data, (bytes32, string, string, address, uint, uint, bool, uint, uint));
 			require(bytes(name).length > 0, "Name cannot be empty");
 			require(bytes(description).length > 0, "Description cannot be empty");
+			
 			Task memory newTask = Task({
 				taskUID: attestation.uid,
 				communityUID: communityUID,
@@ -211,7 +212,7 @@ contract TaskRegistry is ITaskRegistry, IERC1155Receiver, Ownable, SchemaResolve
 				endTime: endTime,
 				recurring: recurring,
 				frequency: frequency,
-				rewards: new TaskReward[](0),
+				rewardUIDs: new bytes32[](0),
 				status: TaskStatus.TODO
 			});
 			taskByUID[attestation.uid] = newTask;
@@ -238,7 +239,7 @@ contract TaskRegistry is ITaskRegistry, IERC1155Receiver, Ownable, SchemaResolve
 				uint tokenId
 			) = abi.decode(attestation.data, (address, bool, bool, uint, uint));
 			bytes32 taskUID = attestation.refUID;
-			taskByUID[taskUID].rewards.push(
+			taskRewardsByTaskUID[taskUID].push(
 				TaskReward(attestation.uid, tokenAddress, isErc1155, isErc20, amount, tokenId)
 			);
 		} else if (attestation.schema == taskStartedSchemaUID) {
