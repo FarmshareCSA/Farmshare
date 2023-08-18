@@ -19,7 +19,7 @@ import "./FarmShareTokens.sol";
 contract TaskRegistry is ITaskRegistry, IERC1155Receiver, Ownable, SchemaResolver {
 	using SafeERC20 for IERC20;
 
-    string public constant taskCreationSchema = "string name,string description,address creator,uint256 startTime,uint256 endTime,bool recurring,uint256 frequency";
+    string public constant taskCreationSchema = "bytes32 communityUID,string name,string description,address creator,uint256 startTime,uint256 endTime,bool recurring,uint256 frequency";
     bytes32 public immutable taskCreationSchemaUID;
 	string public constant taskFundedSchema = "address tokenAddress,bool isErc1155,bool isErc20,uint256 amount,uint256 tokenId";
 	bytes32 public immutable taskFundedSchemaUID;
@@ -252,6 +252,7 @@ contract TaskRegistry is ITaskRegistry, IERC1155Receiver, Ownable, SchemaResolve
 			require(bytes(name).length > 0, "Name cannot be empty");
 			require(bytes(description).length > 0, "Description cannot be empty");
 			require(bytes(communityRegistry.communityByUID(communityUID).name).length > 0, "Invalid community UID");
+			taskUIDsByCommunityUID[communityUID].push(attestation.uid);
 			emit TaskRegistered(
 				attestation.uid,
 				communityUID,
