@@ -10,8 +10,9 @@ interface ICommunityRegistry {
       bytes32 indexed uid, 
       string name, 
       string description, 
-      string country, 
+      string city, 
       string state, 
+      string country,
       string postalCode
     );
     event CommunityTreasuryCreated(

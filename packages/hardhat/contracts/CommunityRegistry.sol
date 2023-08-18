@@ -57,8 +57,9 @@ contract CommunityRegistry is ICommunityRegistry, Ownable, SchemaResolver {
 				uid: bytes32(0),
 				name: "",
 				description: "",
-				country: "",
+				city: "",
 				state: "",
+				country: "",
 				postalCode: "",
 				treasury: payable(0)
 			});
@@ -67,10 +68,11 @@ contract CommunityRegistry is ICommunityRegistry, Ownable, SchemaResolver {
 		(
 			string memory name,
 			string memory description,
-			string memory country,
+			string memory city,
 			string memory state,
+			string memory country,
 			string memory postalCode
-		) = abi.decode(communityRegistration.data, (string, string, string, string, string));
+		) = abi.decode(communityRegistration.data, (string, string, string, string, string, string));
 		require(bytes(name).length > 0, "Invalid community record");
 		address payable treasury;
 		bytes32 treasuryUID = treasuryUIDByCommunityUID[uid];
@@ -82,8 +84,9 @@ contract CommunityRegistry is ICommunityRegistry, Ownable, SchemaResolver {
 			uid: uid,
 			name: name,
 			description: description,
-			country: country,
+			city: city,
 			state: state,
+			country: country,
 			postalCode: postalCode,
 			treasury: treasury
 		});
@@ -186,17 +189,18 @@ contract CommunityRegistry is ICommunityRegistry, Ownable, SchemaResolver {
 			(
 				string memory name, 
 				string memory description, 
-				string memory country, 
-				string memory state, 
+				string memory city, 
+				string memory state,
+				string memory country,  
 				string memory postalCode
-			) = abi.decode(attestation.data, (string,string,string,string,string));
+			) = abi.decode(attestation.data, (string,string,string,string,string,string));
 			require(bytes(name).length > 0, "Name cannot be empty");
 			require(communityUIDByName[name] == bytes32(0), "Community name already exists");
 			require(bytes(description).length > 0, "Description cannot be empty");
 			require(bytes(country).length > 0, "Country cannot be empty");
 			require(bytes(postalCode).length > 0, "Postal code cannot be empty");
 			communityUIDByName[name] = attestation.uid;
-			emit CommunityRegistered(attestation.uid, name, description, country, state, postalCode);
+			emit CommunityRegistered(attestation.uid, name, description, city, state, country, postalCode);
 			return true;
 		} else if (attestation.schema == treasurySchemaUID) {
 			// Attestation is for a new community treasury
