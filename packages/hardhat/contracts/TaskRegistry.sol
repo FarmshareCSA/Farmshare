@@ -21,7 +21,7 @@ contract TaskRegistry is ITaskRegistry, IERC1155Receiver, Ownable, SchemaResolve
 
     string public constant taskCreationSchema = "string name,string description,address creator,uint256 startTime,uint256 endTime,bool recurring,uint256 frequency";
     bytes32 public immutable taskCreationSchemaUID;
-	string public constant taskFundedSchema = "address tokenAddress,uint256 amount,bool isErc1155,bool isErc20,uint256 tokenId";
+	string public constant taskFundedSchema = "address tokenAddress,bool isErc1155,bool isErc20,uint256 amount,uint256 tokenId";
 	bytes32 public immutable taskFundedSchemaUID;
 	string public constant taskStartedSchema = "uint256 taskId,uint256 communityId,address userAddress,uint256 startTimestamp";
 	bytes32 public immutable taskStartedSchemaUID;
@@ -36,8 +36,19 @@ contract TaskRegistry is ITaskRegistry, IERC1155Receiver, Ownable, SchemaResolve
 	IUserRegistry public userRegistry;
 	IFarmRegistry public farmRegistry;
 	ICommunityRegistry public communityRegistry;
-
 	FarmShareTokens public shareTokens;
+
+	mapping(bytes32 => bytes32[]) public taskUIDsByCommunityUID;
+	mapping(bytes32 => TaskStatus) public taskStatusByUID;
+	mapping(bytes32 => bytes32[]) public taskRewardUIDsByTaskUID;
+	mapping(bytes32 => address[]) public taskApplicantsByTaskUID;
+	mapping(bytes32 => bool) public isTaskRewardPaid;
+	
+	error InvalidTaskId();
+	error InvalidCommunityId();
+	error InvalidUserAddress();
+	error UnsupportedTokenType();
+	error TaskRewardAlreadyPaid();
 
 	constructor(
 		IEAS eas,
@@ -57,10 +68,49 @@ contract TaskRegistry is ITaskRegistry, IERC1155Receiver, Ownable, SchemaResolve
 		shareTokens = new FarmShareTokens(_userRegistry, _farmRegistry, this);
 	}
 
-	mapping(bytes32 => Task) public taskByUID;
-	mapping(bytes32 => TaskReward[]) public taskRewardsByTaskUID;
-	mapping(bytes32 => address[]) public taskApplicantsByTaskUID;
-	mapping(bytes32 => bool) public isTaskRewardPaid;
+
+	// External view functions
+	function taskByUID(bytes32 uid) public view returns (Task memory) {
+		if (uid == bytes32(0)) {
+			return Task({
+				taskUID: bytes32(0),
+				communityUID: bytes32(0),
+				name: "",
+				description: "",
+				creator: address(0),
+				startTime: 0,
+				endTime: 0,
+				recurring: false,
+				frequency: 0,
+				rewardUIDs: new bytes32[](0),
+				status: TaskStatus.NONE
+			});
+		}
+		Attestation memory taskCreation = _eas.getAttestation(uid);
+		(
+			bytes32 communityUID,
+			string memory name,
+			string memory description,
+			address creator,
+			uint256 startTime,
+			uint256 endTime,
+			bool recurring,
+			uint256 frequency
+		) = abi.decode(taskCreation.data, (bytes32, string, string, address, uint256, uint256, bool, uint256));
+		return Task({
+			taskUID: uid,
+			communityUID: communityUID,
+			name: name,
+			description: description,
+			creator: creator,
+			startTime: startTime,
+			endTime: endTime,
+			recurring: recurring,
+			frequency: frequency,
+			rewardUIDs: taskRewardUIDsByTaskUID[uid],
+			status: taskStatusByUID[uid]
+		});
+	}
 
 
 	// External funding functions
@@ -76,10 +126,10 @@ contract TaskRegistry is ITaskRegistry, IERC1155Receiver, Ownable, SchemaResolve
 		uint amount
 	) external returns (bytes32 taskFundedUID) {
 		uint tokenId = uint(farmUID);
-		uint prevRewards = taskByUID[taskUID].rewardUIDs.length;
+		uint prevRewards = taskRewardUIDsByTaskUID[taskUID].length;
 		shareTokens.mint(address(this), tokenId, amount, abi.encode(taskUID));
-		require(taskByUID[taskUID].rewardUIDs.length == prevRewards + 1);
-		return taskByUID[taskUID].rewardUIDs[prevRewards];
+		require(taskRewardUIDsByTaskUID[taskUID].length == prevRewards + 1);
+		return taskRewardUIDsByTaskUID[taskUID][prevRewards];
 	}
 
 	/// Funds a task with an ERC-20 token
@@ -114,7 +164,7 @@ contract TaskRegistry is ITaskRegistry, IERC1155Receiver, Ownable, SchemaResolve
 			data: requestData
 		});
 		taskFundedUID = _eas.attest(request);
-		taskByUID[taskUID].rewardUIDs.push(taskFundedUID);
+		taskRewardUIDsByTaskUID[taskUID].push(taskFundedUID);
 	}
 
 	// External ERC-1155 Receiver functions
@@ -133,7 +183,7 @@ contract TaskRegistry is ITaskRegistry, IERC1155Receiver, Ownable, SchemaResolve
 	) public override returns (bytes4) {
 		bytes32 taskUID = abi.decode(_data, (bytes32));
 		require(taskUID != bytes32(0), "Invalid task UID");
-		require(taskByUID[taskUID].creator != address(0), "Invalid task UID");
+		require(taskByUID(taskUID).creator != address(0), "Invalid task UID");
 		bytes memory taskFundedData = abi.encode(
 			msg.sender,	// tokenAddress
 			true,		// isErc1155
@@ -154,7 +204,7 @@ contract TaskRegistry is ITaskRegistry, IERC1155Receiver, Ownable, SchemaResolve
 			data: requestData
 		});
 		bytes32 taskFundedUID = _eas.attest(request);
-		taskByUID[taskUID].rewardUIDs.push(taskFundedUID);
+		taskRewardUIDsByTaskUID[taskUID].push(taskFundedUID);
 		return ERC1155_RECEIVED;
 	}
 
@@ -202,20 +252,6 @@ contract TaskRegistry is ITaskRegistry, IERC1155Receiver, Ownable, SchemaResolve
 			require(bytes(name).length > 0, "Name cannot be empty");
 			require(bytes(description).length > 0, "Description cannot be empty");
 			require(bytes(communityRegistry.communityByUID(communityUID).name).length > 0, "Invalid community UID");
-			Task memory newTask = Task({
-				taskUID: attestation.uid,
-				communityUID: communityUID,
-				name: name,
-				description: description,
-				creator: creator,
-				startTime: startTime,
-				endTime: endTime,
-				recurring: recurring,
-				frequency: frequency,
-				rewardUIDs: new bytes32[](0),
-				status: TaskStatus.TODO
-			});
-			taskByUID[attestation.uid] = newTask;
 			emit TaskRegistered(
 				attestation.uid,
 				communityUID,
@@ -238,10 +274,10 @@ contract TaskRegistry is ITaskRegistry, IERC1155Receiver, Ownable, SchemaResolve
 				uint amount,
 				uint tokenId
 			) = abi.decode(attestation.data, (address, bool, bool, uint, uint));
+			if (isErc1155 == isErc20) revert UnsupportedTokenType();
 			bytes32 taskUID = attestation.refUID;
-			taskRewardsByTaskUID[taskUID].push(
-				TaskReward(attestation.uid, tokenAddress, isErc1155, isErc20, amount, tokenId)
-			);
+			taskRewardUIDsByTaskUID[taskUID].push(attestation.uid);
+			emit TaskFunded(taskUID, attestation.uid, tokenAddress, isErc1155, isErc20, amount, tokenId);
 		} else if (attestation.schema == taskStartedSchemaUID) {
 			(
 				bytes32 taskUID,
