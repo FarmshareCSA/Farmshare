@@ -201,7 +201,7 @@ contract TaskRegistry is ITaskRegistry, IERC1155Receiver, Ownable, SchemaResolve
 			) = abi.decode(attestation.data, (bytes32, string, string, address, uint, uint, bool, uint, uint));
 			require(bytes(name).length > 0, "Name cannot be empty");
 			require(bytes(description).length > 0, "Description cannot be empty");
-			
+			require(bytes(communityRegistry.communityByUID(communityUID).name).length > 0, "Invalid community UID");
 			Task memory newTask = Task({
 				taskUID: attestation.uid,
 				communityUID: communityUID,

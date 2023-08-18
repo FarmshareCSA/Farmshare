@@ -25,38 +25,13 @@ interface ICommunityRegistry {
     event UserRemovedFromCommunity(address user, string communityName);
     event FarmJoinedCommunity(address farmOwner, string farmName, string communityName);
 
-  //   function communitiesByName(string memory _name) external returns (Community memory);
-  //   function communitiesById(uint _id) external returns (Community memory);
-  //   function communityIdByName(string memory _name) external view returns (uint);
-  //   function userToCommunityIds(address _user) external view returns (uint[] memory);
-  //   function communityToUsers(uint _communityId) external view returns (UserRecord[] memory);
-  //   function communityToDonors(uint _communityId) external view returns (UserRecord[] memory);
-  //   function communityToManagers(uint _communityId) external view returns (UserRecord[] memory);
-  //   function communityToFarmers(uint _communityId) external view returns (UserRecord[] memory);
-  //   function communityToFarms(uint _communityId) external view returns (FarmRecord[] memory);
+    function communityByUID(bytes32 uid) external view returns (Community memory);
+    function communityByName(string calldata name) external view returns (Community memory);
 
-  //   function registerCommunity(
-	// 	string memory _name,
-	// 	string memory _description,
-	// 	string memory _location,
-	// 	address[] memory _initialOwners
-	// ) external returns (address payable newTreasury);
+    function createTreasury(
+        bytes32 communityUID, 
+        address[] memory initialOwners
+	  ) external payable returns (address newTreasury);
 
-  //   function addUserToCommunity(
-	// 	address _newMember,
-	// 	uint _communityId
-	// ) external;
-
-  //   function removeUserFromCommunity(
-	// 	uint _communityId,
-	// 	UserRole _role,
-	// 	uint256 index
-	// ) external;
-
-  //   // function addFarmToCommunity(
-  //   //     address _farmOwner,
-  //   //     uint _communityId
-  //   // ) external;
-
-  //   function setUserRegistry(address _userRegistry) external;
+    function setUserRegistry(address _userRegistry) external;
 }
