@@ -11,7 +11,8 @@ enum UserRole {
 }
 
 enum TaskStatus {
-    TODO,
+    NONE,
+    CREATED,
     INPROGRESS,
     COMPLETE
 }
@@ -77,13 +78,13 @@ struct TaskReward {
     uint tokenId;
 }
 
-struct TaskCompleted {
+struct TaskComplete {
     bytes32 taskUID;
     bytes32 userUID;
     uint endTimestamp;
 }
 
-struct TaskStarted {
+struct TaskStart {
     bytes32 taskUID;
     bytes32 userUID;
     uint startTimestamp;
