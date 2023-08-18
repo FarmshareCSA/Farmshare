@@ -13,7 +13,8 @@ interface ICommunityRegistry {
       string city, 
       string state, 
       string country,
-      string postalCode
+      string postalCode,
+      string website
     );
     event CommunityTreasuryCreated(
       bytes32 indexed uid, 

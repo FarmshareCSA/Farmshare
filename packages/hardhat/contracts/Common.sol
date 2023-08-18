@@ -45,6 +45,8 @@ struct Community {
     string state;
     string country;
     string postalCode;
+    string websiteUrl;
+    string imageUrl;
     address payable treasury;
 }
 
