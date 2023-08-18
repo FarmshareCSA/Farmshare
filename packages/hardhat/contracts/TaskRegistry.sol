@@ -282,12 +282,23 @@ contract TaskRegistry is ITaskRegistry, IERC1155Receiver, Ownable, SchemaResolve
 			(
 				bytes32 taskUID,
 				bytes32 userUID,
-				uint startTimestamp
 			) = abi.decode(attestation.data, (bytes32, bytes32, uint));
-			require(attestation.attester == taskByUID[taskUID].creator, "Only task creator can attest that their task has been started");
+			require(attestation.attester == taskByUID(taskUID).creator, "Only task creator can attest that their task has been started");
 			UserRecord memory user = userRegistry.userRecordByUID(userUID);
-			require(user.account != address(0), "User UID not found");
-			taskByUID[taskUID].status = TaskStatus.INPROGRESS;
+			if(user.account == address(0)) revert InvalidUserAddress();
+			taskStatusByUID[taskUID] = TaskStatus.INPROGRESS;
+			emit TaskStarted(taskUID, attestation.uid, userUID, block.timestamp);
+		} else if (attestation.schema == taskCompletedSchemaUID) {
+			(
+				bytes32 taskUID,
+				bytes32 userUID,
+			) = abi.decode(attestation.data, (bytes32, bytes32, uint));
+			require(attestation.attester == taskByUID(taskUID).creator, "Only task creator can attest that their task has been completed");
+			UserRecord memory user = userRegistry.userRecordByUID(userUID);
+			if(user.account != attestation.recipient) revert InvalidUserAddress();
+			taskStatusByUID[taskUID] = TaskStatus.COMPLETE;
+			payoutTaskRewards(taskUID, user.account);
+			emit TaskCompleted(taskUID, attestation.uid, userUID, block.timestamp);
 		}
 		return false;
 	}
@@ -297,5 +308,29 @@ contract TaskRegistry is ITaskRegistry, IERC1155Receiver, Ownable, SchemaResolve
 		uint256
 	) internal virtual override returns (bool) {
 		return false;
+	}
+
+	function payoutTaskRewards(bytes32 taskUID, address to) internal {
+		for (uint i; i < taskRewardUIDsByTaskUID[taskUID].length; ++i) {
+			bytes32 rewardUID = taskRewardUIDsByTaskUID[taskUID][i];
+			if(isTaskRewardPaid[rewardUID] != false) revert TaskRewardAlreadyPaid();
+			isTaskRewardPaid[rewardUID] = true;
+			Attestation memory rewardAttestation = _eas.getAttestation(rewardUID);
+			(
+				address tokenAddress,
+				bool isErc1155,
+				bool isErc20,
+				uint amount,
+				uint tokenId
+			) = abi.decode(rewardAttestation.data, (address, bool, bool, uint, uint));
+			if (isErc20) {
+				IERC20(tokenAddress).safeTransfer(to, amount);
+			} else if (isErc1155) {
+				IERC1155(tokenAddress).safeTransferFrom(address(this), to, tokenId, amount, "");
+			} else {
+				revert UnsupportedTokenType();
+			}
+			emit RewardPaid(taskUID, rewardAttestation.uid, tokenAddress, to, amount);
+		}
 	}
 }
