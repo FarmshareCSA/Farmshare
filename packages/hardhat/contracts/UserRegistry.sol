@@ -10,7 +10,7 @@ import "./interfaces/IUserRegistry.sol";
 contract UserRegistry is IUserRegistry, Ownable, SchemaResolver {
     string public constant registrationSchema = "address account,string name,bytes32 emailHash,string location,uint8 role";
     bytes32 public immutable registrationSchemaUID;
-    string public constant updateSchema = "bytes32 registrationUID,address newAccount,string newName,bytes32 newEmailHash,string newLocation";
+    string public constant updateSchema = "address newAccount,string newName,bytes32 newEmailHash,string newLocation, uint8 newRole";
     bytes32 public immutable updateSchemaUID;
     string public constant skillRecordSchema = "string skill";
     bytes32 public immutable skillRecordSchemaUID;
@@ -57,12 +57,12 @@ contract UserRegistry is IUserRegistry, Ownable, SchemaResolver {
             userUID = registrationUpdatesByOriginalUID[userUID];
             Attestation memory updateAttestation = _eas.getAttestation(userUID);
             (
-                ,
                 _account, 
                 _name, 
                 _emailHash, 
-                _location 
-            ) = abi.decode(updateAttestation.data, (bytes32, address, string, bytes32, string));
+                _location,
+                _role
+            ) = abi.decode(updateAttestation.data, (address, string, bytes32, string, UserRole));
         }
         return UserRecord({
             account: _account,
@@ -111,38 +111,39 @@ contract UserRegistry is IUserRegistry, Ownable, SchemaResolver {
         } else if (attestation.schema == updateSchemaUID) {
             // Attestation is for updating an existing user record
             (
-                bytes32 _originalUID,
                 address _newAccount, 
                 string memory _newName, 
                 bytes32 _newEmailHash, 
-                string memory _newLocation
-            ) = abi.decode(attestation.data, (bytes32, address, string, bytes32, string));
+                string memory _newLocation,
+                UserRole _newRole
+            ) = abi.decode(attestation.data, (address, string, bytes32, string, UserRole));
             require(_newAccount != address(0), "Account cannot be zero address");
             require(bytes(_newName).length > 0, "Name cannot be empty");
             require(_newEmailHash != bytes32(0), "Email hash cannot be empty");
             require(
                 userRegistrations[_newAccount] == bytes32(0) ||
-                userRegistrations[_newAccount] == _originalUID, 
+                userRegistrations[_newAccount] == attestation.refUID, 
                 "New account already registered to another user"
             );
-            UserRecord memory originalRecord = userRecordByUID(_originalUID);
+            UserRecord memory originalRecord = userRecordByUID(attestation.refUID);
             require(originalRecord.account == attestation.attester, "Only original account can update");
-            registrationUpdatesByOriginalUID[_originalUID] = attestation.uid;
+            registrationUpdatesByOriginalUID[attestation.refUID] = attestation.uid;
             if (originalRecord.emailHash != _newEmailHash) {
                 userEmailHashToAddress[_newEmailHash] = _newAccount;
                 userEmailHashToAddress[originalRecord.emailHash] = address(0);
             }
             if (originalRecord.account != _newAccount) {
                 userRegistrations[originalRecord.account] = bytes32(0);
-                userRegistrations[_newAccount] = _originalUID;
+                userRegistrations[_newAccount] = attestation.refUID;
             }
             emit UserUpdated(
-                _originalUID,
+                attestation.refUID,
                 attestation.uid,
                 _newAccount,
                 _newName,
                 _newEmailHash,
-                _newLocation
+                _newLocation,
+                _newRole
             );
             return true;
         } else if (attestation.schema == skillRecordSchemaUID) {
