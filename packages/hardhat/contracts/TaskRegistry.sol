@@ -282,6 +282,28 @@ contract TaskRegistry is ITaskRegistry, IERC1155Receiver, Ownable, SchemaResolve
 			bytes32 taskUID = attestation.refUID;
 			taskRewardUIDsByTaskUID[taskUID].push(attestation.uid);
 			emit TaskFunded(taskUID, attestation.uid, tokenAddress, isErc1155, isErc20, amount, tokenId);
+			return true;
+		} else if (attestation.schema == taskApplicationSchemaUID) {
+			(
+				bytes32 taskUID,
+				bytes32 userUID,
+				bytes32[] memory skillUIDs
+			) = abi.decode(attestation.data, (bytes32, bytes32, bytes32[]));
+			require(taskStatusByUID[taskUID] == TaskStatus.CREATED, "Task is either already in-progress or completed");
+			UserRecord memory user = userRegistry.userRecordByUID(userUID);
+			if(user.account == address(0)) revert InvalidUserAddress();
+			for (uint i; i < skillUIDs.length; ++i) {
+				Attestation memory userSkill = _eas.getAttestation(skillUIDs[i]);
+				(
+					bytes32 _skillUID,
+					bytes32 _userUID
+				) = abi.decode(userSkill.data, (bytes32, bytes32));
+				require(_skillUID != bytes32(0), "User skill attestation not found");
+				require(_userUID == userUID, "User UID does not match skill attestation");
+			}
+			taskApplicantsByTaskUID[taskUID].push(user.account);
+			emit TaskApplicationSubmitted(taskUID, attestation.uid, userUID, skillUIDs);
+			return true;
 		} else if (attestation.schema == taskStartedSchemaUID) {
 			(
 				bytes32 taskUID,
@@ -292,6 +314,7 @@ contract TaskRegistry is ITaskRegistry, IERC1155Receiver, Ownable, SchemaResolve
 			if(user.account == address(0)) revert InvalidUserAddress();
 			taskStatusByUID[taskUID] = TaskStatus.INPROGRESS;
 			emit TaskStarted(taskUID, attestation.uid, userUID, block.timestamp);
+			return true;
 		} else if (attestation.schema == taskCompletedSchemaUID) {
 			(
 				bytes32 taskUID,
@@ -303,6 +326,7 @@ contract TaskRegistry is ITaskRegistry, IERC1155Receiver, Ownable, SchemaResolve
 			taskStatusByUID[taskUID] = TaskStatus.COMPLETE;
 			payoutTaskRewards(taskUID, user.account);
 			emit TaskCompleted(taskUID, attestation.uid, userUID, block.timestamp);
+			return true;
 		}
 		return false;
 	}

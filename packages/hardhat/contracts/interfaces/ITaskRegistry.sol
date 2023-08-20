@@ -29,6 +29,13 @@ interface ITaskRegistry {
         uint256 tokenId
     );
 
+    event TaskApplicationSubmitted(
+        bytes32 indexed taskUID,
+        bytes32 indexed applicationUID,
+        bytes32 indexed userUID,
+        bytes32[] skillUIDs
+    );
+
     event TaskStarted(
         bytes32 indexed taskUID,
         bytes32 indexed startedUID,
