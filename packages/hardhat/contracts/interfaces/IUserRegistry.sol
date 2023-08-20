@@ -5,6 +5,7 @@ import "../Common.sol";
 
 interface IUserRegistry {
     event UserRegistered(address indexed account, bytes32 uid, string name, bytes32 emailHash, string location, UserRole role);
+    event UserUpdated(bytes32 indexed originalUID, bytes32 newUID, address account, string name, bytes32 emailHash, string location);
     event UserRevoked(address indexed account, bytes32 uid, string name, bytes32 emailHash, string location, UserRole role);
 
     function userRegistrations(address) external view returns (bytes32);
