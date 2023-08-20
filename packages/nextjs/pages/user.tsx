@@ -1,23 +1,15 @@
-import { useEffect, useState } from "react";
-import { SchemaEncoder } from "@ethereum-attestation-service/eas-sdk";
-import { getRPCProviderOwner, getZeroDevSigner } from "@zerodevapp/sdk";
 import type { NextPage } from "next";
 import { useAccount } from "wagmi";
 import { FarmRegistrationForm } from "~~/components/FarmRegistrationForm";
 import { MetaHeader } from "~~/components/MetaHeader";
 import { UpdateUserForm } from "~~/components/UpdateUserForm";
 import { UserRegistrationForm } from "~~/components/UserRegistrationForm";
-import { useScaffoldContractRead } from "~~/hooks/scaffold-eth";
 import { UserRole } from "~~/services/eas/customSchemaTypes";
-import type { Attestation } from "~~/services/eas/types";
-import { getUserAttestationsForAddress } from "~~/services/eas/utils";
 import { useGlobalState } from "~~/services/store/store";
-import { web3AuthInstance } from "~~/services/web3/wagmiConnectors";
 
 const User: NextPage = () => {
   const { address } = useAccount();
   const userInfo = useGlobalState(state => state.userInfo);
-  const userSigner = useGlobalState(state => state.userSigner);
   const userRegistration = useGlobalState(state => state.userRegistration);
 
   return (
