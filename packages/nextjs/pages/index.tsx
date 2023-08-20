@@ -21,25 +21,41 @@ const Home: NextPage = () => {
   const setUserRegistration = useGlobalState(state => state.setUserRegistration);
   const [userAttestations, setUserAttestations] = useState<Attestation[]>([]);
 
-  const userSchemaEncoder = new SchemaEncoder(
+  const userRegistrationSchemaEncoder = new SchemaEncoder(
     "address account,string name,bytes32 emailHash,string location,uint8 role",
   );
 
-  const { data: schemaUID } = useScaffoldContractRead({
+  const userUpdateSchemaEncoder = new SchemaEncoder(
+    "address newAccount,string newName,bytes32 newEmailHash,string newLocation,uint8 newRole",
+  );
+
+  const { data: registrationSchemaUID } = useScaffoldContractRead({
     contractName: "UserRegistry",
     functionName: "registrationSchemaUID",
   });
 
+  const { data: updateSchemaUID } = useScaffoldContractRead({
+    contractName: "UserRegistry",
+    functionName: "updateSchemaUID",
+  });
+
   useEffect(() => {
     const getUserAttestations = async () => {
-      const tmpAttestations = await getUserAttestationsForAddress(
+      let tmpAttestations = await getUserAttestationsForAddress(
         userSmartAccount ? userSmartAccount : address ? address : "",
-        schemaUID ? schemaUID : "",
+        updateSchemaUID ? updateSchemaUID : "",
       );
+      if (tmpAttestations.length == 0) {
+        tmpAttestations = await getUserAttestationsForAddress(
+          userSmartAccount ? userSmartAccount : address ? address : "",
+          registrationSchemaUID ? registrationSchemaUID : "",
+        );
+      }
       setUserAttestations(tmpAttestations);
       if (tmpAttestations.length > 0) {
+        // Found initial user record
         console.log("Found user registration...");
-        const decodedData = userSchemaEncoder.decodeData(tmpAttestations[0].data);
+        const decodedData = userRegistrationSchemaEncoder.decodeData(tmpAttestations[0].data);
         setUserRegistration({
           uid: tmpAttestations[0].id,
           account: decodedData[0].value.value.toString(),

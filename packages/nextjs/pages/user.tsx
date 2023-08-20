@@ -5,6 +5,7 @@ import type { NextPage } from "next";
 import { useAccount } from "wagmi";
 import { FarmRegistrationForm } from "~~/components/FarmRegistrationForm";
 import { MetaHeader } from "~~/components/MetaHeader";
+import { UpdateUserForm } from "~~/components/UpdateUserForm";
 import { UserRegistrationForm } from "~~/components/UserRegistrationForm";
 import { useScaffoldContractRead } from "~~/hooks/scaffold-eth";
 import { UserRole } from "~~/services/eas/customSchemaTypes";
@@ -16,8 +17,8 @@ import { web3AuthInstance } from "~~/services/web3/wagmiConnectors";
 const User: NextPage = () => {
   const { address } = useAccount();
   const userInfo = useGlobalState(state => state.userInfo);
+  const userSigner = useGlobalState(state => state.userSigner);
   const userRegistration = useGlobalState(state => state.userRegistration);
-  const defaultProjectId = process.env.REACT_APP_ZERODEV_PROJECT_ID || "ec01b08b-f7a8-4f47-924d-0a1b1879a468";
 
   return (
     <>
@@ -34,6 +35,7 @@ const User: NextPage = () => {
                 <p className="text-center text-lg">
                   Welcome back{userInfo && userInfo.name ? " " + userInfo.name.split(" ")[0] : ""}!
                 </p>
+                <UpdateUserForm />
               </>
             ) : (
               <UserRegistrationForm />
