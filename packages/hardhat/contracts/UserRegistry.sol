@@ -12,14 +12,25 @@ contract UserRegistry is IUserRegistry, Ownable, SchemaResolver {
     bytes32 public immutable registrationSchemaUID;
     string public constant updateSchema = "bytes32 registrationUID,address newAccount,string newName,bytes32 newEmailHash,string newLocation";
     bytes32 public immutable updateSchemaUID;
+    string public constant skillRecordSchema = "string skill";
+    bytes32 public immutable skillRecordSchemaUID;
+    string public constant userSkillSchema = "bytes32 skillUID,bytes32 userUID";
+    bytes32 public immutable userSkillSchemaUID;
+    string public constant skillEndorsementSchema = "bytes32 userSkillUID,bytes32 userUID,bytes32 endorserUID";
+    bytes32 public immutable skillEndorsementSchemaUID;
 
     mapping(address => bytes32) public userRegistrations;
     mapping(bytes32 => bytes32) public registrationUpdatesByOriginalUID;
     mapping(bytes32 => address) public userEmailHashToAddress;
+    mapping(string => bytes32) public skillRecordsBySkillName;
+    mapping(bytes32 => mapping(string => bytes32)) public userSkillUIDByUserAndSkillName;
 
     constructor(IEAS eas, ISchemaRegistry registry) SchemaResolver(eas) Ownable() {
         registrationSchemaUID = registry.register(registrationSchema, this, true);
         updateSchemaUID = registry.register(updateSchema, this, true);
+        skillRecordSchemaUID = registry.register(skillRecordSchema, this, true);
+        userSkillSchemaUID = registry.register(userSkillSchema, this, true);
+        skillEndorsementSchemaUID = registry.register(skillEndorsementSchema, this, true);
     }
 
     // External view functions
@@ -77,8 +88,9 @@ contract UserRegistry is IUserRegistry, Ownable, SchemaResolver {
 		Attestation calldata attestation,
 		uint256 value
 	) internal virtual override returns (bool) {
-        require(value == 0, "User registration requires zero value");
+        require(value == 0, "User registry attestations require zero value");
         if (attestation.schema == registrationSchemaUID) {
+            // Attestation is for a new user registration
             (
                 address _account, 
                 string memory _name, 
@@ -97,6 +109,7 @@ contract UserRegistry is IUserRegistry, Ownable, SchemaResolver {
             emit UserRegistered(_account, attestation.uid, _name, _emailHash, _location, _role);
             return true;
         } else if (attestation.schema == updateSchemaUID) {
+            // Attestation is for updating an existing user record
             (
                 bytes32 _originalUID,
                 address _newAccount, 
@@ -131,6 +144,60 @@ contract UserRegistry is IUserRegistry, Ownable, SchemaResolver {
                 _newEmailHash,
                 _newLocation
             );
+            return true;
+        } else if (attestation.schema == skillRecordSchemaUID) {
+            // Attestation is for a new skill record
+            string memory newSkill = abi.decode(attestation.data, (string));
+            require(bytes(newSkill).length > 0, "Skill cannot be empty");
+            require(
+                attestation.recipient == address(this), 
+                "User registry must be recipient of new skill record attestation"
+            );
+            require(skillRecordsBySkillName[newSkill] == bytes32(0), "Skill already recorded");
+            skillRecordsBySkillName[newSkill] = attestation.uid;
+            return true;
+        } else if (attestation.schema == userSkillSchemaUID) {
+            // Attestation is for recording a user's skill
+            (
+                bytes32 _skillUID,
+                bytes32 _userUID
+            ) = abi.decode(attestation.data, (bytes32, bytes32));
+            require(attestation.refUID == _skillUID, "Invalid reference UID");
+            Attestation memory skillRecord = _eas.getAttestation(_skillUID);
+            string memory skillName = abi.decode(skillRecord.data, (string));
+            require(bytes(skillName).length > 0, "Skill not found");
+            require(
+                userSkillUIDByUserAndSkillName[_userUID][skillName] == bytes32(0), 
+                "User has already claimed this skill"
+            );
+            UserRecord memory userRecord = userRecordByUID(_userUID);
+            require(userRecord.account != address(0), "Invalid user UID");
+            require(attestation.recipient == userRecord.account, "User must be the attestation recipient");
+            userSkillUIDByUserAndSkillName[_userUID][skillName] = attestation.uid;
+            emit UserAddedSkill(_userUID, _skillUID, skillName);
+            return true;
+        } else if (attestation.schema == skillEndorsementSchemaUID) {
+            // Attestation is for endorsing a user's skill
+            (
+                bytes32 _userSkillUID,
+                bytes32 _endorseeUID,
+                bytes32 _endorserUID
+            ) = abi.decode(attestation.data, (bytes32, bytes32, bytes32));
+            require(attestation.refUID == _userSkillUID, "Invalid reference UID");
+            Attestation memory userSkill = _eas.getAttestation(_userSkillUID);
+            (
+                bytes32 _skillUID,
+                bytes32 _userUID
+            ) = abi.decode(userSkill.data, (bytes32, bytes32));
+            require(_skillUID != bytes32(0), "User skill attestation not found");
+            require(_userUID == _endorseeUID, "User UID does not match");
+            UserRecord memory userRecord = userRecordByUID(_userUID);
+            require(userRecord.account != address(0), "User not registered");
+            UserRecord memory endorserRecord = userRecordByUID(_endorserUID);
+            require(endorserRecord.account != address(0), "Endorser not registered");
+            Attestation memory skillRecord = _eas.getAttestation(_skillUID);
+            string memory skillName = abi.decode(skillRecord.data, (string));
+            emit UserSkillEndorsed(_userUID, _endorserUID, _skillUID, skillName);
             return true;
         }
         return false;
