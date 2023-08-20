@@ -23,11 +23,13 @@ contract TaskRegistry is ITaskRegistry, IERC1155Receiver, Ownable, SchemaResolve
     bytes32 public immutable taskCreationSchemaUID;
 	string public constant taskFundedSchema = "address tokenAddress,bool isErc1155,bool isErc20,uint256 amount,uint256 tokenId";
 	bytes32 public immutable taskFundedSchemaUID;
-	string public constant taskStartedSchema = "uint256 taskId,uint256 communityId,address userAddress,uint256 startTimestamp";
+	string public constant taskApplicationSchema = "bytes32 taskUID,bytes32 userUID,bytes32[] skillUIDs";
+	bytes32 public immutable taskApplicationSchemaUID;
+	string public constant taskStartedSchema = "bytes32 taskUID,bytes32 userUID,uint256 startTimestamp";
 	bytes32 public immutable taskStartedSchemaUID;
-	string public constant taskCompletedSchema = "uint256 taskId,uint256 communityId,address userAddress,uint256 completeTimestamp";
+	string public constant taskCompletedSchema = "bytes32 taskUID,bytes32 userUID,uint256 completeTimestamp";
 	bytes32 public immutable taskCompletedSchemaUID;
-	string public constant taskReviewSchema = "uint256 taskId,uint256 communityId,address userAddress,string comments";
+	string public constant taskReviewSchema = "bytes32 taskUID,bytes32 userUID,string comments";
 	bytes32 public immutable taskReviewSchemaUID;
 
 	bytes4 public constant ERC1155_RECEIVED = 0xf23a6e61;
@@ -62,6 +64,7 @@ contract TaskRegistry is ITaskRegistry, IERC1155Receiver, Ownable, SchemaResolve
 		communityRegistry = _communityRegistry;
 		taskCreationSchemaUID = _schemaRegistry.register(taskCreationSchema, this, false);
 		taskFundedSchemaUID = _schemaRegistry.register(taskFundedSchema, this, true);
+		taskApplicationSchemaUID = _schemaRegistry.register(taskApplicationSchema, this, true);
 		taskStartedSchemaUID = _schemaRegistry.register(taskStartedSchema, this, false);
 		taskCompletedSchemaUID = _schemaRegistry.register(taskCompletedSchema, this, false);
 		taskReviewSchemaUID = _schemaRegistry.register(taskReviewSchema, this, true);
