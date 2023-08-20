@@ -114,7 +114,7 @@ export const UpdateUserForm = () => {
   return (
     <>
       <div className="flex flex-col gap-3 py-5 first:pt-0 last:pb-1">
-        <p className="font-medium my-0 break-words">Enter your info</p>
+        <p className="font-medium my-0 break-words">Account info</p>
         <InputBase
           value={name}
           onChange={e => setName(e)}
