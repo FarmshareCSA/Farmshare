@@ -1,29 +1,25 @@
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { SchemaEncoder } from "@ethereum-attestation-service/eas-sdk";
-import { getRPCProviderOwner, getZeroDevSigner } from "@zerodevapp/sdk";
 import type { NextPage } from "next";
 import { useAccount } from "wagmi";
+import { MapIcon, UserIcon, UserPlusIcon, UsersIcon } from "@heroicons/react/24/outline";
 import { FarmRegistrationForm } from "~~/components/FarmRegistrationForm";
 import { MetaHeader } from "~~/components/MetaHeader";
-import { UserRegistrationForm } from "~~/components/UserRegistrationForm";
 import { useScaffoldContractRead } from "~~/hooks/scaffold-eth";
 import { UserRole } from "~~/services/eas/customSchemaTypes";
 import type { Attestation } from "~~/services/eas/types";
 import { getUserAttestationsForAddress } from "~~/services/eas/utils";
 import { useGlobalState } from "~~/services/store/store";
-import { web3AuthInstance } from "~~/services/web3/wagmiConnectors";
 
 const Home: NextPage = () => {
   const { address } = useAccount();
-  const [userRegIsNull, setUserRegIsNull] = useState(true);
   const userInfo = useGlobalState(state => state.userInfo);
   const userSmartAccount = useGlobalState(state => state.userSmartAccount);
   const userRegistration = useGlobalState(state => state.userRegistration);
+  const [userRegIsNull, setUserRegIsNull] = useState(userRegistration == null);
   const setUserRegistration = useGlobalState(state => state.setUserRegistration);
-  const setUserSmartAccount = useGlobalState(state => state.setUserSmartAccount);
-  const setUserSigner = useGlobalState(state => state.setUserSigner);
   const [userAttestations, setUserAttestations] = useState<Attestation[]>([]);
-  const defaultProjectId = process.env.REACT_APP_ZERODEV_PROJECT_ID || "ec01b08b-f7a8-4f47-924d-0a1b1879a468";
 
   const userSchemaEncoder = new SchemaEncoder(
     "address account,string name,bytes32 emailHash,string location,uint8 role",
@@ -62,25 +58,6 @@ const Home: NextPage = () => {
     console.log("User registration UID: %s", userRegistration?.uid);
   }, [address, userRegIsNull, userSmartAccount]);
 
-  useEffect(() => {
-    const tryZeroDevSigner = async () => {
-      if (web3AuthInstance && address) {
-        const tmpSigner = await getZeroDevSigner({
-          projectId: defaultProjectId,
-          owner: getRPCProviderOwner(web3AuthInstance.provider),
-        });
-        setUserSigner(tmpSigner);
-        console.log(tmpSigner);
-        const tmpAddress = await tmpSigner.getAddress();
-        console.log("Smart account address: %s", tmpAddress);
-        if (tmpAddress) {
-          setUserSmartAccount(tmpAddress);
-        }
-      }
-    };
-    tryZeroDevSigner();
-  }, [web3AuthInstance, address]);
-
   return (
     <>
       <MetaHeader />
@@ -90,22 +67,70 @@ const Home: NextPage = () => {
             <span className="block text-2xl mb-2">Welcome to</span>
             <span className="block text-4xl font-bold">FarmShare</span>
           </h1>
-          {address ? (
-            userAttestations.length > 0 || userRegistration ? (
+        </div>
+        {address ? (
+          userAttestations.length > 0 || userRegistration ? (
+            <>
               <p className="text-center text-lg">
                 Welcome back{userInfo && userInfo.name ? " " + userInfo.name.split(" ")[0] : ""}!
               </p>
-            ) : (
-              <UserRegistrationForm />
-            )
+              <div className="flex-grow bg-base-300 w-full mt-16 px-8 py-12">
+                <div className="flex justify-center items-center gap-12 flex-col sm:flex-row">
+                  <div className="flex flex-col bg-base-100 px-10 py-10 text-center items-center max-w-xs rounded-3xl">
+                    <UserIcon className="h-8 w-8 fill-secondary" />
+                    <p>
+                      View and manage your account using the{" "}
+                      <Link href="/user" passHref className="link">
+                        My Account
+                      </Link>{" "}
+                      tab.
+                    </p>
+                  </div>
+                  <div className="flex flex-col bg-base-100 px-10 py-10 text-center items-center max-w-xs rounded-3xl">
+                    <UsersIcon className="h-8 w-8 fill-secondary" />
+                    <p>
+                      View ways to earn shares of food in your{" "}
+                      <Link href="/tasks" passHref className="link">
+                        Community Dashboard
+                      </Link>
+                    </p>
+                  </div>
+                  <div className="flex flex-col bg-base-100 px-10 py-10 text-center items-center max-w-xs rounded-3xl">
+                    <MapIcon className="h-8 w-8 fill-secondary" />
+                    <p>
+                      Explore and find local farms near you with the{" "}
+                      <Link href="/farms" passHref className="link">
+                        Farm Map
+                      </Link>{" "}
+                      tab.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </>
           ) : (
-            <p className="text-center text-lg">
-              Get started by logging in with your preferred social account, email, phone or wallet. Just hit{" "}
-              <i>Log In</i> in the top-right corner!
-            </p>
-          )}
-          {userRegistration && userRegistration.role == UserRole.Farmer && <FarmRegistrationForm />}
-        </div>
+            <div className="flex-grow bg-base-300 w-full mt-16 px-8 py-12">
+              <div className="flex justify-center items-center gap-12 flex-col sm:flex-row">
+                <div className="flex flex-col bg-base-100 px-10 py-10 text-center items-center max-w-xs rounded-3xl">
+                  <UserPlusIcon className="h-8 w-8 fill-secondary" />
+                  <p>
+                    Sign up with FarmShare using the{" "}
+                    <Link href="/user" passHref className="link">
+                      Account Registration
+                    </Link>{" "}
+                    tab.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )
+        ) : (
+          <p className="text-center text-lg">
+            Get started by logging in with your preferred social account, email, phone or wallet. Just hit <i>Log In</i>{" "}
+            in the top-right corner!
+          </p>
+        )}
+        {userRegistration && userRegistration.role == UserRole.Farmer && <FarmRegistrationForm />}
       </div>
     </>
   );
