@@ -19,7 +19,7 @@ import "./FarmShareTokens.sol";
 contract TaskRegistry is ITaskRegistry, IERC1155Receiver, Ownable, SchemaResolver {
 	using SafeERC20 for IERC20;
 
-    string public constant taskCreationSchema = "bytes32 communityUID,string name,string description,address creator,uint256 startTime,uint256 endTime,bool recurring,uint256 frequency";
+    string public constant taskCreationSchema = "bytes32 communityUID,string name,string description,address creator,uint256 startTime,uint256 endTime,bool recurring,uint256 frequency,string imageURL";
     bytes32 public immutable taskCreationSchemaUID;
 	string public constant taskFundedSchema = "address tokenAddress,bool isErc1155,bool isErc20,uint256 amount,uint256 tokenId";
 	bytes32 public immutable taskFundedSchemaUID;
@@ -85,6 +85,7 @@ contract TaskRegistry is ITaskRegistry, IERC1155Receiver, Ownable, SchemaResolve
 				endTime: 0,
 				recurring: false,
 				frequency: 0,
+				imageURL: "",
 				rewardUIDs: new bytes32[](0),
 				status: TaskStatus.NONE
 			});
@@ -98,8 +99,9 @@ contract TaskRegistry is ITaskRegistry, IERC1155Receiver, Ownable, SchemaResolve
 			uint256 startTime,
 			uint256 endTime,
 			bool recurring,
-			uint256 frequency
-		) = abi.decode(taskCreation.data, (bytes32, string, string, address, uint256, uint256, bool, uint256));
+			uint256 frequency,
+			string memory imageURL
+		) = abi.decode(taskCreation.data, (bytes32, string, string, address, uint256, uint256, bool, uint256, string));
 		return Task({
 			taskUID: uid,
 			communityUID: communityUID,
@@ -110,6 +112,7 @@ contract TaskRegistry is ITaskRegistry, IERC1155Receiver, Ownable, SchemaResolve
 			endTime: endTime,
 			recurring: recurring,
 			frequency: frequency,
+			imageURL: imageURL,
 			rewardUIDs: taskRewardUIDsByTaskUID[uid],
 			status: taskStatusByUID[uid]
 		});
@@ -251,7 +254,7 @@ contract TaskRegistry is ITaskRegistry, IERC1155Receiver, Ownable, SchemaResolve
 				uint endTime,
 				bool recurring,
 				uint frequency,
-			) = abi.decode(attestation.data, (bytes32, string, string, address, uint, uint, bool, uint, uint));
+			) = abi.decode(attestation.data, (bytes32, string, string, address, uint, uint, bool, uint, string));
 			require(bytes(name).length > 0, "Name cannot be empty");
 			require(bytes(description).length > 0, "Description cannot be empty");
 			require(bytes(communityRegistry.communityByUID(communityUID).name).length > 0, "Invalid community UID");
