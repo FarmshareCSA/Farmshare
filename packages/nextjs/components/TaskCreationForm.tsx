@@ -3,8 +3,10 @@ import Image from "next/image";
 import { Spinner } from "./Spinner";
 import { InputBase } from "./scaffold-eth";
 import { EAS, SchemaEncoder } from "@ethereum-attestation-service/eas-sdk";
+import { FormControlLabel, Switch, TextField } from "@mui/material";
 import { Buffer } from "buffer";
 import { create } from "ipfs-http-client";
+import moment from "moment";
 import invariant from "tiny-invariant";
 import { useNetwork } from "wagmi";
 import { useScaffoldContractRead } from "~~/hooks/scaffold-eth";
@@ -15,9 +17,9 @@ import { contracts } from "~~/utils/scaffold-eth/contract";
 export const TaskCreationForm = () => {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
-  const [community, setCommunity] = useState("");
-  const [startTime, setStartTime] = useState(0);
-  const [endTime, setEndTime] = useState(0);
+  const [community, setCommunity] = useState("0x1");
+  const [startTime, setStartTime] = useState(moment().format("yyyy-MM-DDThh:mm"));
+  const [endTime, setEndTime] = useState(moment().add(7, "day").format("yyyy-MM-DDThh:mm"));
   const [recurring, setRecurring] = useState(false);
   const [frequency, setFrequency] = useState(0);
   const [imageUrl, setImageUrl] = useState("");
@@ -90,12 +92,12 @@ export const TaskCreationForm = () => {
         { name: "communityUID", value: community, type: "bytes32" },
         { name: "name", value: name, type: "string" },
         { name: "description", value: description, type: "string" },
-        { name: "creator", value: address, type: "string" },
-        { name: "startTime", value: startTime, type: "uint256" },
-        { name: "endTime", value: endTime, type: "uint256" },
+        { name: "creator", value: address, type: "address" },
+        { name: "startTime", value: moment(startTime).unix(), type: "uint256" },
+        { name: "endTime", value: moment(endTime).unix(), type: "uint256" },
         { name: "recurring", value: recurring, type: "bool" },
         { name: "frequency", value: frequency, type: "uint256" },
-        { name: "imageUrl", value: imageUrl, type: "string" },
+        { name: "imageURL", value: imageUrl, type: "string" },
       ]);
 
       const tx = await eas.attest({
@@ -113,7 +115,7 @@ export const TaskCreationForm = () => {
       console.log("New attestation UID:", newAttestationUID);
 
       setSubmitting(false);
-      notification.success("You successfully registered your farm!");
+      notification.success("You successfully added a task");
     } catch (error: any) {
       console.error("⚡️ ~ file: RegistrationForm.tsx:handleSubmit ~ error", error);
       notification.error(error.toString());
@@ -123,22 +125,72 @@ export const TaskCreationForm = () => {
 
   return (
     <div className="flex flex-col gap-3 py-5 first:pt-0 last:pb-1">
-      <InputBase
+      <TextField
+        label="Task Name"
         value={name}
-        onChange={e => setName(e)}
+        onChange={e => setName(e.target.value)}
         placeholder="Harvest Apples"
-        prefix={
-          <span className="self-center cursor-pointer text-xl font-semibold px-3 text-accent">
-            <Image src="/nametag.png" alt="name tag" width={40} height={40} />
-          </span>
-        }
+        InputProps={{
+          startAdornment: (
+            <span className="self-center cursor-pointer text-xl font-semibold px-3 text-accent">
+              <Image src="/nametag.png" alt="name tag" width={40} height={40} />
+            </span>
+          ),
+        }}
       />
-      <InputBase
+      <TextField
+        label="Task Description"
         value={description}
-        onChange={e => setDescription(e)}
+        onChange={e => setDescription(e.target.value)}
+        multiline
         placeholder="Spend an afternoon picking apples with friends at Apple Pond Farm"
-        prefix={<span className="self-center cursor-pointer text-xl font-semibold px-4 text-accent">📝</span>}
+        InputProps={{
+          startAdornment: <span className="self-center cursor-pointer text-xl font-semibold px-4 text-accent">📝</span>,
+        }}
       />
+      <TextField
+        id="start-time"
+        label="Start Time"
+        type="datetime-local"
+        value={startTime}
+        defaultValue={startTime}
+        onChange={e => setStartTime(e.target.value)}
+        // className={"flex border-2 border-base-300 bg-base-200 rounded-full text-accent"}
+        InputLabelProps={{
+          shrink: true,
+        }}
+      />
+      <TextField
+        id="end-time"
+        label="End Time"
+        type="datetime-local"
+        value={endTime}
+        defaultValue={endTime}
+        onChange={e => setEndTime(e.target.value)}
+        // className={"flex border-2 border-base-300 bg-base-200 rounded-full text-accent"}
+        InputLabelProps={{
+          shrink: true,
+        }}
+      />
+      <FormControlLabel
+        control={<Switch checked={recurring} onChange={e => setRecurring(e.target.checked)} name="recurring" />}
+        label="Recurring"
+      />
+      {recurring && (
+        <TextField
+          id="frequency"
+          label="Frequency (days)"
+          type="number"
+          value={frequency}
+          onChange={e => setFrequency(parseInt(e.target.value))}
+          InputProps={{
+            inputProps: { min: 1 },
+            startAdornment: (
+              <span className="self-center cursor-pointer text-xl font-semibold px-4 text-accent">📆</span>
+            ),
+          }}
+        />
+      )}
       <div className={`flex border-2 border-base-300 bg-base-200 rounded-full text-accent`}>
         <span className="self-center cursor-pointer text-xl font-semibold px-4 text-accent">📷</span>
         <input
