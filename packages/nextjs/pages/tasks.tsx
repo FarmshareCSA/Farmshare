@@ -291,6 +291,7 @@ const Tasks: NextPage = () => {
             <Typography id="modal-modal-title" variant="h6" component="h2">
               Create Task
             </Typography>
+            <TaskCreationForm />
           </Box>
         </Modal>
       </Box>
