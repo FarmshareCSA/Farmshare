@@ -14,7 +14,7 @@ contract UserRegistry is IUserRegistry, Ownable, SchemaResolver {
     bytes32 public immutable updateSchemaUID;
     string public constant skillRecordSchema = "string skill";
     bytes32 public immutable skillRecordSchemaUID;
-    string public constant userSkillSchema = "bytes32 skillUID,bytes32 userUID";
+    string public constant userSkillSchema = "bytes32 skillUID,bytes32 userUID,string skillName";
     bytes32 public immutable userSkillSchemaUID;
     string public constant skillEndorsementSchema = "bytes32 userSkillUID,bytes32 userUID,bytes32 endorserUID";
     bytes32 public immutable skillEndorsementSchemaUID;
@@ -161,8 +161,8 @@ contract UserRegistry is IUserRegistry, Ownable, SchemaResolver {
             // Attestation is for recording a user's skill
             (
                 bytes32 _skillUID,
-                bytes32 _userUID
-            ) = abi.decode(attestation.data, (bytes32, bytes32));
+                bytes32 _userUID,
+            ) = abi.decode(attestation.data, (bytes32, bytes32, string));
             require(attestation.refUID == _skillUID, "Invalid reference UID");
             Attestation memory skillRecord = _eas.getAttestation(_skillUID);
             string memory skillName = abi.decode(skillRecord.data, (string));
