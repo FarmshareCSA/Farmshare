@@ -17,6 +17,8 @@ contract CommunityRegistry is ICommunityRegistry, Ownable, SchemaResolver {
     bytes32 public immutable registrationSchemaUID;
 	string public constant treasurySchema = "address treasury,address[] initialOwners";
 	bytes32 public immutable treasurySchemaUID;
+	string public constant memberSchema = "bytes32 userUID,uint8 memberRole";
+	bytes32 public immutable memberSchemaUID;
 
 	SafeProxyFactory private immutable safeProxyFactory;
 	address private immutable safeSingleton;
@@ -47,6 +49,7 @@ contract CommunityRegistry is ICommunityRegistry, Ownable, SchemaResolver {
 		safeFallbackHandler = _safeFallbackHandler;
 		registrationSchemaUID = _schemaRegistry.register(registrationSchema, this, false);
 		treasurySchemaUID = _schemaRegistry.register(treasurySchema, this, false);
+		memberSchemaUID = _schemaRegistry.register(memberSchema, this, true);
 	}
 
 	// External view functions
@@ -227,7 +230,23 @@ contract CommunityRegistry is ICommunityRegistry, Ownable, SchemaResolver {
 				require(success, "Value transfer to treasury failed");
 			}
 			return true;
-		} 
+		} else if (attestation.schema == memberSchemaUID) {
+			// Attestation is for a new member joining a community
+			require(value == 0, "Joining a community requires zero value");
+			(
+				bytes32 userUID,
+				UserRole memberRole
+			) = abi.decode(attestation.data, (bytes32, UserRole));
+			UserRecord memory userRecord = userRegistry.userRecordByUID(userUID);
+			require(userRecord.account != address(0), "User must be registered");
+			require(attestation.recipient == userRecord.account, "User must be the attestation recipient");
+			require(memberRole < UserRole.ADMIN, "Invalid membership role");
+			bytes32 communityUID = attestation.refUID;
+			Community memory community = communityByUID(communityUID);
+			require(community.uid == communityUID && communityUID != 0, "Invalid community UID");
+			emit UserJoinedCommunity(userRecord.account, community.name, memberRole);
+			return true;
+		}
 		return false;
 	}
 
