@@ -10,6 +10,7 @@ import "@safe-global/safe-contracts/contracts/proxies/SafeProxyFactory.sol";
 import "@ethereum-attestation-service/eas-contracts/contracts/resolver/SchemaResolver.sol";
 import "@ethereum-attestation-service/eas-contracts/contracts/ISchemaRegistry.sol";
 import "@ethereum-attestation-service/eas-contracts/contracts/IEAS.sol";
+import "@openzeppelin/contracts/utils/Strings.sol";
 import "./interfaces/ITaskRegistry.sol";
 import "./interfaces/IUserRegistry.sol";
 import "./interfaces/IFarmRegistry.sol";
