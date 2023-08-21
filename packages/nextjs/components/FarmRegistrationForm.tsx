@@ -96,7 +96,7 @@ export const FarmRegistrationForm = () => {
         { name: "ownerUID", value: userUID, type: "bytes32" },
         { name: "farmName", value: name, type: "string" },
         { name: "description", value: description, type: "string" },
-        { name: "streetAddress", value: address, type: "string" },
+        { name: "streetAddress", value: streetAddress, type: "string" },
         { name: "city", value: city, type: "string" },
         { name: "state", value: state, type: "string" },
         { name: "country", value: country, type: "string" },
