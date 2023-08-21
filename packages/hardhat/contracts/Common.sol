@@ -42,9 +42,12 @@ struct Community {
     bytes32 uid;
     string name;
     string description;
-    string country;
+    string city;
     string state;
+    string country;
     string postalCode;
+    string websiteUrl;
+    string imageUrl;
     address payable treasury;
 }
 
