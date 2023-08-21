@@ -10,6 +10,7 @@ import "@safe-global/safe-contracts/contracts/proxies/SafeProxyFactory.sol";
 import "@ethereum-attestation-service/eas-contracts/contracts/resolver/SchemaResolver.sol";
 import "@ethereum-attestation-service/eas-contracts/contracts/ISchemaRegistry.sol";
 import "@ethereum-attestation-service/eas-contracts/contracts/IEAS.sol";
+import "@openzeppelin/contracts/utils/Strings.sol";
 import "./interfaces/ITaskRegistry.sol";
 import "./interfaces/IUserRegistry.sol";
 import "./interfaces/IFarmRegistry.sol";
@@ -19,7 +20,7 @@ import "./FarmShareTokens.sol";
 contract TaskRegistry is ITaskRegistry, IERC1155Receiver, Ownable, SchemaResolver {
 	using SafeERC20 for IERC20;
 
-    string public constant taskCreationSchema = "bytes32 communityUID,string name,string description,address creator,uint256 startTime,uint256 endTime,bool recurring,uint256 frequency";
+    string public constant taskCreationSchema = "bytes32 communityUID,string name,string description,address creator,uint256 startTime,uint256 endTime,bool recurring,uint256 frequency,string imageURL";
     bytes32 public immutable taskCreationSchemaUID;
 	string public constant taskFundedSchema = "address tokenAddress,bool isErc1155,bool isErc20,uint256 amount,uint256 tokenId";
 	bytes32 public immutable taskFundedSchemaUID;
@@ -85,6 +86,7 @@ contract TaskRegistry is ITaskRegistry, IERC1155Receiver, Ownable, SchemaResolve
 				endTime: 0,
 				recurring: false,
 				frequency: 0,
+				imageURL: "",
 				rewardUIDs: new bytes32[](0),
 				status: TaskStatus.NONE
 			});
@@ -98,8 +100,9 @@ contract TaskRegistry is ITaskRegistry, IERC1155Receiver, Ownable, SchemaResolve
 			uint256 startTime,
 			uint256 endTime,
 			bool recurring,
-			uint256 frequency
-		) = abi.decode(taskCreation.data, (bytes32, string, string, address, uint256, uint256, bool, uint256));
+			uint256 frequency,
+			string memory imageURL
+		) = abi.decode(taskCreation.data, (bytes32, string, string, address, uint256, uint256, bool, uint256, string));
 		return Task({
 			taskUID: uid,
 			communityUID: communityUID,
@@ -110,6 +113,7 @@ contract TaskRegistry is ITaskRegistry, IERC1155Receiver, Ownable, SchemaResolve
 			endTime: endTime,
 			recurring: recurring,
 			frequency: frequency,
+			imageURL: imageURL,
 			rewardUIDs: taskRewardUIDsByTaskUID[uid],
 			status: taskStatusByUID[uid]
 		});
@@ -251,7 +255,7 @@ contract TaskRegistry is ITaskRegistry, IERC1155Receiver, Ownable, SchemaResolve
 				uint endTime,
 				bool recurring,
 				uint frequency,
-			) = abi.decode(attestation.data, (bytes32, string, string, address, uint, uint, bool, uint, uint));
+			) = abi.decode(attestation.data, (bytes32, string, string, address, uint, uint, bool, uint, string));
 			require(bytes(name).length > 0, "Name cannot be empty");
 			require(bytes(description).length > 0, "Description cannot be empty");
 			require(bytes(communityRegistry.communityByUID(communityUID).name).length > 0, "Invalid community UID");
@@ -282,6 +286,28 @@ contract TaskRegistry is ITaskRegistry, IERC1155Receiver, Ownable, SchemaResolve
 			bytes32 taskUID = attestation.refUID;
 			taskRewardUIDsByTaskUID[taskUID].push(attestation.uid);
 			emit TaskFunded(taskUID, attestation.uid, tokenAddress, isErc1155, isErc20, amount, tokenId);
+			return true;
+		} else if (attestation.schema == taskApplicationSchemaUID) {
+			(
+				bytes32 taskUID,
+				bytes32 userUID,
+				bytes32[] memory skillUIDs
+			) = abi.decode(attestation.data, (bytes32, bytes32, bytes32[]));
+			require(taskStatusByUID[taskUID] == TaskStatus.CREATED, "Task is either already in-progress or completed");
+			UserRecord memory user = userRegistry.userRecordByUID(userUID);
+			if(user.account == address(0)) revert InvalidUserAddress();
+			for (uint i; i < skillUIDs.length; ++i) {
+				Attestation memory userSkill = _eas.getAttestation(skillUIDs[i]);
+				(
+					bytes32 _skillUID,
+					bytes32 _userUID
+				) = abi.decode(userSkill.data, (bytes32, bytes32));
+				require(_skillUID != bytes32(0), "User skill attestation not found");
+				require(_userUID == userUID, "User UID does not match skill attestation");
+			}
+			taskApplicantsByTaskUID[taskUID].push(user.account);
+			emit TaskApplicationSubmitted(taskUID, attestation.uid, userUID, skillUIDs);
+			return true;
 		} else if (attestation.schema == taskStartedSchemaUID) {
 			(
 				bytes32 taskUID,
@@ -292,6 +318,7 @@ contract TaskRegistry is ITaskRegistry, IERC1155Receiver, Ownable, SchemaResolve
 			if(user.account == address(0)) revert InvalidUserAddress();
 			taskStatusByUID[taskUID] = TaskStatus.INPROGRESS;
 			emit TaskStarted(taskUID, attestation.uid, userUID, block.timestamp);
+			return true;
 		} else if (attestation.schema == taskCompletedSchemaUID) {
 			(
 				bytes32 taskUID,
@@ -303,6 +330,7 @@ contract TaskRegistry is ITaskRegistry, IERC1155Receiver, Ownable, SchemaResolve
 			taskStatusByUID[taskUID] = TaskStatus.COMPLETE;
 			payoutTaskRewards(taskUID, user.account);
 			emit TaskCompleted(taskUID, attestation.uid, userUID, block.timestamp);
+			return true;
 		}
 		return false;
 	}

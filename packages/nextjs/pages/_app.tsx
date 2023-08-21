@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import type { AppProps } from "next/app";
 import { RainbowKitProvider, darkTheme, lightTheme } from "@rainbow-me/rainbowkit";
 import "@rainbow-me/rainbowkit/styles.css";
+import { getRPCProviderOwner, getZeroDevSigner } from "@zerodevapp/sdk";
 import NextNProgress from "nextjs-progressbar";
 import { Toaster } from "react-hot-toast";
 import { useDarkMode } from "usehooks-ts";
@@ -20,10 +21,14 @@ const ScaffoldEthApp = ({ Component, pageProps }: AppProps) => {
   const price = useNativeCurrencyPrice();
   const setNativeCurrencyPrice = useGlobalState(state => state.setNativeCurrencyPrice);
   const setUserInfo = useGlobalState(state => state.setUserInfo);
+  const setUserSmartAccount = useGlobalState(state => state.setUserSmartAccount);
+  const setUserSigner = useGlobalState(state => state.setUserSigner);
   // This variable is required for initial client side rendering of correct theme for RainbowKit
   const [isDarkTheme, setIsDarkTheme] = useState(true);
   const { isDarkMode } = useDarkMode();
-  const { connector } = useAccount();
+  const { address, connector } = useAccount();
+
+  const defaultProjectId = process.env.REACT_APP_ZERODEV_PROJECT_ID || "ec01b08b-f7a8-4f47-924d-0a1b1879a468";
 
   useEffect(() => {
     if (price > 0) {
@@ -49,6 +54,25 @@ const ScaffoldEthApp = ({ Component, pageProps }: AppProps) => {
     };
     getUserInfo();
   }, [connector]);
+
+  useEffect(() => {
+    const tryZeroDevSigner = async () => {
+      if (web3AuthInstance && address) {
+        const tmpSigner = await getZeroDevSigner({
+          projectId: defaultProjectId,
+          owner: getRPCProviderOwner(web3AuthInstance.provider),
+        });
+        setUserSigner(tmpSigner);
+        console.log(tmpSigner);
+        const tmpAddress = await tmpSigner.getAddress();
+        console.log("Smart account address: %s", tmpAddress);
+        if (tmpAddress) {
+          setUserSmartAccount(tmpAddress);
+        }
+      }
+    };
+    tryZeroDevSigner();
+  }, [web3AuthInstance]);
 
   return (
     <WagmiConfig config={wagmiConfig}>

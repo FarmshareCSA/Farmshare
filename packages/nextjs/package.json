@@ -21,6 +21,7 @@
     "@googlemaps/google-maps-services-js": "^3.3.35",
     "@heroicons/react": "^2.0.11",
     "@mapbox/search-js-react": "^1.0.0-beta.17",
+    "@mui/icons-material": "^5.14.3",
     "@mui/material": "^5.14.3",
     "@rainbow-me/rainbowkit": "^1.0.4",
     "@uniswap/sdk-core": "^4.0.1",
