@@ -1,7 +1,7 @@
 import type { Attestation, AttestationResult, EASChainConfig, MyAttestationResult } from "./types";
+import { SchemaEncoder } from "@ethereum-attestation-service/eas-sdk";
 import axios from "axios";
 import invariant from "tiny-invariant";
-import { useScaffoldContractRead } from "~~/hooks/scaffold-eth";
 import { getTargetNetwork } from "~~/utils/scaffold-eth";
 
 const chain = getTargetNetwork();
@@ -98,4 +98,51 @@ export async function getUserAttestationsForAddress(address: string, schema: str
     },
   );
   return response.data.data.attestations;
+}
+
+export async function getSkillUIDByName(
+  skillName: string,
+  userRegistryAddress: string,
+  skillRecordSchema: string,
+  schemaEncoder: SchemaEncoder,
+) {
+  console.log("Skill name: %s", skillName);
+  const response = await axios.post<MyAttestationResult>(
+    `${baseURL}/graphql`,
+    {
+      query:
+        "query Attestations($where: AttestationWhereInput, $orderBy: [AttestationOrderByWithRelationInput!]) {\n  attestations(where: $where, orderBy: $orderBy) {\n    attester\n    revocationTime\n    expirationTime\n    time\n    recipient\n    id\n    data\n  }\n}",
+
+      variables: {
+        where: {
+          schemaId: {
+            equals: skillRecordSchema,
+          },
+          recipient: {
+            equals: userRegistryAddress,
+          },
+        },
+        orderBy: [
+          {
+            time: "desc",
+          },
+        ],
+      },
+    },
+    {
+      headers: {
+        "content-type": "application/json",
+      },
+    },
+  );
+  for (let i = 0; i < response.data.data.attestations.length; i++) {
+    const attestation = response.data.data.attestations[i];
+    const decodedData = schemaEncoder.decodeData(attestation.data);
+    console.log("Decoded data");
+    console.log(decodedData);
+    if (decodedData[0] && decodedData[0].value.value.toString() == skillName) {
+      return attestation.id;
+    }
+  }
+  return "";
 }

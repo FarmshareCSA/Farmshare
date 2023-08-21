@@ -4,6 +4,7 @@ import { FarmRegistrationForm } from "~~/components/FarmRegistrationForm";
 import { MetaHeader } from "~~/components/MetaHeader";
 import { UpdateUserForm } from "~~/components/UpdateUserForm";
 import { UserRegistrationForm } from "~~/components/UserRegistrationForm";
+import { UserSkillsForm } from "~~/components/UserSkillsForm";
 import { UserRole } from "~~/services/eas/customSchemaTypes";
 import { useGlobalState } from "~~/services/store/store";
 
@@ -28,6 +29,7 @@ const User: NextPage = () => {
                   Welcome back{userInfo && userInfo.name ? " " + userInfo.name.split(" ")[0] : ""}!
                 </p>
                 <UpdateUserForm />
+                <UserSkillsForm />
               </>
             ) : (
               <UserRegistrationForm />
