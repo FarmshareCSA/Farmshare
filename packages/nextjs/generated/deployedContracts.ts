@@ -2701,7 +2701,7 @@ const contracts = {
       name: "baseGoerli",
       contracts: {
         CommunityRegistry: {
-          address: "0x07bA50664f58e8fa686Cf53E45f1CB0dd98eaf8e",
+          address: "0xe9db1ACAbAdDe0eF7DAd4eBdB8f394AB4CD21CC3",
           abi: [
             {
               inputs: [
@@ -2788,7 +2788,7 @@ const contracts = {
                 {
                   indexed: false,
                   internalType: "string",
-                  name: "country",
+                  name: "city",
                   type: "string",
                 },
                 {
@@ -2800,7 +2800,19 @@ const contracts = {
                 {
                   indexed: false,
                   internalType: "string",
+                  name: "country",
+                  type: "string",
+                },
+                {
+                  indexed: false,
+                  internalType: "string",
                   name: "postalCode",
+                  type: "string",
+                },
+                {
+                  indexed: false,
+                  internalType: "string",
+                  name: "website",
                   type: "string",
                 },
               ],
@@ -3032,7 +3044,7 @@ const contracts = {
                     },
                     {
                       internalType: "string",
-                      name: "country",
+                      name: "city",
                       type: "string",
                     },
                     {
@@ -3042,7 +3054,22 @@ const contracts = {
                     },
                     {
                       internalType: "string",
+                      name: "country",
+                      type: "string",
+                    },
+                    {
+                      internalType: "string",
                       name: "postalCode",
+                      type: "string",
+                    },
+                    {
+                      internalType: "string",
+                      name: "websiteUrl",
+                      type: "string",
+                    },
+                    {
+                      internalType: "string",
+                      name: "imageUrl",
                       type: "string",
                     },
                     {
@@ -3088,7 +3115,7 @@ const contracts = {
                     },
                     {
                       internalType: "string",
-                      name: "country",
+                      name: "city",
                       type: "string",
                     },
                     {
@@ -3098,7 +3125,22 @@ const contracts = {
                     },
                     {
                       internalType: "string",
+                      name: "country",
+                      type: "string",
+                    },
+                    {
+                      internalType: "string",
                       name: "postalCode",
+                      type: "string",
+                    },
+                    {
+                      internalType: "string",
+                      name: "websiteUrl",
+                      type: "string",
+                    },
+                    {
+                      internalType: "string",
+                      name: "imageUrl",
                       type: "string",
                     },
                     {
@@ -3220,6 +3262,32 @@ const contracts = {
                 },
               ],
               stateMutability: "pure",
+              type: "function",
+            },
+            {
+              inputs: [],
+              name: "memberSchema",
+              outputs: [
+                {
+                  internalType: "string",
+                  name: "",
+                  type: "string",
+                },
+              ],
+              stateMutability: "view",
+              type: "function",
+            },
+            {
+              inputs: [],
+              name: "memberSchemaUID",
+              outputs: [
+                {
+                  internalType: "bytes32",
+                  name: "",
+                  type: "bytes32",
+                },
+              ],
+              stateMutability: "view",
               type: "function",
             },
             {
@@ -3595,7 +3663,7 @@ const contracts = {
           ],
         },
         FarmRegistry: {
-          address: "0x59fe50D06D402A64934105114cA49C36a14d0b30",
+          address: "0xE4Cd71d1F323c0742a64921e2535252bc9E559e7",
           abi: [
             {
               inputs: [
@@ -4622,7 +4690,7 @@ const contracts = {
           ],
         },
         TaskRegistry: {
-          address: "0xC1643164D3E6ab8D0738db5C328FF76CA46e480d",
+          address: "0x4CB67809e1DA56de993eBDcd5119dbC0E3bbC12b",
           abi: [
             {
               inputs: [
@@ -5633,6 +5701,11 @@ const contracts = {
                       type: "uint256",
                     },
                     {
+                      internalType: "string",
+                      name: "imageURL",
+                      type: "string",
+                    },
+                    {
                       internalType: "bytes32[]",
                       name: "rewardUIDs",
                       type: "bytes32[]",
@@ -5894,7 +5967,7 @@ const contracts = {
           ],
         },
         UserRegistry: {
-          address: "0xB94cB3a89A01BE51c741598fe353010d68532C60",
+          address: "0x8e5a5171d5e6795ffdD8936dE5c8Cad7D07B9CB9",
           abi: [
             {
               inputs: [
