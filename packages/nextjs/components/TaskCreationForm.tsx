@@ -14,10 +14,9 @@ import { useGlobalState } from "~~/services/store/store";
 import { getTargetNetwork, notification } from "~~/utils/scaffold-eth";
 import { contracts } from "~~/utils/scaffold-eth/contract";
 
-export const TaskCreationForm = () => {
+export const TaskCreationForm = ({ communityUID, onClose }: any) => {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
-  const [community, setCommunity] = useState("0x1");
   const [startTime, setStartTime] = useState(moment().format("yyyy-MM-DDThh:mm"));
   const [endTime, setEndTime] = useState(moment().add(7, "day").format("yyyy-MM-DDThh:mm"));
   const [recurring, setRecurring] = useState(false);
@@ -89,7 +88,7 @@ export const TaskCreationForm = () => {
       invariant(userUID && userUID != "0x0", "user must be registered");
       invariant(schemaUID, "schema UID must be defined");
       const encodedData = schemaEncoder.encodeData([
-        { name: "communityUID", value: community, type: "bytes32" },
+        { name: "communityUID", value: communityUID, type: "bytes32" },
         { name: "name", value: name, type: "string" },
         { name: "description", value: description, type: "string" },
         { name: "creator", value: address, type: "address" },
@@ -107,6 +106,7 @@ export const TaskCreationForm = () => {
           expirationTime: BigInt(0),
           revocable: false,
           data: encodedData,
+          refUID: communityUID,
         },
       });
 
@@ -116,6 +116,7 @@ export const TaskCreationForm = () => {
 
       setSubmitting(false);
       notification.success("You successfully added a task");
+      onClose(false);
     } catch (error: any) {
       console.error("⚡️ ~ file: RegistrationForm.tsx:handleSubmit ~ error", error);
       notification.error(error.toString());
