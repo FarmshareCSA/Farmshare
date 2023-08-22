@@ -21,6 +21,11 @@ contract FarmShareTokens is ERC1155 {
         taskRegistry = _taskRegistry;
     }
 
+    function name(uint256 tokenId) public view returns (string memory) {
+        string memory farmName = farmRegistry.farmRecordByUID(bytes32(tokenId)).farmName;
+        return string(abi.encodePacked(farmName, " Share"));
+    }
+
     function mint(address to, uint256 id, uint256 amount, bytes calldata data) public {
         bytes32 farmUID = bytes32(id);
         FarmRecord memory farmRecord = farmRegistry.farmRecordByUID(farmUID);
