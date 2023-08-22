@@ -17,6 +17,11 @@ const AddressMapBoxForm = dynamic(() => import("~~/components/AddressMapBoxForm"
   ssr: false,
 });
 
+// const REACT_APP_MAPBOX_API_KEY = process.env.NEXT_PUBLIC_MAPBOX_API_KEY || "";
+const REACT_APP_MAPBOX_API_KEY =
+  "pk.eyJ1IjoidW1hcjk2IiwiYSI6ImNsbDl5ZHBxcTBocjgzcG56aXZrMzUzNWkifQ.ysIeMTq4U_kJpQSniYOmCA";
+
+const MAP_BOX_GEOCODING_API_URL = "https://api.mapbox.com/geocoding/v5/mapbox.places";
 export const FarmRegistrationForm = ({ onSubmit }: any) => {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -83,6 +88,15 @@ export const FarmRegistrationForm = ({ onSubmit }: any) => {
     }
   };
 
+  const getCoordinates = async (streetAddress: string) => {
+    const apiURL = `${MAP_BOX_GEOCODING_API_URL}/${streetAddress}?access_token=${REACT_APP_MAPBOX_API_KEY}`;
+    const response = await fetch(apiURL);
+    const responseJson = await response.json();
+    const coordinates = "features" in responseJson ? responseJson.features[0].geometry.coordinates.join() : "";
+    console.log(coordinates);
+    return coordinates;
+  };
+
   const handleSubmit = async () => {
     setSubmitting(true);
     try {
@@ -93,7 +107,7 @@ export const FarmRegistrationForm = ({ onSubmit }: any) => {
       invariant(userUID && userUID != "0x0", "user must be registered");
       invariant(schemaUID, "schema UID must be defined");
       // Geocode and concatenate here!
-      const latAndLong = "";
+      const latAndLong = await getCoordinates(streetAddress);
       const encodedData = schemaEncoder.encodeData([
         { name: "ownerUID", value: userUID, type: "bytes32" },
         { name: "farmName", value: name, type: "string" },
