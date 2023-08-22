@@ -200,12 +200,14 @@ contract FarmRegistry is IFarmRegistry, Ownable, SchemaResolver {
 			string memory _state,
 			string memory _country,
 			string memory _postalCode,
-			,
+			string memory _latAndLong,
 			string memory _websiteUrl,
 		) = abi.decode(
 				attestation.data,
 				(bytes32, string, string, string, string, string, string, string, string, string, string)
 			);
+		require(bytes(_name).length > 0, "Farm name cannot be empty");
+		require(bytes(_latAndLong).length > 0, "Farm location is required");
         farmUIDByFarmerUID[_ownerUID] = attestation.uid;
         farmUIDByName[_name] = attestation.uid;        
 		emit FarmRegistered(
