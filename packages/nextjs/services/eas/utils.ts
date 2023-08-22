@@ -1,3 +1,4 @@
+import { Task, TaskReward } from "./customSchemaTypes";
 import type { Attestation, AttestationResult, EASChainConfig, MyAttestationResult } from "./types";
 import { SchemaEncoder } from "@ethereum-attestation-service/eas-sdk";
 import axios from "axios";
@@ -168,7 +169,13 @@ export async function getAllAttestationsForSchema(schema: string) {
   return response.data.data.attestations;
 }
 
-export async function getTasksForCommunity(communityId: string, schema: string) {
+export async function getTasksForCommunity(
+  communityUID: string,
+  taskSchemaUID: string,
+  rewardSchemaUID: string,
+  taskSchemaEncoder: SchemaEncoder,
+  rewardSchemaEncoder: SchemaEncoder,
+) {
   const response = await axios.post<MyAttestationResult>(
     `${baseURL}/graphql`,
     {
@@ -178,10 +185,10 @@ export async function getTasksForCommunity(communityId: string, schema: string) 
       variables: {
         where: {
           schemaId: {
-            equals: schema,
+            equals: taskSchemaUID,
           },
           refUID: {
-            equals: communityId,
+            equals: communityUID,
           },
         },
         orderBy: [
@@ -197,7 +204,69 @@ export async function getTasksForCommunity(communityId: string, schema: string) 
       },
     },
   );
-  return response.data.data.attestations;
+  const tasks: Task[] = [];
+  const taskAttestations = response.data.data.attestations;
+  for (const taskAttestation of taskAttestations) {
+    const taskData = taskSchemaEncoder.decodeData(taskAttestation.data);
+    // Get rewards
+    const response2 = await axios.post<MyAttestationResult>(
+      `${baseURL}/graphql`,
+      {
+        query:
+          "query Attestations($where: AttestationWhereInput, $orderBy: [AttestationOrderByWithRelationInput!]) {\n  attestations(where: $where, orderBy: $orderBy) {\n    attester\n    revocationTime\n    expirationTime\n    time\n    recipient\n    id\n    data\n  }\n}",
+
+        variables: {
+          where: {
+            schemaId: {
+              equals: rewardSchemaUID,
+            },
+            refUID: {
+              equals: taskAttestation.id,
+            },
+          },
+          orderBy: [
+            {
+              time: "desc",
+            },
+          ],
+        },
+      },
+      {
+        headers: {
+          "content-type": "application/json",
+        },
+      },
+    );
+    const rewardAttestations = response2.data.data.attestations;
+    // Decode rewards
+    const rewards = rewardAttestations.map(rewardAttestation => {
+      const rewardData = rewardSchemaEncoder.decodeData(rewardAttestation.data);
+      return {
+        uid: rewardAttestation.id,
+        taskUID: taskAttestation.id,
+        tokenAddress: rewardData[0].value.value.toString(),
+        isErc1155: rewardData[1].value.value == true,
+        isErc20: rewardData[2].value.value == true,
+        amount: parseInt(rewardData[3].value.value.toString()),
+        tokenId: parseInt(rewardData[4].value.value.toString()),
+        tokenName: rewardData[5].value.value.toString(),
+      } as TaskReward;
+    });
+    tasks.push({
+      uid: taskAttestation.id,
+      communityUID: communityUID,
+      name: taskData[1].value.value.toString(),
+      description: taskData[2].value.value.toString(),
+      creator: taskData[3].value.value.toString(),
+      startTime: parseInt(taskData[4].value.value.toString()),
+      endTime: parseInt(taskData[5].value.value.toString()),
+      recurring: taskData[6].value.value == true,
+      frequency: parseInt(taskData[7].value.value.toString()),
+      imageURL: taskData[8].value.value.toString(),
+      rewards: rewards,
+    });
+  }
+  return tasks;
 }
 
 export async function getSkillUIDByName(
