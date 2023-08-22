@@ -7,7 +7,7 @@ import CardContent from "@mui/material/CardContent";
 import CardMedia from "@mui/material/CardMedia";
 import Typography from "@mui/material/Typography";
 import moment from "moment";
-import style from "styled-jsx/style";
+// import style from "styled-jsx/style";
 import { TaskReward } from "~~/services/eas/customSchemaTypes";
 
 export default function TaskCard({
@@ -30,6 +30,18 @@ export default function TaskCard({
   const [open, setOpen] = useState(false);
   let [showDetails, setShowDetails] = useState<any>(false);
   let [content, setContent] = useState<any>(<React.Fragment></React.Fragment>);
+
+  const style = {
+    position: "absolute",
+    top: "50%",
+    left: "50%",
+    transform: "translate(-50%, -50%)",
+    width: 400,
+    bgcolor: "background.paper",
+    border: "2px solid #000",
+    boxShadow: 24,
+    p: 4,
+  };
 
   React.useEffect(() => {
     if (!showDetails) {
@@ -117,17 +129,17 @@ export default function TaskCard({
             aria-labelledby="modal-modal-title"
             aria-describedby="modal-modal-description"
           >
-            <Box sx={style}>
+             <Box sx={style}>
               <Typography id="modal-modal-title" variant="h6" component="h2">
                 Create Task
               </Typography>
               <TaskFundingForm taskUID={uid} onClose={setOpen} />
-            </Box>
+              </Box>
           </Modal>
         </>,
       );
     }
-  }, [showDetails]);
+  }, [showDetails,open]);
 
   return <React.Fragment>{content}</React.Fragment>;
 }
