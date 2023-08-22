@@ -161,7 +161,6 @@ const Home: NextPage = () => {
               <i>Log In</i> in the top-right corner!
             </p>
           )}
-          {userRegistration && userRegistration.role == UserRole.Farmer && <FarmRegistrationForm />}
         </div>
       </>
     )
