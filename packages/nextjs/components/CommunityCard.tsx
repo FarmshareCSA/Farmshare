@@ -17,6 +17,8 @@ import { contracts } from "~~/utils/scaffold-eth/contract";
 export default function CommunityCard({ community }: any) {
   const { uid, name, description, imageURL } = community;
   const userRegistration = useGlobalState(state => state.userRegistration);
+  const communities = useGlobalState(state => state.communities);
+  const setCommunities = useGlobalState(state => state.setCommunities);
   const signer = useGlobalState(state => state.userSigner);
   const { chain } = useNetwork();
   const [joined, setJoined] = React.useState(false);
@@ -52,7 +54,7 @@ export default function CommunityCard({ community }: any) {
       }
     };
     checkCommunityMembership();
-  }, [userRegistration, signer, schemaUID, submitting]);
+  }, [userRegistration, communities, signer, schemaUID, submitting]);
 
   const handleSubmit = async () => {
     setSubmitting(true);
@@ -85,6 +87,7 @@ export default function CommunityCard({ community }: any) {
       console.log("New attestation UID:", newAttestationUID);
 
       setSubmitting(false);
+      setCommunities(communities);
       notification.success("You successfully joined the community");
     } catch (error: any) {
       console.error("⚡️ ~ file: RegistrationForm.tsx:handleSubmit ~ error", error);
@@ -109,6 +112,9 @@ export default function CommunityCard({ community }: any) {
       <CardActions>
         <Button size="small" color="primary" onClick={handleSubmit} disabled={joined}>
           {submitting ? <Spinner /> : joined ? "Joined" : "Join Community"}
+        </Button>
+        <Button size="small" color="primary" href={"/tasks?community=" + uid}>
+          View Tasks
         </Button>
       </CardActions>
     </Card>

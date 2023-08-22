@@ -1,8 +1,9 @@
 import React from "react";
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import AddIcon from "@mui/icons-material/Add";
-import { CardActionArea } from "@mui/material";
+import { CardActionArea, MenuItem, TextField } from "@mui/material";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Card from "@mui/material/Card";
@@ -20,6 +21,7 @@ import type { NextPage } from "next";
 import { MetaHeader } from "~~/components/MetaHeader";
 import TaskCard from "~~/components/TaskCard";
 import { TaskCreationForm } from "~~/components/TaskCreationForm";
+import { useGlobalState } from "~~/services/store/store";
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -256,15 +258,39 @@ const style = {
 };
 
 const Tasks: NextPage = () => {
+  const searchParams = useSearchParams();
   let [tasks, setTasks] = useState<any>([]);
   let [open, setOpen] = useState<any>(false);
+  const [community, setCommunity] = useState("");
+  const communities = useGlobalState(state => state.communities);
+  let communityUID = searchParams.get("community");
 
   useEffect(() => {
+    if (communities && communityUID) {
+      communities.forEach(comm => {
+        if (comm.uid == communityUID) {
+          setCommunity(comm.uid);
+        }
+      });
+    }
     setTasks(displayTasks());
-  }, []);
+  }, [communityUID]);
 
   return (
     <React.Fragment>
+      {communities && (
+        <div className="flex items-left flex-col flex-grow pt-5 pb-5">
+          <div className="px-5">
+            <TextField label="Select a Community" select value={community}>
+              {communities.map(community => (
+                <MenuItem key={community.uid} value={community.uid}>
+                  {community.name}
+                </MenuItem>
+              ))}
+            </TextField>
+          </div>
+        </div>
+      )}
       <Box style={{ backgroundColor: "#F9FFF1" }}>
         <Grid container sx={{ padding: "5px" }}>
           {tasks}
