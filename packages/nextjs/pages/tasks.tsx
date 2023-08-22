@@ -207,6 +207,7 @@ const displayTasks = (taskList: Task[]) => {
             uid={task.uid}
             title={task.name}
             description={task.description}
+            creator={task.creator}
             startTime={task.startTime}
             endTime={task.endTime}
             rewards={task.rewards}
@@ -222,6 +223,7 @@ const displayTasks = (taskList: Task[]) => {
             uid={task.uid}
             title={task.name}
             description={task.description}
+            creator={task.creator}
             startTime={task.startTime}
             endTime={task.endTime}
             rewards={task.rewards}
@@ -236,6 +238,7 @@ const displayTasks = (taskList: Task[]) => {
             uid={task.uid}
             title={task.name}
             description={task.description}
+            creator={task.creator}
             startTime={task.startTime}
             endTime={task.endTime}
             rewards={task.rewards}

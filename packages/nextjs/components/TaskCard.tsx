@@ -9,11 +9,13 @@ import Typography from "@mui/material/Typography";
 import moment from "moment";
 // import style from "styled-jsx/style";
 import { TaskReward } from "~~/services/eas/customSchemaTypes";
+import { useGlobalState } from "~~/services/store/store";
 
 export default function TaskCard({
   uid,
   title,
   description,
+  creator,
   startTime,
   endTime,
   rewards,
@@ -22,12 +24,14 @@ export default function TaskCard({
   uid: string;
   title: string;
   description: string;
+  creator: string;
   startTime: number;
   endTime: number;
   rewards: TaskReward[];
   image: string;
 }) {
   const [open, setOpen] = useState(false);
+  const userAddress = useGlobalState(state => state.userSmartAccount);
   let [showDetails, setShowDetails] = useState<any>(false);
   let [content, setContent] = useState<any>(<React.Fragment></React.Fragment>);
 
@@ -78,7 +82,7 @@ export default function TaskCard({
     } else {
       setContent(
         <>
-          <Card sx={{ height: "350px", borderRadius: "20px", backgroundColor: "#545454" }}>
+          <Card sx={{ height: "450px", borderRadius: "20px", backgroundColor: "#545454" }}>
             <CardContent>
               <Typography sx={{ fontSize: 14 }} color="white" gutterBottom>
                 {moment.unix(startTime).format("MMM D, YYYY, hh:mmA") +
@@ -129,17 +133,17 @@ export default function TaskCard({
             aria-labelledby="modal-modal-title"
             aria-describedby="modal-modal-description"
           >
-             <Box sx={style}>
+            <Box sx={style}>
               <Typography id="modal-modal-title" variant="h6" component="h2">
                 Create Task
               </Typography>
               <TaskFundingForm taskUID={uid} onClose={setOpen} />
-              </Box>
+            </Box>
           </Modal>
         </>,
       );
     }
-  }, [showDetails,open]);
+  }, [showDetails, open]);
 
   return <React.Fragment>{content}</React.Fragment>;
 }
