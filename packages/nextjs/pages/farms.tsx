@@ -60,9 +60,32 @@ const samepleFarms = {
   ],
 };
 
+type Feature = {
+  type: string;
+  properties: {
+    title: string;
+    description: string;
+    streetAddress?: string;
+    city?: string;
+    state?: string;
+    country?: string;
+    postalCode?: string;
+    img: string;
+    websiteURL?: string;
+  };
+  geometry: {
+    coordinates: number[];
+    type: string;
+  };
+};
+
+type GeoJson = {
+  features: Feature[];
+};
+
 const Farms: NextPage = () => {
   const hasMapData = "features" in mapsData;
-  const geoJson = hasMapData ? mapsData : samepleFarms;
+  const [geoJson, setGeoJson] = useState<GeoJson>(mapsData);
   const sampleKeys = [...Array(geoJson?.features?.length).keys()].map(i => i + 1);
 
   const userRegistration = useGlobalState(state => state.userRegistration);
@@ -98,6 +121,8 @@ const Farms: NextPage = () => {
       if (farmSchemaUID && userRegistration) {
         const farmAttestations = await getAllAttestationsForSchema(farmSchemaUID);
         const farmList: Farm[] = [];
+        const featureArray: Feature[] = [];
+        const farmsGeoJson = { features: featureArray };
         farmAttestations.forEach(attestation => {
           const decodedData = farmSchemaEncoder.decodeData(attestation.data);
           if (decodedData[0].value.value == userRegistration.uid) setUserFarmIsRegistered(true);
@@ -115,7 +140,28 @@ const Farms: NextPage = () => {
             websiteURL: decodedData[9].value.value.toString(),
             imageURL: decodedData[10].value.value.toString(),
           });
+          const lat = parseFloat(decodedData[8].value.value.toString().split(",")[0]);
+          const long = parseFloat(decodedData[8].value.value.toString().split(",")[1]);
+          farmsGeoJson.features.push({
+            type: "Feature",
+            properties: {
+              title: decodedData[1].value.value.toString(),
+              description: decodedData[2].value.value.toString(),
+              streetAddress: decodedData[3].value.value.toString(),
+              city: decodedData[4].value.value.toString(),
+              state: decodedData[5].value.value.toString(),
+              country: decodedData[6].value.value.toString(),
+              postalCode: decodedData[7].value.value.toString(),
+              img: decodedData[10].value.value.toString(),
+              websiteURL: decodedData[9].value.value.toString(),
+            },
+            geometry: {
+              coordinates: [lat, long],
+              type: "Point",
+            },
+          });
         });
+        setGeoJson(farmsGeoJson);
         setFarms(farmList);
       }
     };
