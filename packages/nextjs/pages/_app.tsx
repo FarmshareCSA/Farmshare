@@ -30,6 +30,11 @@ const ScaffoldEthApp = ({ Component, pageProps }: AppProps) => {
 
   const defaultProjectId = process.env.REACT_APP_ZERODEV_PROJECT_ID || "ec01b08b-f7a8-4f47-924d-0a1b1879a468";
 
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true)
+}, [])
+
   useEffect(() => {
     if (price > 0) {
       setNativeCurrencyPrice(price);
@@ -57,13 +62,14 @@ const ScaffoldEthApp = ({ Component, pageProps }: AppProps) => {
 
   useEffect(() => {
     const tryZeroDevSigner = async () => {
+      console.log("TRYING ZERO DEV SIGNER",web3AuthInstance && address)
       if (web3AuthInstance && address) {
         const tmpSigner = await getZeroDevSigner({
           projectId: defaultProjectId,
           owner: getRPCProviderOwner(web3AuthInstance.provider),
         });
         setUserSigner(tmpSigner);
-        console.log(tmpSigner);
+        console.log("SIGNER",tmpSigner);
         const tmpAddress = await tmpSigner.getAddress();
         console.log("Smart account address: %s", tmpAddress);
         if (tmpAddress) {
@@ -74,7 +80,7 @@ const ScaffoldEthApp = ({ Component, pageProps }: AppProps) => {
     tryZeroDevSigner();
   }, [web3AuthInstance]);
 
-  return (
+  return (mounted && (
     <WagmiConfig config={wagmiConfig}>
       <NextNProgress />
       <RainbowKitProvider
@@ -92,7 +98,7 @@ const ScaffoldEthApp = ({ Component, pageProps }: AppProps) => {
         <Toaster />
       </RainbowKitProvider>
     </WagmiConfig>
-  );
+  ));
 };
 
 export default ScaffoldEthApp;

@@ -39,6 +39,11 @@ const Home: NextPage = () => {
     functionName: "updateSchemaUID",
   });
 
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true)
+}, [])
+
   useEffect(() => {
     const getUserAttestations = async () => {
       let tmpAttestations = await getUserAttestationsForAddress(
@@ -74,8 +79,8 @@ const Home: NextPage = () => {
     console.log("User registration UID: %s", userRegistration?.uid);
   }, [address, userRegIsNull, userSmartAccount]);
 
-  return (
-    <>
+  return ( mounted &&
+    (<>
       <MetaHeader />
       <div className="flex items-center flex-col flex-grow pt-10">
         <div className="px-5">
@@ -149,7 +154,7 @@ const Home: NextPage = () => {
         {userRegistration && userRegistration.role == UserRole.Farmer && <FarmRegistrationForm />}
       </div>
     </>
-  );
+  ));
 };
 
 export default Home;
