@@ -2,7 +2,9 @@ import React from "react";
 import { InputBase } from "./scaffold-eth";
 import { AddressAutofill } from "@mapbox/search-js-react";
 
-const MAPBOX_TOKEN = "pk.eyJ1IjoidW1hcjk2IiwiYSI6ImNsbDl5ZHBxcTBocjgzcG56aXZrMzUzNWkifQ.ysIeMTq4U_kJpQSniYOmCA";
+// const REACT_APP_MAPBOX_API_KEY = process.env.NEXT_PUBLIC_MAPBOX_API_KEY || "";
+const REACT_APP_MAPBOX_API_KEY =
+  "pk.eyJ1IjoidW1hcjk2IiwiYSI6ImNsbDl5ZHBxcTBocjgzcG56aXZrMzUzNWkifQ.ysIeMTq4U_kJpQSniYOmCA";
 
 export const AddressMapBoxForm = ({
   address,
@@ -33,7 +35,7 @@ export const AddressMapBoxForm = ({
 
   return (
     <form className="flex flex-col gap-3">
-      <AddressAutofill accessToken={MAPBOX_TOKEN}>
+      <AddressAutofill accessToken={REACT_APP_MAPBOX_API_KEY}>
         <InputBase
           value={address}
           onChange={e => setAddress(e)}

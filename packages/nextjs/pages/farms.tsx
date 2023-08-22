@@ -1,10 +1,13 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import mapsData from "./sampleMapData.json";
 import { EAS, SchemaEncoder } from "@ethereum-attestation-service/eas-sdk";
+import "mapbox-gl/dist/mapbox-gl.css";
 import type { NextPage } from "next";
 import { useNetwork } from "wagmi";
 import FarmCard from "~~/components/FarmCard";
 import { FarmRegistrationForm } from "~~/components/FarmRegistrationForm";
+import MapDisplay from "~~/components/MapDisplay";
 import { MetaHeader } from "~~/components/MetaHeader";
 import { useScaffoldContractRead } from "~~/hooks/scaffold-eth";
 import { Farm, UserRole } from "~~/services/eas/customSchemaTypes";
@@ -12,45 +15,56 @@ import { getAllAttestationsForSchema } from "~~/services/eas/utils";
 import { useGlobalState } from "~~/services/store/store";
 import { contracts } from "~~/utils/scaffold-eth/contract";
 
-const samepleFarms = [
-  {
-    id: 1,
-    title: "Red Rooster's Farm",
-    description:
-      "Lizards are a widespread group of squamate reptiles, with over 6,000 species, ranging across all continents except Antarctica",
-    img: "https://live.staticflickr.com/65535/50881797506_176f3d534f_z.jpg",
-  },
-  {
-    id: 2,
-    title: "Red Rooster's Farm",
-    description:
-      "Lizards are a widespread group of squamate reptiles, with over 6,000 species, ranging across all continents except Antarctica",
-    img: "https://live.staticflickr.com/65535/50881797506_176f3d534f_z.jpg",
-  },
-  {
-    id: 3,
-    title: "Red Rooster's Farm",
-    description:
-      "Lizards are a widespread group of squamate reptiles, with over 6,000 species, ranging across all continents except Antarctica",
-    img: "https://live.staticflickr.com/65535/50881797506_176f3d534f_z.jpg",
-  },
-  {
-    id: 4,
-    title: "Red Rooster's Farm",
-    description:
-      "Lizards are a widespread group of squamate reptiles, with over 6,000 species, ranging across all continents except Antarctica",
-    img: "https://live.staticflickr.com/65535/50881797506_176f3d534f_z.jpg",
-  },
-  {
-    id: 5,
-    title: "Red Rooster's Farm",
-    description:
-      "Lizards are a widespread group of squamate reptiles, with over 6,000 species, ranging across all continents except Antarctica",
-    img: "https://live.staticflickr.com/65535/50881797506_176f3d534f_z.jpg",
-  },
-];
+const samepleFarms = {
+  features: [
+    {
+      properties: {
+        title: "Red Rooster's Farm",
+        description:
+          "Lizards are a widespread group of squamate reptiles, with over 6,000 species, ranging across all continents except Antarctica",
+        img: "https://live.staticflickr.com/65535/50881797506_176f3d534f_z.jpg",
+      },
+    },
+    {
+      properties: {
+        title: "Red Rooster's Farm",
+        description:
+          "Lizards are a widespread group of squamate reptiles, with over 6,000 species, ranging across all continents except Antarctica",
+        img: "https://live.staticflickr.com/65535/50881797506_176f3d534f_z.jpg",
+      },
+    },
+    {
+      properties: {
+        title: "Red Rooster's Farm",
+        description:
+          "Lizards are a widespread group of squamate reptiles, with over 6,000 species, ranging across all continents except Antarctica",
+        img: "https://live.staticflickr.com/65535/50881797506_176f3d534f_z.jpg",
+      },
+    },
+    {
+      properties: {
+        title: "Red Rooster's Farm",
+        description:
+          "Lizards are a widespread group of squamate reptiles, with over 6,000 species, ranging across all continents except Antarctica",
+        img: "https://live.staticflickr.com/65535/50881797506_176f3d534f_z.jpg",
+      },
+    },
+    {
+      properties: {
+        title: "Red Rooster's Farm",
+        description:
+          "Lizards are a widespread group of squamate reptiles, with over 6,000 species, ranging across all continents except Antarctica",
+        img: "https://live.staticflickr.com/65535/50881797506_176f3d534f_z.jpg",
+      },
+    },
+  ],
+};
 
 const Farms: NextPage = () => {
+  const hasMapData = "features" in mapsData;
+  const geoJson = hasMapData ? mapsData : samepleFarms;
+  const sampleKeys = [...Array(geoJson?.features?.length).keys()].map(i => i + 1);
+
   const userRegistration = useGlobalState(state => state.userRegistration);
   const smartAccount = useGlobalState(state => state.userSmartAccount);
   const [userFarmIsRegistered, setUserFarmIsRegistered] = useState(false);
@@ -111,24 +125,16 @@ const Farms: NextPage = () => {
   return (
     <>
       <MetaHeader />
+      <MapDisplay geoJson={geoJson} />
       <div className="flex items-center flex-col flex-grow pt-10">
         <div className="px-5">
           <h1 className="text-center mb-8">
             <span className="block text-4xl font-bold">FarmShare</span>
           </h1>
-          <p className="text-center text-lg">
-            Get started by editing{" "}
-            <code className="italic bg-base-300 text-base font-bold">packages/nextjs/pages/index.tsx</code>
-          </p>
-          <p className="text-center text-lg">
-            Edit your smart contract <code className="italic bg-base-300 text-base font-bold">YourContract.sol</code> in{" "}
-            <code className="italic bg-base-300 text-base font-bold">packages/hardhat/contracts</code>
-          </p>
         </div>
-
         <div className="grid grid-cols-3 gap-4">
-          {farms.map(farm => (
-            <div key={farm.uid}>
+          {geoJson?.features.map((farm, idx) => (
+            <div key={sampleKeys[idx]}>
               <FarmCard farm={farm} />
             </div>
           ))}
