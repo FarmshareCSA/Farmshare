@@ -34,8 +34,7 @@ struct FarmRecord {
     string state;
     string country;
     string postalCode;
-    string latitude;
-    string longitude;
+    string latAndLong;
     string websiteUrl;
     string imageUrl;
 }
