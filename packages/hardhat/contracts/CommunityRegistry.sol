@@ -13,7 +13,7 @@ import "./interfaces/IUserRegistry.sol";
 import "./interfaces/IFarmRegistry.sol";
 
 contract CommunityRegistry is ICommunityRegistry, Ownable, SchemaResolver {
-	string public constant registrationSchema = "string name,string description,string city,string state,string country,string postalCode";
+	string public constant registrationSchema = "string name,string description,string city,string state,string country,string postalCode,string websiteURL,string imageURL";
     bytes32 public immutable registrationSchemaUID;
 	string public constant treasurySchema = "address treasury,address[] initialOwners";
 	bytes32 public immutable treasurySchemaUID;
