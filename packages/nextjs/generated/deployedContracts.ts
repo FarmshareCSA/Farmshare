@@ -2701,7 +2701,7 @@ const contracts = {
       name: "baseGoerli",
       contracts: {
         CommunityRegistry: {
-          address: "0xe9db1ACAbAdDe0eF7DAd4eBdB8f394AB4CD21CC3",
+          address: "0xe9890F425943DF16A475D69a6EB2EE50C1f67CD5",
           abi: [
             {
               inputs: [
@@ -3663,7 +3663,7 @@ const contracts = {
           ],
         },
         FarmRegistry: {
-          address: "0xE4Cd71d1F323c0742a64921e2535252bc9E559e7",
+          address: "0xFEc54434F9902d2AA08FE25bdA2c47d1C2eD75a2",
           abi: [
             {
               inputs: [
@@ -4004,6 +4004,11 @@ const contracts = {
                     },
                     {
                       internalType: "string",
+                      name: "latAndLong",
+                      type: "string",
+                    },
+                    {
+                      internalType: "string",
                       name: "websiteUrl",
                       type: "string",
                     },
@@ -4071,6 +4076,11 @@ const contracts = {
                     {
                       internalType: "string",
                       name: "postalCode",
+                      type: "string",
+                    },
+                    {
+                      internalType: "string",
+                      name: "latAndLong",
                       type: "string",
                     },
                     {
@@ -4146,6 +4156,11 @@ const contracts = {
                     },
                     {
                       internalType: "string",
+                      name: "latAndLong",
+                      type: "string",
+                    },
+                    {
+                      internalType: "string",
                       name: "websiteUrl",
                       type: "string",
                     },
@@ -4213,6 +4228,11 @@ const contracts = {
                     {
                       internalType: "string",
                       name: "postalCode",
+                      type: "string",
+                    },
+                    {
+                      internalType: "string",
+                      name: "latAndLong",
                       type: "string",
                     },
                     {
@@ -4690,7 +4710,7 @@ const contracts = {
           ],
         },
         TaskRegistry: {
-          address: "0x4CB67809e1DA56de993eBDcd5119dbC0E3bbC12b",
+          address: "0x23bfD11f3db9B4EabeFa57b213550A26dcF1a9d2",
           abi: [
             {
               inputs: [
@@ -4930,6 +4950,12 @@ const contracts = {
                   internalType: "uint256",
                   name: "tokenId",
                   type: "uint256",
+                },
+                {
+                  indexed: false,
+                  internalType: "string",
+                  name: "tokenName",
+                  type: "string",
                 },
               ],
               name: "TaskFunded",
@@ -5966,8 +5992,295 @@ const contracts = {
             },
           ],
         },
+        TestUSDC: {
+          address: "0x4e2AA48F22718968D911DD65eDC5a9C59437dF3D",
+          abi: [
+            {
+              inputs: [],
+              stateMutability: "nonpayable",
+              type: "constructor",
+            },
+            {
+              anonymous: false,
+              inputs: [
+                {
+                  indexed: true,
+                  internalType: "address",
+                  name: "owner",
+                  type: "address",
+                },
+                {
+                  indexed: true,
+                  internalType: "address",
+                  name: "spender",
+                  type: "address",
+                },
+                {
+                  indexed: false,
+                  internalType: "uint256",
+                  name: "value",
+                  type: "uint256",
+                },
+              ],
+              name: "Approval",
+              type: "event",
+            },
+            {
+              anonymous: false,
+              inputs: [
+                {
+                  indexed: true,
+                  internalType: "address",
+                  name: "from",
+                  type: "address",
+                },
+                {
+                  indexed: true,
+                  internalType: "address",
+                  name: "to",
+                  type: "address",
+                },
+                {
+                  indexed: false,
+                  internalType: "uint256",
+                  name: "value",
+                  type: "uint256",
+                },
+              ],
+              name: "Transfer",
+              type: "event",
+            },
+            {
+              inputs: [
+                {
+                  internalType: "address",
+                  name: "owner",
+                  type: "address",
+                },
+                {
+                  internalType: "address",
+                  name: "spender",
+                  type: "address",
+                },
+              ],
+              name: "allowance",
+              outputs: [
+                {
+                  internalType: "uint256",
+                  name: "",
+                  type: "uint256",
+                },
+              ],
+              stateMutability: "view",
+              type: "function",
+            },
+            {
+              inputs: [
+                {
+                  internalType: "address",
+                  name: "spender",
+                  type: "address",
+                },
+                {
+                  internalType: "uint256",
+                  name: "amount",
+                  type: "uint256",
+                },
+              ],
+              name: "approve",
+              outputs: [
+                {
+                  internalType: "bool",
+                  name: "",
+                  type: "bool",
+                },
+              ],
+              stateMutability: "nonpayable",
+              type: "function",
+            },
+            {
+              inputs: [
+                {
+                  internalType: "address",
+                  name: "account",
+                  type: "address",
+                },
+              ],
+              name: "balanceOf",
+              outputs: [
+                {
+                  internalType: "uint256",
+                  name: "",
+                  type: "uint256",
+                },
+              ],
+              stateMutability: "view",
+              type: "function",
+            },
+            {
+              inputs: [],
+              name: "decimals",
+              outputs: [
+                {
+                  internalType: "uint8",
+                  name: "",
+                  type: "uint8",
+                },
+              ],
+              stateMutability: "view",
+              type: "function",
+            },
+            {
+              inputs: [
+                {
+                  internalType: "address",
+                  name: "spender",
+                  type: "address",
+                },
+                {
+                  internalType: "uint256",
+                  name: "subtractedValue",
+                  type: "uint256",
+                },
+              ],
+              name: "decreaseAllowance",
+              outputs: [
+                {
+                  internalType: "bool",
+                  name: "",
+                  type: "bool",
+                },
+              ],
+              stateMutability: "nonpayable",
+              type: "function",
+            },
+            {
+              inputs: [],
+              name: "drip",
+              outputs: [],
+              stateMutability: "nonpayable",
+              type: "function",
+            },
+            {
+              inputs: [
+                {
+                  internalType: "address",
+                  name: "spender",
+                  type: "address",
+                },
+                {
+                  internalType: "uint256",
+                  name: "addedValue",
+                  type: "uint256",
+                },
+              ],
+              name: "increaseAllowance",
+              outputs: [
+                {
+                  internalType: "bool",
+                  name: "",
+                  type: "bool",
+                },
+              ],
+              stateMutability: "nonpayable",
+              type: "function",
+            },
+            {
+              inputs: [],
+              name: "name",
+              outputs: [
+                {
+                  internalType: "string",
+                  name: "",
+                  type: "string",
+                },
+              ],
+              stateMutability: "view",
+              type: "function",
+            },
+            {
+              inputs: [],
+              name: "symbol",
+              outputs: [
+                {
+                  internalType: "string",
+                  name: "",
+                  type: "string",
+                },
+              ],
+              stateMutability: "view",
+              type: "function",
+            },
+            {
+              inputs: [],
+              name: "totalSupply",
+              outputs: [
+                {
+                  internalType: "uint256",
+                  name: "",
+                  type: "uint256",
+                },
+              ],
+              stateMutability: "view",
+              type: "function",
+            },
+            {
+              inputs: [
+                {
+                  internalType: "address",
+                  name: "to",
+                  type: "address",
+                },
+                {
+                  internalType: "uint256",
+                  name: "amount",
+                  type: "uint256",
+                },
+              ],
+              name: "transfer",
+              outputs: [
+                {
+                  internalType: "bool",
+                  name: "",
+                  type: "bool",
+                },
+              ],
+              stateMutability: "nonpayable",
+              type: "function",
+            },
+            {
+              inputs: [
+                {
+                  internalType: "address",
+                  name: "from",
+                  type: "address",
+                },
+                {
+                  internalType: "address",
+                  name: "to",
+                  type: "address",
+                },
+                {
+                  internalType: "uint256",
+                  name: "amount",
+                  type: "uint256",
+                },
+              ],
+              name: "transferFrom",
+              outputs: [
+                {
+                  internalType: "bool",
+                  name: "",
+                  type: "bool",
+                },
+              ],
+              stateMutability: "nonpayable",
+              type: "function",
+            },
+          ],
+        },
         UserRegistry: {
-          address: "0x8e5a5171d5e6795ffdD8936dE5c8Cad7D07B9CB9",
+          address: "0x81c16d2eec8F7Abaad15e8404991ED8115BCaAD1",
           abi: [
             {
               inputs: [
@@ -6939,6 +7252,288 @@ const contracts = {
             {
               stateMutability: "payable",
               type: "receive",
+            },
+          ],
+        },
+        WETH9: {
+          address: "0xf15bfF7dd641cbdb3FEf76feC5bF95967C8a2893",
+          abi: [
+            {
+              constant: true,
+              inputs: [],
+              name: "name",
+              outputs: [
+                {
+                  name: "",
+                  type: "string",
+                },
+              ],
+              payable: false,
+              stateMutability: "view",
+              type: "function",
+            },
+            {
+              constant: false,
+              inputs: [
+                {
+                  name: "guy",
+                  type: "address",
+                },
+                {
+                  name: "wad",
+                  type: "uint256",
+                },
+              ],
+              name: "approve",
+              outputs: [
+                {
+                  name: "",
+                  type: "bool",
+                },
+              ],
+              payable: false,
+              stateMutability: "nonpayable",
+              type: "function",
+            },
+            {
+              constant: true,
+              inputs: [],
+              name: "totalSupply",
+              outputs: [
+                {
+                  name: "",
+                  type: "uint256",
+                },
+              ],
+              payable: false,
+              stateMutability: "view",
+              type: "function",
+            },
+            {
+              constant: false,
+              inputs: [
+                {
+                  name: "src",
+                  type: "address",
+                },
+                {
+                  name: "dst",
+                  type: "address",
+                },
+                {
+                  name: "wad",
+                  type: "uint256",
+                },
+              ],
+              name: "transferFrom",
+              outputs: [
+                {
+                  name: "",
+                  type: "bool",
+                },
+              ],
+              payable: false,
+              stateMutability: "nonpayable",
+              type: "function",
+            },
+            {
+              constant: false,
+              inputs: [
+                {
+                  name: "wad",
+                  type: "uint256",
+                },
+              ],
+              name: "withdraw",
+              outputs: [],
+              payable: false,
+              stateMutability: "nonpayable",
+              type: "function",
+            },
+            {
+              constant: true,
+              inputs: [],
+              name: "decimals",
+              outputs: [
+                {
+                  name: "",
+                  type: "uint8",
+                },
+              ],
+              payable: false,
+              stateMutability: "view",
+              type: "function",
+            },
+            {
+              constant: true,
+              inputs: [
+                {
+                  name: "",
+                  type: "address",
+                },
+              ],
+              name: "balanceOf",
+              outputs: [
+                {
+                  name: "",
+                  type: "uint256",
+                },
+              ],
+              payable: false,
+              stateMutability: "view",
+              type: "function",
+            },
+            {
+              constant: true,
+              inputs: [],
+              name: "symbol",
+              outputs: [
+                {
+                  name: "",
+                  type: "string",
+                },
+              ],
+              payable: false,
+              stateMutability: "view",
+              type: "function",
+            },
+            {
+              constant: false,
+              inputs: [
+                {
+                  name: "dst",
+                  type: "address",
+                },
+                {
+                  name: "wad",
+                  type: "uint256",
+                },
+              ],
+              name: "transfer",
+              outputs: [
+                {
+                  name: "",
+                  type: "bool",
+                },
+              ],
+              payable: false,
+              stateMutability: "nonpayable",
+              type: "function",
+            },
+            {
+              constant: false,
+              inputs: [],
+              name: "deposit",
+              outputs: [],
+              payable: true,
+              stateMutability: "payable",
+              type: "function",
+            },
+            {
+              constant: true,
+              inputs: [
+                {
+                  name: "",
+                  type: "address",
+                },
+                {
+                  name: "",
+                  type: "address",
+                },
+              ],
+              name: "allowance",
+              outputs: [
+                {
+                  name: "",
+                  type: "uint256",
+                },
+              ],
+              payable: false,
+              stateMutability: "view",
+              type: "function",
+            },
+            {
+              payable: true,
+              stateMutability: "payable",
+              type: "fallback",
+            },
+            {
+              anonymous: false,
+              inputs: [
+                {
+                  indexed: true,
+                  name: "src",
+                  type: "address",
+                },
+                {
+                  indexed: true,
+                  name: "guy",
+                  type: "address",
+                },
+                {
+                  indexed: false,
+                  name: "wad",
+                  type: "uint256",
+                },
+              ],
+              name: "Approval",
+              type: "event",
+            },
+            {
+              anonymous: false,
+              inputs: [
+                {
+                  indexed: true,
+                  name: "src",
+                  type: "address",
+                },
+                {
+                  indexed: true,
+                  name: "dst",
+                  type: "address",
+                },
+                {
+                  indexed: false,
+                  name: "wad",
+                  type: "uint256",
+                },
+              ],
+              name: "Transfer",
+              type: "event",
+            },
+            {
+              anonymous: false,
+              inputs: [
+                {
+                  indexed: true,
+                  name: "dst",
+                  type: "address",
+                },
+                {
+                  indexed: false,
+                  name: "wad",
+                  type: "uint256",
+                },
+              ],
+              name: "Deposit",
+              type: "event",
+            },
+            {
+              anonymous: false,
+              inputs: [
+                {
+                  indexed: true,
+                  name: "src",
+                  type: "address",
+                },
+                {
+                  indexed: false,
+                  name: "wad",
+                  type: "uint256",
+                },
+              ],
+              name: "Withdrawal",
+              type: "event",
             },
           ],
         },
