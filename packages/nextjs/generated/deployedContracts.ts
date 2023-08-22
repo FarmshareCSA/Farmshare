@@ -2701,7 +2701,7 @@ const contracts = {
       name: "baseGoerli",
       contracts: {
         CommunityRegistry: {
-          address: "0xe9890F425943DF16A475D69a6EB2EE50C1f67CD5",
+          address: "0xE60726df0FA0dc0769819E74e406959dC43ffB59",
           abi: [
             {
               inputs: [
@@ -3663,7 +3663,7 @@ const contracts = {
           ],
         },
         FarmRegistry: {
-          address: "0xFEc54434F9902d2AA08FE25bdA2c47d1C2eD75a2",
+          address: "0xe50A93E5F37EF3A12C3eba1c59885B770deb6389",
           abi: [
             {
               inputs: [
@@ -4710,7 +4710,7 @@ const contracts = {
           ],
         },
         TaskRegistry: {
-          address: "0x23bfD11f3db9B4EabeFa57b213550A26dcF1a9d2",
+          address: "0xeD8c322E6425642eB5E7249DF31906Fb0DB93Cf5",
           abi: [
             {
               inputs: [
