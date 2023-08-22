@@ -9,6 +9,7 @@ import Typography from "@mui/material/Typography";
 import invariant from "tiny-invariant";
 import { useNetwork } from "wagmi";
 import { useScaffoldContractRead } from "~~/hooks/scaffold-eth";
+import { getCommunityMembershipAttestation, getUserAttestationsForAddress } from "~~/services/eas/utils";
 import { useGlobalState } from "~~/services/store/store";
 import { notification } from "~~/utils/scaffold-eth";
 import { contracts } from "~~/utils/scaffold-eth/contract";
@@ -18,6 +19,7 @@ export default function CommunityCard({ community }: any) {
   const userRegistration = useGlobalState(state => state.userRegistration);
   const signer = useGlobalState(state => state.userSigner);
   const { chain } = useNetwork();
+  const [joined, setJoined] = React.useState(false);
   const [submitting, setSubmitting] = React.useState(false);
 
   const { data: schemaUID } = useScaffoldContractRead({
@@ -39,6 +41,18 @@ export default function CommunityCard({ community }: any) {
 
   // Initialize SchemaEncoder with the schema string
   const schemaEncoder = new SchemaEncoder("bytes32 userUID,uint8 memberRole");
+
+  React.useEffect(() => {
+    const checkCommunityMembership = async () => {
+      if (userRegistration && signer && schemaUID) {
+        const address = await signer.getAddress();
+        const tmpAttestations = await getCommunityMembershipAttestation(address, uid, schemaUID);
+        console.log("Found %s membership attestations", tmpAttestations.length);
+        if (tmpAttestations.length > 0) setJoined(true);
+      }
+    };
+    checkCommunityMembership();
+  }, [userRegistration, signer, schemaUID, submitting]);
 
   const handleSubmit = async () => {
     setSubmitting(true);
@@ -62,6 +76,7 @@ export default function CommunityCard({ community }: any) {
           expirationTime: BigInt(0),
           revocable: false,
           data: encodedData,
+          refUID: uid,
         },
       });
 
@@ -92,8 +107,8 @@ export default function CommunityCard({ community }: any) {
         </CardContent>
       </CardActionArea>
       <CardActions>
-        <Button size="small" color="primary" onClick={handleSubmit}>
-          {submitting ? <Spinner /> : "Join Community"}
+        <Button size="small" color="primary" onClick={handleSubmit} disabled={joined}>
+          {submitting ? <Spinner /> : joined ? "Joined" : "Join Community"}
         </Button>
       </CardActions>
     </Card>
