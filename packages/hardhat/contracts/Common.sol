@@ -34,6 +34,8 @@ struct FarmRecord {
     string state;
     string country;
     string postalCode;
+    string latitude;
+    string longitude;
     string websiteUrl;
     string imageUrl;
 }
@@ -80,6 +82,7 @@ struct TaskReward {
     bool isErc20;
     uint amount;
     uint tokenId;
+    string tokenName;
 }
 
 struct TaskComplete {
