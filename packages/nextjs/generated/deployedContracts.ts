@@ -2701,7 +2701,7 @@ const contracts = {
       name: "baseGoerli",
       contracts: {
         CommunityRegistry: {
-          address: "0x145fbA19a842aA5AFAf60DBAd9eC72A7ffBa3C5e",
+          address: "0xe9db1ACAbAdDe0eF7DAd4eBdB8f394AB4CD21CC3",
           abi: [
             {
               inputs: [
@@ -2788,7 +2788,7 @@ const contracts = {
                 {
                   indexed: false,
                   internalType: "string",
-                  name: "country",
+                  name: "city",
                   type: "string",
                 },
                 {
@@ -2800,7 +2800,19 @@ const contracts = {
                 {
                   indexed: false,
                   internalType: "string",
+                  name: "country",
+                  type: "string",
+                },
+                {
+                  indexed: false,
+                  internalType: "string",
                   name: "postalCode",
+                  type: "string",
+                },
+                {
+                  indexed: false,
+                  internalType: "string",
+                  name: "website",
                   type: "string",
                 },
               ],
@@ -3032,7 +3044,7 @@ const contracts = {
                     },
                     {
                       internalType: "string",
-                      name: "country",
+                      name: "city",
                       type: "string",
                     },
                     {
@@ -3042,7 +3054,22 @@ const contracts = {
                     },
                     {
                       internalType: "string",
+                      name: "country",
+                      type: "string",
+                    },
+                    {
+                      internalType: "string",
                       name: "postalCode",
+                      type: "string",
+                    },
+                    {
+                      internalType: "string",
+                      name: "websiteUrl",
+                      type: "string",
+                    },
+                    {
+                      internalType: "string",
+                      name: "imageUrl",
                       type: "string",
                     },
                     {
@@ -3088,7 +3115,7 @@ const contracts = {
                     },
                     {
                       internalType: "string",
-                      name: "country",
+                      name: "city",
                       type: "string",
                     },
                     {
@@ -3098,7 +3125,22 @@ const contracts = {
                     },
                     {
                       internalType: "string",
+                      name: "country",
+                      type: "string",
+                    },
+                    {
+                      internalType: "string",
                       name: "postalCode",
+                      type: "string",
+                    },
+                    {
+                      internalType: "string",
+                      name: "websiteUrl",
+                      type: "string",
+                    },
+                    {
+                      internalType: "string",
+                      name: "imageUrl",
                       type: "string",
                     },
                     {
@@ -3220,6 +3262,32 @@ const contracts = {
                 },
               ],
               stateMutability: "pure",
+              type: "function",
+            },
+            {
+              inputs: [],
+              name: "memberSchema",
+              outputs: [
+                {
+                  internalType: "string",
+                  name: "",
+                  type: "string",
+                },
+              ],
+              stateMutability: "view",
+              type: "function",
+            },
+            {
+              inputs: [],
+              name: "memberSchemaUID",
+              outputs: [
+                {
+                  internalType: "bytes32",
+                  name: "",
+                  type: "bytes32",
+                },
+              ],
+              stateMutability: "view",
               type: "function",
             },
             {
@@ -3595,7 +3663,7 @@ const contracts = {
           ],
         },
         FarmRegistry: {
-          address: "0x1A64C0200089B1B46F86970392c479412B60a6c5",
+          address: "0xE4Cd71d1F323c0742a64921e2535252bc9E559e7",
           abi: [
             {
               inputs: [
@@ -3644,6 +3712,44 @@ const contracts = {
                 {
                   indexed: true,
                   internalType: "bytes32",
+                  name: "farmUID",
+                  type: "bytes32",
+                },
+                {
+                  indexed: true,
+                  internalType: "bytes32",
+                  name: "managerUID",
+                  type: "bytes32",
+                },
+              ],
+              name: "FarmManagerAdded",
+              type: "event",
+            },
+            {
+              anonymous: false,
+              inputs: [
+                {
+                  indexed: true,
+                  internalType: "bytes32",
+                  name: "farmUID",
+                  type: "bytes32",
+                },
+                {
+                  indexed: true,
+                  internalType: "bytes32",
+                  name: "managerUID",
+                  type: "bytes32",
+                },
+              ],
+              name: "FarmManagerRemoved",
+              type: "event",
+            },
+            {
+              anonymous: false,
+              inputs: [
+                {
+                  indexed: true,
+                  internalType: "bytes32",
                   name: "uid",
                   type: "bytes32",
                 },
@@ -3668,13 +3774,25 @@ const contracts = {
                 {
                   indexed: false,
                   internalType: "string",
-                  name: "country",
+                  name: "streetAddress",
+                  type: "string",
+                },
+                {
+                  indexed: false,
+                  internalType: "string",
+                  name: "city",
                   type: "string",
                 },
                 {
                   indexed: false,
                   internalType: "string",
                   name: "state",
+                  type: "string",
+                },
+                {
+                  indexed: false,
+                  internalType: "string",
+                  name: "country",
                   type: "string",
                 },
                 {
@@ -3811,6 +3929,30 @@ const contracts = {
             {
               inputs: [
                 {
+                  internalType: "bytes32",
+                  name: "farmUID",
+                  type: "bytes32",
+                },
+                {
+                  internalType: "address",
+                  name: "account",
+                  type: "address",
+                },
+              ],
+              name: "authorizedFarmerOrManager",
+              outputs: [
+                {
+                  internalType: "bool",
+                  name: "",
+                  type: "bool",
+                },
+              ],
+              stateMutability: "view",
+              type: "function",
+            },
+            {
+              inputs: [
+                {
                   internalType: "string",
                   name: "farmName",
                   type: "string",
@@ -3837,12 +3979,22 @@ const contracts = {
                     },
                     {
                       internalType: "string",
-                      name: "country",
+                      name: "streetAddress",
+                      type: "string",
+                    },
+                    {
+                      internalType: "string",
+                      name: "city",
                       type: "string",
                     },
                     {
                       internalType: "string",
                       name: "state",
+                      type: "string",
+                    },
+                    {
+                      internalType: "string",
+                      name: "country",
                       type: "string",
                     },
                     {
@@ -3898,12 +4050,22 @@ const contracts = {
                     },
                     {
                       internalType: "string",
-                      name: "country",
+                      name: "streetAddress",
+                      type: "string",
+                    },
+                    {
+                      internalType: "string",
+                      name: "city",
                       type: "string",
                     },
                     {
                       internalType: "string",
                       name: "state",
+                      type: "string",
+                    },
+                    {
+                      internalType: "string",
+                      name: "country",
                       type: "string",
                     },
                     {
@@ -3959,12 +4121,22 @@ const contracts = {
                     },
                     {
                       internalType: "string",
-                      name: "country",
+                      name: "streetAddress",
+                      type: "string",
+                    },
+                    {
+                      internalType: "string",
+                      name: "city",
                       type: "string",
                     },
                     {
                       internalType: "string",
                       name: "state",
+                      type: "string",
+                    },
+                    {
+                      internalType: "string",
+                      name: "country",
                       type: "string",
                     },
                     {
@@ -4020,12 +4192,22 @@ const contracts = {
                     },
                     {
                       internalType: "string",
-                      name: "country",
+                      name: "streetAddress",
+                      type: "string",
+                    },
+                    {
+                      internalType: "string",
+                      name: "city",
                       type: "string",
                     },
                     {
                       internalType: "string",
                       name: "state",
+                      type: "string",
+                    },
+                    {
+                      internalType: "string",
+                      name: "country",
                       type: "string",
                     },
                     {
@@ -4055,12 +4237,50 @@ const contracts = {
             {
               inputs: [
                 {
+                  internalType: "address",
+                  name: "",
+                  type: "address",
+                },
+              ],
+              name: "farmUIDByFarmerAddress",
+              outputs: [
+                {
                   internalType: "bytes32",
                   name: "",
                   type: "bytes32",
                 },
               ],
-              name: "farmUIDByFarmer",
+              stateMutability: "view",
+              type: "function",
+            },
+            {
+              inputs: [
+                {
+                  internalType: "bytes32",
+                  name: "",
+                  type: "bytes32",
+                },
+              ],
+              name: "farmUIDByFarmerUID",
+              outputs: [
+                {
+                  internalType: "bytes32",
+                  name: "",
+                  type: "bytes32",
+                },
+              ],
+              stateMutability: "view",
+              type: "function",
+            },
+            {
+              inputs: [
+                {
+                  internalType: "address",
+                  name: "",
+                  type: "address",
+                },
+              ],
+              name: "farmUIDByManagerAddress",
               outputs: [
                 {
                   internalType: "bytes32",
@@ -4101,6 +4321,32 @@ const contracts = {
                 },
               ],
               stateMutability: "pure",
+              type: "function",
+            },
+            {
+              inputs: [],
+              name: "managerSchema",
+              outputs: [
+                {
+                  internalType: "string",
+                  name: "",
+                  type: "string",
+                },
+              ],
+              stateMutability: "view",
+              type: "function",
+            },
+            {
+              inputs: [],
+              name: "managerSchemaUID",
+              outputs: [
+                {
+                  internalType: "bytes32",
+                  name: "",
+                  type: "bytes32",
+                },
+              ],
+              stateMutability: "view",
               type: "function",
             },
             {
@@ -4376,6 +4622,1309 @@ const contracts = {
               inputs: [
                 {
                   internalType: "address",
+                  name: "erc1155TokenAddress",
+                  type: "address",
+                },
+              ],
+              name: "setShareTokens",
+              outputs: [],
+              stateMutability: "nonpayable",
+              type: "function",
+            },
+            {
+              inputs: [],
+              name: "shareTokens",
+              outputs: [
+                {
+                  internalType: "contract FarmShareTokens",
+                  name: "",
+                  type: "address",
+                },
+              ],
+              stateMutability: "view",
+              type: "function",
+            },
+            {
+              inputs: [
+                {
+                  internalType: "address",
+                  name: "newOwner",
+                  type: "address",
+                },
+              ],
+              name: "transferOwnership",
+              outputs: [],
+              stateMutability: "nonpayable",
+              type: "function",
+            },
+            {
+              inputs: [],
+              name: "userRegistry",
+              outputs: [
+                {
+                  internalType: "contract IUserRegistry",
+                  name: "",
+                  type: "address",
+                },
+              ],
+              stateMutability: "view",
+              type: "function",
+            },
+            {
+              inputs: [],
+              name: "version",
+              outputs: [
+                {
+                  internalType: "string",
+                  name: "",
+                  type: "string",
+                },
+              ],
+              stateMutability: "view",
+              type: "function",
+            },
+            {
+              stateMutability: "payable",
+              type: "receive",
+            },
+          ],
+        },
+        TaskRegistry: {
+          address: "0x4CB67809e1DA56de993eBDcd5119dbC0E3bbC12b",
+          abi: [
+            {
+              inputs: [
+                {
+                  internalType: "contract IEAS",
+                  name: "eas",
+                  type: "address",
+                },
+                {
+                  internalType: "contract ISchemaRegistry",
+                  name: "_schemaRegistry",
+                  type: "address",
+                },
+                {
+                  internalType: "contract IUserRegistry",
+                  name: "_userRegistry",
+                  type: "address",
+                },
+                {
+                  internalType: "contract IFarmRegistry",
+                  name: "_farmRegistry",
+                  type: "address",
+                },
+                {
+                  internalType: "contract ICommunityRegistry",
+                  name: "_communityRegistry",
+                  type: "address",
+                },
+              ],
+              stateMutability: "nonpayable",
+              type: "constructor",
+            },
+            {
+              inputs: [],
+              name: "AccessDenied",
+              type: "error",
+            },
+            {
+              inputs: [],
+              name: "InsufficientValue",
+              type: "error",
+            },
+            {
+              inputs: [],
+              name: "InvalidCommunityId",
+              type: "error",
+            },
+            {
+              inputs: [],
+              name: "InvalidEAS",
+              type: "error",
+            },
+            {
+              inputs: [],
+              name: "InvalidTaskId",
+              type: "error",
+            },
+            {
+              inputs: [],
+              name: "InvalidUserAddress",
+              type: "error",
+            },
+            {
+              inputs: [],
+              name: "NotPayable",
+              type: "error",
+            },
+            {
+              inputs: [],
+              name: "TaskRewardAlreadyPaid",
+              type: "error",
+            },
+            {
+              inputs: [],
+              name: "UnsupportedTokenType",
+              type: "error",
+            },
+            {
+              anonymous: false,
+              inputs: [
+                {
+                  indexed: true,
+                  internalType: "address",
+                  name: "previousOwner",
+                  type: "address",
+                },
+                {
+                  indexed: true,
+                  internalType: "address",
+                  name: "newOwner",
+                  type: "address",
+                },
+              ],
+              name: "OwnershipTransferred",
+              type: "event",
+            },
+            {
+              anonymous: false,
+              inputs: [
+                {
+                  indexed: true,
+                  internalType: "bytes32",
+                  name: "taskUID",
+                  type: "bytes32",
+                },
+                {
+                  indexed: true,
+                  internalType: "bytes32",
+                  name: "fundingUID",
+                  type: "bytes32",
+                },
+                {
+                  indexed: false,
+                  internalType: "address",
+                  name: "tokenAddress",
+                  type: "address",
+                },
+                {
+                  indexed: false,
+                  internalType: "address",
+                  name: "recipient",
+                  type: "address",
+                },
+                {
+                  indexed: false,
+                  internalType: "uint256",
+                  name: "amount",
+                  type: "uint256",
+                },
+              ],
+              name: "RewardPaid",
+              type: "event",
+            },
+            {
+              anonymous: false,
+              inputs: [
+                {
+                  indexed: true,
+                  internalType: "bytes32",
+                  name: "taskUID",
+                  type: "bytes32",
+                },
+                {
+                  indexed: true,
+                  internalType: "bytes32",
+                  name: "applicationUID",
+                  type: "bytes32",
+                },
+                {
+                  indexed: true,
+                  internalType: "bytes32",
+                  name: "userUID",
+                  type: "bytes32",
+                },
+                {
+                  indexed: false,
+                  internalType: "bytes32[]",
+                  name: "skillUIDs",
+                  type: "bytes32[]",
+                },
+              ],
+              name: "TaskApplicationSubmitted",
+              type: "event",
+            },
+            {
+              anonymous: false,
+              inputs: [
+                {
+                  indexed: true,
+                  internalType: "bytes32",
+                  name: "taskUID",
+                  type: "bytes32",
+                },
+                {
+                  indexed: true,
+                  internalType: "bytes32",
+                  name: "completedUID",
+                  type: "bytes32",
+                },
+                {
+                  indexed: true,
+                  internalType: "bytes32",
+                  name: "userUID",
+                  type: "bytes32",
+                },
+                {
+                  indexed: false,
+                  internalType: "uint256",
+                  name: "completedTimestamp",
+                  type: "uint256",
+                },
+              ],
+              name: "TaskCompleted",
+              type: "event",
+            },
+            {
+              anonymous: false,
+              inputs: [
+                {
+                  indexed: true,
+                  internalType: "bytes32",
+                  name: "taskUID",
+                  type: "bytes32",
+                },
+                {
+                  indexed: true,
+                  internalType: "bytes32",
+                  name: "fundingUID",
+                  type: "bytes32",
+                },
+                {
+                  indexed: false,
+                  internalType: "address",
+                  name: "tokenAddress",
+                  type: "address",
+                },
+                {
+                  indexed: false,
+                  internalType: "bool",
+                  name: "isErc1155",
+                  type: "bool",
+                },
+                {
+                  indexed: false,
+                  internalType: "bool",
+                  name: "isErc20",
+                  type: "bool",
+                },
+                {
+                  indexed: false,
+                  internalType: "uint256",
+                  name: "amount",
+                  type: "uint256",
+                },
+                {
+                  indexed: false,
+                  internalType: "uint256",
+                  name: "tokenId",
+                  type: "uint256",
+                },
+              ],
+              name: "TaskFunded",
+              type: "event",
+            },
+            {
+              anonymous: false,
+              inputs: [
+                {
+                  indexed: true,
+                  internalType: "bytes32",
+                  name: "taskUID",
+                  type: "bytes32",
+                },
+                {
+                  indexed: true,
+                  internalType: "bytes32",
+                  name: "communityUID",
+                  type: "bytes32",
+                },
+                {
+                  indexed: false,
+                  internalType: "string",
+                  name: "name",
+                  type: "string",
+                },
+                {
+                  indexed: false,
+                  internalType: "string",
+                  name: "description",
+                  type: "string",
+                },
+                {
+                  indexed: false,
+                  internalType: "address",
+                  name: "creator",
+                  type: "address",
+                },
+                {
+                  indexed: false,
+                  internalType: "uint256",
+                  name: "startTime",
+                  type: "uint256",
+                },
+                {
+                  indexed: false,
+                  internalType: "uint256",
+                  name: "endTime",
+                  type: "uint256",
+                },
+                {
+                  indexed: false,
+                  internalType: "bool",
+                  name: "recurring",
+                  type: "bool",
+                },
+                {
+                  indexed: false,
+                  internalType: "uint256",
+                  name: "frequency",
+                  type: "uint256",
+                },
+              ],
+              name: "TaskRegistered",
+              type: "event",
+            },
+            {
+              anonymous: false,
+              inputs: [
+                {
+                  indexed: true,
+                  internalType: "bytes32",
+                  name: "taskUID",
+                  type: "bytes32",
+                },
+                {
+                  indexed: true,
+                  internalType: "bytes32",
+                  name: "startedUID",
+                  type: "bytes32",
+                },
+                {
+                  indexed: true,
+                  internalType: "bytes32",
+                  name: "userUID",
+                  type: "bytes32",
+                },
+                {
+                  indexed: false,
+                  internalType: "uint256",
+                  name: "startTimestamp",
+                  type: "uint256",
+                },
+              ],
+              name: "TaskStarted",
+              type: "event",
+            },
+            {
+              inputs: [],
+              name: "ERC1155_BATCH_RECEIVED",
+              outputs: [
+                {
+                  internalType: "bytes4",
+                  name: "",
+                  type: "bytes4",
+                },
+              ],
+              stateMutability: "view",
+              type: "function",
+            },
+            {
+              inputs: [],
+              name: "ERC1155_RECEIVED",
+              outputs: [
+                {
+                  internalType: "bytes4",
+                  name: "",
+                  type: "bytes4",
+                },
+              ],
+              stateMutability: "view",
+              type: "function",
+            },
+            {
+              inputs: [
+                {
+                  components: [
+                    {
+                      internalType: "bytes32",
+                      name: "uid",
+                      type: "bytes32",
+                    },
+                    {
+                      internalType: "bytes32",
+                      name: "schema",
+                      type: "bytes32",
+                    },
+                    {
+                      internalType: "uint64",
+                      name: "time",
+                      type: "uint64",
+                    },
+                    {
+                      internalType: "uint64",
+                      name: "expirationTime",
+                      type: "uint64",
+                    },
+                    {
+                      internalType: "uint64",
+                      name: "revocationTime",
+                      type: "uint64",
+                    },
+                    {
+                      internalType: "bytes32",
+                      name: "refUID",
+                      type: "bytes32",
+                    },
+                    {
+                      internalType: "address",
+                      name: "recipient",
+                      type: "address",
+                    },
+                    {
+                      internalType: "address",
+                      name: "attester",
+                      type: "address",
+                    },
+                    {
+                      internalType: "bool",
+                      name: "revocable",
+                      type: "bool",
+                    },
+                    {
+                      internalType: "bytes",
+                      name: "data",
+                      type: "bytes",
+                    },
+                  ],
+                  internalType: "struct Attestation",
+                  name: "attestation",
+                  type: "tuple",
+                },
+              ],
+              name: "attest",
+              outputs: [
+                {
+                  internalType: "bool",
+                  name: "",
+                  type: "bool",
+                },
+              ],
+              stateMutability: "payable",
+              type: "function",
+            },
+            {
+              inputs: [],
+              name: "communityRegistry",
+              outputs: [
+                {
+                  internalType: "contract ICommunityRegistry",
+                  name: "",
+                  type: "address",
+                },
+              ],
+              stateMutability: "view",
+              type: "function",
+            },
+            {
+              inputs: [],
+              name: "farmRegistry",
+              outputs: [
+                {
+                  internalType: "contract IFarmRegistry",
+                  name: "",
+                  type: "address",
+                },
+              ],
+              stateMutability: "view",
+              type: "function",
+            },
+            {
+              inputs: [
+                {
+                  internalType: "bytes32",
+                  name: "taskUID",
+                  type: "bytes32",
+                },
+                {
+                  internalType: "address",
+                  name: "tokenAddress",
+                  type: "address",
+                },
+                {
+                  internalType: "uint256",
+                  name: "amount",
+                  type: "uint256",
+                },
+              ],
+              name: "fundTaskWithERC20",
+              outputs: [
+                {
+                  internalType: "bytes32",
+                  name: "taskFundedUID",
+                  type: "bytes32",
+                },
+              ],
+              stateMutability: "nonpayable",
+              type: "function",
+            },
+            {
+              inputs: [
+                {
+                  internalType: "bytes32",
+                  name: "taskUID",
+                  type: "bytes32",
+                },
+                {
+                  internalType: "bytes32",
+                  name: "farmUID",
+                  type: "bytes32",
+                },
+                {
+                  internalType: "uint256",
+                  name: "amount",
+                  type: "uint256",
+                },
+              ],
+              name: "fundTaskWithFarmShares",
+              outputs: [
+                {
+                  internalType: "bytes32",
+                  name: "taskFundedUID",
+                  type: "bytes32",
+                },
+              ],
+              stateMutability: "nonpayable",
+              type: "function",
+            },
+            {
+              inputs: [],
+              name: "isPayable",
+              outputs: [
+                {
+                  internalType: "bool",
+                  name: "",
+                  type: "bool",
+                },
+              ],
+              stateMutability: "pure",
+              type: "function",
+            },
+            {
+              inputs: [
+                {
+                  internalType: "bytes32",
+                  name: "",
+                  type: "bytes32",
+                },
+              ],
+              name: "isTaskRewardPaid",
+              outputs: [
+                {
+                  internalType: "bool",
+                  name: "",
+                  type: "bool",
+                },
+              ],
+              stateMutability: "view",
+              type: "function",
+            },
+            {
+              inputs: [
+                {
+                  components: [
+                    {
+                      internalType: "bytes32",
+                      name: "uid",
+                      type: "bytes32",
+                    },
+                    {
+                      internalType: "bytes32",
+                      name: "schema",
+                      type: "bytes32",
+                    },
+                    {
+                      internalType: "uint64",
+                      name: "time",
+                      type: "uint64",
+                    },
+                    {
+                      internalType: "uint64",
+                      name: "expirationTime",
+                      type: "uint64",
+                    },
+                    {
+                      internalType: "uint64",
+                      name: "revocationTime",
+                      type: "uint64",
+                    },
+                    {
+                      internalType: "bytes32",
+                      name: "refUID",
+                      type: "bytes32",
+                    },
+                    {
+                      internalType: "address",
+                      name: "recipient",
+                      type: "address",
+                    },
+                    {
+                      internalType: "address",
+                      name: "attester",
+                      type: "address",
+                    },
+                    {
+                      internalType: "bool",
+                      name: "revocable",
+                      type: "bool",
+                    },
+                    {
+                      internalType: "bytes",
+                      name: "data",
+                      type: "bytes",
+                    },
+                  ],
+                  internalType: "struct Attestation[]",
+                  name: "attestations",
+                  type: "tuple[]",
+                },
+                {
+                  internalType: "uint256[]",
+                  name: "values",
+                  type: "uint256[]",
+                },
+              ],
+              name: "multiAttest",
+              outputs: [
+                {
+                  internalType: "bool",
+                  name: "",
+                  type: "bool",
+                },
+              ],
+              stateMutability: "payable",
+              type: "function",
+            },
+            {
+              inputs: [
+                {
+                  components: [
+                    {
+                      internalType: "bytes32",
+                      name: "uid",
+                      type: "bytes32",
+                    },
+                    {
+                      internalType: "bytes32",
+                      name: "schema",
+                      type: "bytes32",
+                    },
+                    {
+                      internalType: "uint64",
+                      name: "time",
+                      type: "uint64",
+                    },
+                    {
+                      internalType: "uint64",
+                      name: "expirationTime",
+                      type: "uint64",
+                    },
+                    {
+                      internalType: "uint64",
+                      name: "revocationTime",
+                      type: "uint64",
+                    },
+                    {
+                      internalType: "bytes32",
+                      name: "refUID",
+                      type: "bytes32",
+                    },
+                    {
+                      internalType: "address",
+                      name: "recipient",
+                      type: "address",
+                    },
+                    {
+                      internalType: "address",
+                      name: "attester",
+                      type: "address",
+                    },
+                    {
+                      internalType: "bool",
+                      name: "revocable",
+                      type: "bool",
+                    },
+                    {
+                      internalType: "bytes",
+                      name: "data",
+                      type: "bytes",
+                    },
+                  ],
+                  internalType: "struct Attestation[]",
+                  name: "attestations",
+                  type: "tuple[]",
+                },
+                {
+                  internalType: "uint256[]",
+                  name: "values",
+                  type: "uint256[]",
+                },
+              ],
+              name: "multiRevoke",
+              outputs: [
+                {
+                  internalType: "bool",
+                  name: "",
+                  type: "bool",
+                },
+              ],
+              stateMutability: "payable",
+              type: "function",
+            },
+            {
+              inputs: [
+                {
+                  internalType: "address",
+                  name: "_operator",
+                  type: "address",
+                },
+                {
+                  internalType: "address",
+                  name: "_from",
+                  type: "address",
+                },
+                {
+                  internalType: "uint256[]",
+                  name: "_ids",
+                  type: "uint256[]",
+                },
+                {
+                  internalType: "uint256[]",
+                  name: "_values",
+                  type: "uint256[]",
+                },
+                {
+                  internalType: "bytes",
+                  name: "_data",
+                  type: "bytes",
+                },
+              ],
+              name: "onERC1155BatchReceived",
+              outputs: [
+                {
+                  internalType: "bytes4",
+                  name: "",
+                  type: "bytes4",
+                },
+              ],
+              stateMutability: "nonpayable",
+              type: "function",
+            },
+            {
+              inputs: [
+                {
+                  internalType: "address",
+                  name: "_operator",
+                  type: "address",
+                },
+                {
+                  internalType: "address",
+                  name: "_from",
+                  type: "address",
+                },
+                {
+                  internalType: "uint256",
+                  name: "_id",
+                  type: "uint256",
+                },
+                {
+                  internalType: "uint256",
+                  name: "_value",
+                  type: "uint256",
+                },
+                {
+                  internalType: "bytes",
+                  name: "_data",
+                  type: "bytes",
+                },
+              ],
+              name: "onERC1155Received",
+              outputs: [
+                {
+                  internalType: "bytes4",
+                  name: "",
+                  type: "bytes4",
+                },
+              ],
+              stateMutability: "nonpayable",
+              type: "function",
+            },
+            {
+              inputs: [],
+              name: "owner",
+              outputs: [
+                {
+                  internalType: "address",
+                  name: "",
+                  type: "address",
+                },
+              ],
+              stateMutability: "view",
+              type: "function",
+            },
+            {
+              inputs: [],
+              name: "renounceOwnership",
+              outputs: [],
+              stateMutability: "nonpayable",
+              type: "function",
+            },
+            {
+              inputs: [
+                {
+                  components: [
+                    {
+                      internalType: "bytes32",
+                      name: "uid",
+                      type: "bytes32",
+                    },
+                    {
+                      internalType: "bytes32",
+                      name: "schema",
+                      type: "bytes32",
+                    },
+                    {
+                      internalType: "uint64",
+                      name: "time",
+                      type: "uint64",
+                    },
+                    {
+                      internalType: "uint64",
+                      name: "expirationTime",
+                      type: "uint64",
+                    },
+                    {
+                      internalType: "uint64",
+                      name: "revocationTime",
+                      type: "uint64",
+                    },
+                    {
+                      internalType: "bytes32",
+                      name: "refUID",
+                      type: "bytes32",
+                    },
+                    {
+                      internalType: "address",
+                      name: "recipient",
+                      type: "address",
+                    },
+                    {
+                      internalType: "address",
+                      name: "attester",
+                      type: "address",
+                    },
+                    {
+                      internalType: "bool",
+                      name: "revocable",
+                      type: "bool",
+                    },
+                    {
+                      internalType: "bytes",
+                      name: "data",
+                      type: "bytes",
+                    },
+                  ],
+                  internalType: "struct Attestation",
+                  name: "attestation",
+                  type: "tuple",
+                },
+              ],
+              name: "revoke",
+              outputs: [
+                {
+                  internalType: "bool",
+                  name: "",
+                  type: "bool",
+                },
+              ],
+              stateMutability: "payable",
+              type: "function",
+            },
+            {
+              inputs: [],
+              name: "shareTokens",
+              outputs: [
+                {
+                  internalType: "contract FarmShareTokens",
+                  name: "",
+                  type: "address",
+                },
+              ],
+              stateMutability: "view",
+              type: "function",
+            },
+            {
+              inputs: [
+                {
+                  internalType: "bytes4",
+                  name: "interfaceID",
+                  type: "bytes4",
+                },
+              ],
+              name: "supportsInterface",
+              outputs: [
+                {
+                  internalType: "bool",
+                  name: "",
+                  type: "bool",
+                },
+              ],
+              stateMutability: "pure",
+              type: "function",
+            },
+            {
+              inputs: [
+                {
+                  internalType: "bytes32",
+                  name: "",
+                  type: "bytes32",
+                },
+                {
+                  internalType: "uint256",
+                  name: "",
+                  type: "uint256",
+                },
+              ],
+              name: "taskApplicantsByTaskUID",
+              outputs: [
+                {
+                  internalType: "address",
+                  name: "",
+                  type: "address",
+                },
+              ],
+              stateMutability: "view",
+              type: "function",
+            },
+            {
+              inputs: [],
+              name: "taskApplicationSchema",
+              outputs: [
+                {
+                  internalType: "string",
+                  name: "",
+                  type: "string",
+                },
+              ],
+              stateMutability: "view",
+              type: "function",
+            },
+            {
+              inputs: [],
+              name: "taskApplicationSchemaUID",
+              outputs: [
+                {
+                  internalType: "bytes32",
+                  name: "",
+                  type: "bytes32",
+                },
+              ],
+              stateMutability: "view",
+              type: "function",
+            },
+            {
+              inputs: [
+                {
+                  internalType: "bytes32",
+                  name: "uid",
+                  type: "bytes32",
+                },
+              ],
+              name: "taskByUID",
+              outputs: [
+                {
+                  components: [
+                    {
+                      internalType: "bytes32",
+                      name: "taskUID",
+                      type: "bytes32",
+                    },
+                    {
+                      internalType: "bytes32",
+                      name: "communityUID",
+                      type: "bytes32",
+                    },
+                    {
+                      internalType: "string",
+                      name: "name",
+                      type: "string",
+                    },
+                    {
+                      internalType: "string",
+                      name: "description",
+                      type: "string",
+                    },
+                    {
+                      internalType: "address",
+                      name: "creator",
+                      type: "address",
+                    },
+                    {
+                      internalType: "uint256",
+                      name: "startTime",
+                      type: "uint256",
+                    },
+                    {
+                      internalType: "uint256",
+                      name: "endTime",
+                      type: "uint256",
+                    },
+                    {
+                      internalType: "bool",
+                      name: "recurring",
+                      type: "bool",
+                    },
+                    {
+                      internalType: "uint256",
+                      name: "frequency",
+                      type: "uint256",
+                    },
+                    {
+                      internalType: "string",
+                      name: "imageURL",
+                      type: "string",
+                    },
+                    {
+                      internalType: "bytes32[]",
+                      name: "rewardUIDs",
+                      type: "bytes32[]",
+                    },
+                    {
+                      internalType: "enum TaskStatus",
+                      name: "status",
+                      type: "uint8",
+                    },
+                  ],
+                  internalType: "struct Task",
+                  name: "",
+                  type: "tuple",
+                },
+              ],
+              stateMutability: "view",
+              type: "function",
+            },
+            {
+              inputs: [],
+              name: "taskCompletedSchema",
+              outputs: [
+                {
+                  internalType: "string",
+                  name: "",
+                  type: "string",
+                },
+              ],
+              stateMutability: "view",
+              type: "function",
+            },
+            {
+              inputs: [],
+              name: "taskCompletedSchemaUID",
+              outputs: [
+                {
+                  internalType: "bytes32",
+                  name: "",
+                  type: "bytes32",
+                },
+              ],
+              stateMutability: "view",
+              type: "function",
+            },
+            {
+              inputs: [],
+              name: "taskCreationSchema",
+              outputs: [
+                {
+                  internalType: "string",
+                  name: "",
+                  type: "string",
+                },
+              ],
+              stateMutability: "view",
+              type: "function",
+            },
+            {
+              inputs: [],
+              name: "taskCreationSchemaUID",
+              outputs: [
+                {
+                  internalType: "bytes32",
+                  name: "",
+                  type: "bytes32",
+                },
+              ],
+              stateMutability: "view",
+              type: "function",
+            },
+            {
+              inputs: [],
+              name: "taskFundedSchema",
+              outputs: [
+                {
+                  internalType: "string",
+                  name: "",
+                  type: "string",
+                },
+              ],
+              stateMutability: "view",
+              type: "function",
+            },
+            {
+              inputs: [],
+              name: "taskFundedSchemaUID",
+              outputs: [
+                {
+                  internalType: "bytes32",
+                  name: "",
+                  type: "bytes32",
+                },
+              ],
+              stateMutability: "view",
+              type: "function",
+            },
+            {
+              inputs: [],
+              name: "taskReviewSchema",
+              outputs: [
+                {
+                  internalType: "string",
+                  name: "",
+                  type: "string",
+                },
+              ],
+              stateMutability: "view",
+              type: "function",
+            },
+            {
+              inputs: [],
+              name: "taskReviewSchemaUID",
+              outputs: [
+                {
+                  internalType: "bytes32",
+                  name: "",
+                  type: "bytes32",
+                },
+              ],
+              stateMutability: "view",
+              type: "function",
+            },
+            {
+              inputs: [
+                {
+                  internalType: "bytes32",
+                  name: "",
+                  type: "bytes32",
+                },
+                {
+                  internalType: "uint256",
+                  name: "",
+                  type: "uint256",
+                },
+              ],
+              name: "taskRewardUIDsByTaskUID",
+              outputs: [
+                {
+                  internalType: "bytes32",
+                  name: "",
+                  type: "bytes32",
+                },
+              ],
+              stateMutability: "view",
+              type: "function",
+            },
+            {
+              inputs: [],
+              name: "taskStartedSchema",
+              outputs: [
+                {
+                  internalType: "string",
+                  name: "",
+                  type: "string",
+                },
+              ],
+              stateMutability: "view",
+              type: "function",
+            },
+            {
+              inputs: [],
+              name: "taskStartedSchemaUID",
+              outputs: [
+                {
+                  internalType: "bytes32",
+                  name: "",
+                  type: "bytes32",
+                },
+              ],
+              stateMutability: "view",
+              type: "function",
+            },
+            {
+              inputs: [
+                {
+                  internalType: "bytes32",
+                  name: "",
+                  type: "bytes32",
+                },
+              ],
+              name: "taskStatusByUID",
+              outputs: [
+                {
+                  internalType: "enum TaskStatus",
+                  name: "",
+                  type: "uint8",
+                },
+              ],
+              stateMutability: "view",
+              type: "function",
+            },
+            {
+              inputs: [
+                {
+                  internalType: "bytes32",
+                  name: "",
+                  type: "bytes32",
+                },
+                {
+                  internalType: "uint256",
+                  name: "",
+                  type: "uint256",
+                },
+              ],
+              name: "taskUIDsByCommunityUID",
+              outputs: [
+                {
+                  internalType: "bytes32",
+                  name: "",
+                  type: "bytes32",
+                },
+              ],
+              stateMutability: "view",
+              type: "function",
+            },
+            {
+              inputs: [
+                {
+                  internalType: "address",
                   name: "newOwner",
                   type: "address",
                 },
@@ -4418,7 +5967,7 @@ const contracts = {
           ],
         },
         UserRegistry: {
-          address: "0x3909A5FFdF8168C65b6079Eb7062046dFb1b18b9",
+          address: "0x8e5a5171d5e6795ffdD8936dE5c8Cad7D07B9CB9",
           abi: [
             {
               inputs: [
@@ -4473,6 +6022,31 @@ const contracts = {
                 },
               ],
               name: "OwnershipTransferred",
+              type: "event",
+            },
+            {
+              anonymous: false,
+              inputs: [
+                {
+                  indexed: true,
+                  internalType: "bytes32",
+                  name: "userUID",
+                  type: "bytes32",
+                },
+                {
+                  indexed: true,
+                  internalType: "bytes32",
+                  name: "skillUID",
+                  type: "bytes32",
+                },
+                {
+                  indexed: false,
+                  internalType: "string",
+                  name: "skillName",
+                  type: "string",
+                },
+              ],
+              name: "UserAddedSkill",
               type: "event",
             },
             {
@@ -4559,6 +6133,86 @@ const contracts = {
                 },
               ],
               name: "UserRevoked",
+              type: "event",
+            },
+            {
+              anonymous: false,
+              inputs: [
+                {
+                  indexed: true,
+                  internalType: "bytes32",
+                  name: "userUID",
+                  type: "bytes32",
+                },
+                {
+                  indexed: true,
+                  internalType: "bytes32",
+                  name: "endorserUID",
+                  type: "bytes32",
+                },
+                {
+                  indexed: false,
+                  internalType: "bytes32",
+                  name: "userSkillUID",
+                  type: "bytes32",
+                },
+                {
+                  indexed: false,
+                  internalType: "string",
+                  name: "skillName",
+                  type: "string",
+                },
+              ],
+              name: "UserSkillEndorsed",
+              type: "event",
+            },
+            {
+              anonymous: false,
+              inputs: [
+                {
+                  indexed: true,
+                  internalType: "bytes32",
+                  name: "originalUID",
+                  type: "bytes32",
+                },
+                {
+                  indexed: false,
+                  internalType: "bytes32",
+                  name: "newUID",
+                  type: "bytes32",
+                },
+                {
+                  indexed: false,
+                  internalType: "address",
+                  name: "account",
+                  type: "address",
+                },
+                {
+                  indexed: false,
+                  internalType: "string",
+                  name: "name",
+                  type: "string",
+                },
+                {
+                  indexed: false,
+                  internalType: "bytes32",
+                  name: "emailHash",
+                  type: "bytes32",
+                },
+                {
+                  indexed: false,
+                  internalType: "string",
+                  name: "location",
+                  type: "string",
+                },
+                {
+                  indexed: false,
+                  internalType: "enum UserRole",
+                  name: "newRole",
+                  type: "uint8",
+                },
+              ],
+              name: "UserUpdated",
               type: "event",
             },
             {
@@ -4837,6 +6491,25 @@ const contracts = {
               type: "function",
             },
             {
+              inputs: [
+                {
+                  internalType: "bytes32",
+                  name: "",
+                  type: "bytes32",
+                },
+              ],
+              name: "registrationUpdatesByOriginalUID",
+              outputs: [
+                {
+                  internalType: "bytes32",
+                  name: "",
+                  type: "bytes32",
+                },
+              ],
+              stateMutability: "view",
+              type: "function",
+            },
+            {
               inputs: [],
               name: "renounceOwnership",
               outputs: [],
@@ -4915,6 +6588,77 @@ const contracts = {
               type: "function",
             },
             {
+              inputs: [],
+              name: "skillEndorsementSchema",
+              outputs: [
+                {
+                  internalType: "string",
+                  name: "",
+                  type: "string",
+                },
+              ],
+              stateMutability: "view",
+              type: "function",
+            },
+            {
+              inputs: [],
+              name: "skillEndorsementSchemaUID",
+              outputs: [
+                {
+                  internalType: "bytes32",
+                  name: "",
+                  type: "bytes32",
+                },
+              ],
+              stateMutability: "view",
+              type: "function",
+            },
+            {
+              inputs: [],
+              name: "skillRecordSchema",
+              outputs: [
+                {
+                  internalType: "string",
+                  name: "",
+                  type: "string",
+                },
+              ],
+              stateMutability: "view",
+              type: "function",
+            },
+            {
+              inputs: [],
+              name: "skillRecordSchemaUID",
+              outputs: [
+                {
+                  internalType: "bytes32",
+                  name: "",
+                  type: "bytes32",
+                },
+              ],
+              stateMutability: "view",
+              type: "function",
+            },
+            {
+              inputs: [
+                {
+                  internalType: "string",
+                  name: "",
+                  type: "string",
+                },
+              ],
+              name: "skillRecordsBySkillName",
+              outputs: [
+                {
+                  internalType: "bytes32",
+                  name: "",
+                  type: "bytes32",
+                },
+              ],
+              stateMutability: "view",
+              type: "function",
+            },
+            {
               inputs: [
                 {
                   internalType: "address",
@@ -4925,6 +6669,32 @@ const contracts = {
               name: "transferOwnership",
               outputs: [],
               stateMutability: "nonpayable",
+              type: "function",
+            },
+            {
+              inputs: [],
+              name: "updateSchema",
+              outputs: [
+                {
+                  internalType: "string",
+                  name: "",
+                  type: "string",
+                },
+              ],
+              stateMutability: "view",
+              type: "function",
+            },
+            {
+              inputs: [],
+              name: "updateSchemaUID",
+              outputs: [
+                {
+                  internalType: "bytes32",
+                  name: "",
+                  type: "bytes32",
+                },
+              ],
+              stateMutability: "view",
               type: "function",
             },
             {
@@ -5093,6 +6863,56 @@ const contracts = {
                 },
               ],
               name: "userRegistrations",
+              outputs: [
+                {
+                  internalType: "bytes32",
+                  name: "",
+                  type: "bytes32",
+                },
+              ],
+              stateMutability: "view",
+              type: "function",
+            },
+            {
+              inputs: [],
+              name: "userSkillSchema",
+              outputs: [
+                {
+                  internalType: "string",
+                  name: "",
+                  type: "string",
+                },
+              ],
+              stateMutability: "view",
+              type: "function",
+            },
+            {
+              inputs: [],
+              name: "userSkillSchemaUID",
+              outputs: [
+                {
+                  internalType: "bytes32",
+                  name: "",
+                  type: "bytes32",
+                },
+              ],
+              stateMutability: "view",
+              type: "function",
+            },
+            {
+              inputs: [
+                {
+                  internalType: "bytes32",
+                  name: "",
+                  type: "bytes32",
+                },
+                {
+                  internalType: "string",
+                  name: "",
+                  type: "string",
+                },
+              ],
+              name: "userSkillUIDByUserAndSkillName",
               outputs: [
                 {
                   internalType: "bytes32",

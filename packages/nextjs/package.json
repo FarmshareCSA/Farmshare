@@ -14,11 +14,15 @@
     "vercel:yolo": "vercel --build-env NEXT_PUBLIC_IGNORE_BUILD_ERROR=true"
   },
   "dependencies": {
+    "@emotion/react": "^11.11.1",
+    "@emotion/styled": "^11.11.0",
     "@ethereum-attestation-service/eas-sdk": "1.1.0-beta.2",
     "@ethersproject/providers": "^5.7.2",
     "@googlemaps/google-maps-services-js": "^3.3.35",
     "@heroicons/react": "^2.0.11",
     "@mapbox/search-js-react": "^1.0.0-beta.17",
+    "@mui/icons-material": "^5.14.3",
+    "@mui/material": "^5.14.3",
     "@rainbow-me/rainbowkit": "^1.0.4",
     "@uniswap/sdk-core": "^4.0.1",
     "@uniswap/v2-sdk": "^3.0.1",
@@ -34,6 +38,7 @@
     "daisyui": "^2.31.0",
     "ipfs-http-client": "^60.0.1",
     "magic-sdk": "^18.4.1",
+    "moment": "^2.29.4",
     "next": "^13.1.6",
     "nextjs-progressbar": "^0.0.16",
     "react": "^18.2.0",

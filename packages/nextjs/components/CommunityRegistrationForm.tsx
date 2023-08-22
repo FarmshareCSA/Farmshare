@@ -17,11 +17,11 @@ const AddressMapBoxForm = dynamic(() => import("~~/components/AddressMapBoxForm"
   ssr: false,
 });
 
-export const FarmRegistrationForm = () => {
+export const CommunityRegistrationForm = () => {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [website, setWebsite] = useState("");
-  const [streetAddress, setStreetAddress] = useState("");
+  const [streetAddress, setStreetAddress] = useState("Search here: we only store city, state, country & postal code");
   const [city, setCity] = useState("");
   const [state, setState] = useState("");
   const [country, setCountry] = useState("");
@@ -49,7 +49,7 @@ export const FarmRegistrationForm = () => {
   });
 
   const { data: schemaUID } = useScaffoldContractRead({
-    contractName: "FarmRegistry",
+    contractName: "CommunityRegistry",
     functionName: "registrationSchemaUID",
   });
 
@@ -67,7 +67,7 @@ export const FarmRegistrationForm = () => {
 
   // Initialize SchemaEncoder with the schema string
   const schemaEncoder = new SchemaEncoder(
-    "bytes32 ownerUID,string farmName,string description,string streetAddress,string city,string state,string country,string postalCode,string websiteUrl,string imageUrl",
+    "string name,string description,string city,string state,string country,string postalCode,string websiteURL,string imageURL",
   );
 
   const handleImage = async (e: ChangeEvent<HTMLInputElement>) => {
@@ -93,16 +93,14 @@ export const FarmRegistrationForm = () => {
       invariant(userUID && userUID != "0x0", "user must be registered");
       invariant(schemaUID, "schema UID must be defined");
       const encodedData = schemaEncoder.encodeData([
-        { name: "ownerUID", value: userUID, type: "bytes32" },
-        { name: "farmName", value: name, type: "string" },
+        { name: "name", value: name, type: "string" },
         { name: "description", value: description, type: "string" },
-        { name: "streetAddress", value: streetAddress, type: "string" },
         { name: "city", value: city, type: "string" },
         { name: "state", value: state, type: "string" },
         { name: "country", value: country, type: "string" },
         { name: "postalCode", value: postalCode, type: "string" },
-        { name: "websiteUrl", value: website, type: "string" },
-        { name: "imageUrl", value: imageUrl, type: "string" },
+        { name: "websiteURL", value: website, type: "string" },
+        { name: "imageURL", value: imageUrl, type: "string" },
       ]);
 
       const tx = await eas.attest({
@@ -120,9 +118,9 @@ export const FarmRegistrationForm = () => {
       console.log("New attestation UID:", newAttestationUID);
 
       setSubmitting(false);
-      notification.success("You successfully registered your farm!");
+      notification.success("You successfully registered your community!");
     } catch (error: any) {
-      console.error("⚡️ ~ file: RegistrationForm.tsx:handleSubmit ~ error", error);
+      console.error("⚡️ ~ file: CommunityRegistrationForm.tsx:handleSubmit ~ error", error);
       notification.error(error.toString());
       setSubmitting(false);
     }
@@ -130,11 +128,10 @@ export const FarmRegistrationForm = () => {
 
   return (
     <div className="flex flex-col gap-3 py-5 first:pt-0 last:pb-1">
-      <p className="font-medium my-0 break-words">Ready to register your farm?</p>
       <InputBase
         value={name}
         onChange={e => setName(e)}
-        placeholder="Apple Pond Farm"
+        placeholder="Catskills Farming Community"
         prefix={
           <span className="self-center cursor-pointer text-xl font-semibold px-3 text-accent">
             <Image src="/nametag.png" alt="name tag" width={40} height={40} />
@@ -144,13 +141,13 @@ export const FarmRegistrationForm = () => {
       <InputBase
         value={description}
         onChange={e => setDescription(e)}
-        placeholder="A description of my farm"
+        placeholder="A description of the community"
         prefix={<span className="self-center cursor-pointer text-xl font-semibold px-4 text-accent">📝</span>}
       />
       <InputBase
         value={website}
         onChange={e => setWebsite(e)}
-        placeholder="www.applepondfarm.com"
+        placeholder="Community website (optional)"
         prefix={<span className="self-center cursor-pointer text-xl font-semibold px-4 text-accent">🌐</span>}
       />
       <AddressMapBoxForm

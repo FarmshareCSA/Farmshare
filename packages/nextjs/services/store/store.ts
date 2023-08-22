@@ -1,9 +1,9 @@
 import { UserRegistration } from "../eas/customSchemaTypes";
+import { JsonRpcSigner } from "@ethersproject/providers";
 import { OpenloginUserInfo } from "@web3auth/openlogin-adapter";
+import { ZeroDevSigner } from "@zerodevapp/sdk";
 import { Address } from "viem";
 import create from "zustand";
-import { JsonRpcSigner } from "@ethersproject/providers";
-import { ZeroDevSigner } from "@zerodevapp/sdk";
 
 /**
  * Zustand Store

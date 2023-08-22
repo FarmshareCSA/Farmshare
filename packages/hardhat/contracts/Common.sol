@@ -11,7 +11,8 @@ enum UserRole {
 }
 
 enum TaskStatus {
-    TODO,
+    NONE,
+    CREATED,
     INPROGRESS,
     COMPLETE
 }
@@ -41,9 +42,12 @@ struct Community {
     bytes32 uid;
     string name;
     string description;
-    string country;
+    string city;
     string state;
+    string country;
     string postalCode;
+    string websiteUrl;
+    string imageUrl;
     address payable treasury;
 }
 
@@ -55,12 +59,38 @@ struct ProductType {
 }
 
 struct Task {
-    uint id;
+    bytes32 taskUID;
+    bytes32 communityUID;
     string name;
     string description;
     address creator;
-    uint deadline;
-    uint reward;
+    uint startTime;
+    uint endTime;
+    bool recurring;
+    uint frequency;
+    string imageURL;
+    bytes32[] rewardUIDs;
     TaskStatus status;
-    bytes32[] attestations;
 }
+
+struct TaskReward {
+    bytes32 fundingUID;
+    address tokenAddress;
+    bool isErc1155;
+    bool isErc20;
+    uint amount;
+    uint tokenId;
+}
+
+struct TaskComplete {
+    bytes32 taskUID;
+    bytes32 userUID;
+    uint endTimestamp;
+}
+
+struct TaskStart {
+    bytes32 taskUID;
+    bytes32 userUID;
+    uint startTimestamp;
+}
+

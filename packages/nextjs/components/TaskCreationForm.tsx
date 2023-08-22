@@ -1,11 +1,12 @@
 import { ChangeEvent, useState } from "react";
-import dynamic from "next/dynamic";
 import Image from "next/image";
 import { Spinner } from "./Spinner";
 import { InputBase } from "./scaffold-eth";
 import { EAS, SchemaEncoder } from "@ethereum-attestation-service/eas-sdk";
+import { FormControlLabel, Switch, TextField } from "@mui/material";
 import { Buffer } from "buffer";
 import { create } from "ipfs-http-client";
+import moment from "moment";
 import invariant from "tiny-invariant";
 import { useNetwork } from "wagmi";
 import { useScaffoldContractRead } from "~~/hooks/scaffold-eth";
@@ -13,19 +14,14 @@ import { useGlobalState } from "~~/services/store/store";
 import { getTargetNetwork, notification } from "~~/utils/scaffold-eth";
 import { contracts } from "~~/utils/scaffold-eth/contract";
 
-const AddressMapBoxForm = dynamic(() => import("~~/components/AddressMapBoxForm"), {
-  ssr: false,
-});
-
-export const FarmRegistrationForm = () => {
+export const TaskCreationForm = () => {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
-  const [website, setWebsite] = useState("");
-  const [streetAddress, setStreetAddress] = useState("");
-  const [city, setCity] = useState("");
-  const [state, setState] = useState("");
-  const [country, setCountry] = useState("");
-  const [postalCode, setPostalCode] = useState("");
+  const [community, setCommunity] = useState("0x1");
+  const [startTime, setStartTime] = useState(moment().format("yyyy-MM-DDThh:mm"));
+  const [endTime, setEndTime] = useState(moment().add(7, "day").format("yyyy-MM-DDThh:mm"));
+  const [recurring, setRecurring] = useState(false);
+  const [frequency, setFrequency] = useState(0);
   const [imageUrl, setImageUrl] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const { chain } = useNetwork();
@@ -49,8 +45,8 @@ export const FarmRegistrationForm = () => {
   });
 
   const { data: schemaUID } = useScaffoldContractRead({
-    contractName: "FarmRegistry",
-    functionName: "registrationSchemaUID",
+    contractName: "TaskRegistry",
+    functionName: "taskCreationSchemaUID",
   });
 
   const easAddress =
@@ -67,7 +63,7 @@ export const FarmRegistrationForm = () => {
 
   // Initialize SchemaEncoder with the schema string
   const schemaEncoder = new SchemaEncoder(
-    "bytes32 ownerUID,string farmName,string description,string streetAddress,string city,string state,string country,string postalCode,string websiteUrl,string imageUrl",
+    "bytes32 communityUID,string name,string description,address creator,uint256 startTime,uint256 endTime,bool recurring,uint256 frequency,string imageURL",
   );
 
   const handleImage = async (e: ChangeEvent<HTMLInputElement>) => {
@@ -93,16 +89,15 @@ export const FarmRegistrationForm = () => {
       invariant(userUID && userUID != "0x0", "user must be registered");
       invariant(schemaUID, "schema UID must be defined");
       const encodedData = schemaEncoder.encodeData([
-        { name: "ownerUID", value: userUID, type: "bytes32" },
-        { name: "farmName", value: name, type: "string" },
+        { name: "communityUID", value: community, type: "bytes32" },
+        { name: "name", value: name, type: "string" },
         { name: "description", value: description, type: "string" },
-        { name: "streetAddress", value: streetAddress, type: "string" },
-        { name: "city", value: city, type: "string" },
-        { name: "state", value: state, type: "string" },
-        { name: "country", value: country, type: "string" },
-        { name: "postalCode", value: postalCode, type: "string" },
-        { name: "websiteUrl", value: website, type: "string" },
-        { name: "imageUrl", value: imageUrl, type: "string" },
+        { name: "creator", value: address, type: "address" },
+        { name: "startTime", value: moment(startTime).unix(), type: "uint256" },
+        { name: "endTime", value: moment(endTime).unix(), type: "uint256" },
+        { name: "recurring", value: recurring, type: "bool" },
+        { name: "frequency", value: frequency, type: "uint256" },
+        { name: "imageURL", value: imageUrl, type: "string" },
       ]);
 
       const tx = await eas.attest({
@@ -120,7 +115,7 @@ export const FarmRegistrationForm = () => {
       console.log("New attestation UID:", newAttestationUID);
 
       setSubmitting(false);
-      notification.success("You successfully registered your farm!");
+      notification.success("You successfully added a task");
     } catch (error: any) {
       console.error("⚡️ ~ file: RegistrationForm.tsx:handleSubmit ~ error", error);
       notification.error(error.toString());
@@ -130,41 +125,72 @@ export const FarmRegistrationForm = () => {
 
   return (
     <div className="flex flex-col gap-3 py-5 first:pt-0 last:pb-1">
-      <p className="font-medium my-0 break-words">Ready to register your farm?</p>
-      <InputBase
+      <TextField
+        label="Task Name"
         value={name}
-        onChange={e => setName(e)}
-        placeholder="Apple Pond Farm"
-        prefix={
-          <span className="self-center cursor-pointer text-xl font-semibold px-3 text-accent">
-            <Image src="/nametag.png" alt="name tag" width={40} height={40} />
-          </span>
-        }
+        onChange={e => setName(e.target.value)}
+        placeholder="Harvest Apples"
+        InputProps={{
+          startAdornment: (
+            <span className="self-center cursor-pointer text-xl font-semibold px-3 text-accent">
+              <Image src="/nametag.png" alt="name tag" width={40} height={40} />
+            </span>
+          ),
+        }}
       />
-      <InputBase
+      <TextField
+        label="Task Description"
         value={description}
-        onChange={e => setDescription(e)}
-        placeholder="A description of my farm"
-        prefix={<span className="self-center cursor-pointer text-xl font-semibold px-4 text-accent">📝</span>}
+        onChange={e => setDescription(e.target.value)}
+        multiline
+        placeholder="Spend an afternoon picking apples with friends at Apple Pond Farm"
+        InputProps={{
+          startAdornment: <span className="self-center cursor-pointer text-xl font-semibold px-4 text-accent">📝</span>,
+        }}
       />
-      <InputBase
-        value={website}
-        onChange={e => setWebsite(e)}
-        placeholder="www.applepondfarm.com"
-        prefix={<span className="self-center cursor-pointer text-xl font-semibold px-4 text-accent">🌐</span>}
+      <TextField
+        id="start-time"
+        label="Start Time"
+        type="datetime-local"
+        value={startTime}
+        defaultValue={startTime}
+        onChange={e => setStartTime(e.target.value)}
+        // className={"flex border-2 border-base-300 bg-base-200 rounded-full text-accent"}
+        InputLabelProps={{
+          shrink: true,
+        }}
       />
-      <AddressMapBoxForm
-        address={streetAddress}
-        setAddress={setStreetAddress}
-        city={city}
-        setCity={setCity}
-        state={state}
-        setState={setState}
-        country={country}
-        setCountry={setCountry}
-        postalCode={postalCode}
-        setPostalCode={setPostalCode}
+      <TextField
+        id="end-time"
+        label="End Time"
+        type="datetime-local"
+        value={endTime}
+        defaultValue={endTime}
+        onChange={e => setEndTime(e.target.value)}
+        // className={"flex border-2 border-base-300 bg-base-200 rounded-full text-accent"}
+        InputLabelProps={{
+          shrink: true,
+        }}
       />
+      <FormControlLabel
+        control={<Switch checked={recurring} onChange={e => setRecurring(e.target.checked)} name="recurring" />}
+        label="Recurring"
+      />
+      {recurring && (
+        <TextField
+          id="frequency"
+          label="Frequency (days)"
+          type="number"
+          value={frequency}
+          onChange={e => setFrequency(parseInt(e.target.value))}
+          InputProps={{
+            inputProps: { min: 1 },
+            startAdornment: (
+              <span className="self-center cursor-pointer text-xl font-semibold px-4 text-accent">📆</span>
+            ),
+          }}
+        />
+      )}
       <div className={`flex border-2 border-base-300 bg-base-200 rounded-full text-accent`}>
         <span className="self-center cursor-pointer text-xl font-semibold px-4 text-accent">📷</span>
         <input
@@ -182,7 +208,7 @@ export const FarmRegistrationForm = () => {
         </div>
       )}
       <button className={`btn btn-secondary btn-sm`} disabled={writeDisabled || submitting} onClick={handleSubmit}>
-        {submitting ? <Spinner /> : "Register 📝"}
+        {submitting ? <Spinner /> : "Create Task 📝"}
       </button>
     </div>
   );

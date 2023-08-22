@@ -7,6 +7,18 @@ export enum UserRole {
   Admin,
 }
 
+export type Community = {
+  uid: string;
+  name: string;
+  description: string;
+  city: string;
+  state: string;
+  country: string;
+  postalCode: string;
+  websiteURL: string;
+  imageURL: string;
+};
+
 export type UserRegistration = {
   uid: string;
   account: string;
