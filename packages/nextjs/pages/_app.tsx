@@ -15,7 +15,12 @@ import { useGlobalState } from "~~/services/store/store";
 import { wagmiConfig } from "~~/services/web3/wagmiConfig";
 import { appChains } from "~~/services/web3/wagmiConnectors";
 import { web3AuthInstance } from "~~/services/web3/wagmiConnectors";
+import { getUserAttestationsForAddress } from "~~/services/eas/utils";
 import "~~/styles/globals.css";
+import { useScaffoldContractRead } from "~~/hooks/scaffold-eth";
+import { SchemaEncoder } from "@ethereum-attestation-service/eas-sdk";
+import type { Attestation } from "~~/services/eas/types";
+import Wrapper from "~~/components/wrapper";
 
 const ScaffoldEthApp = ({ Component, pageProps }: AppProps) => {
   const price = useNativeCurrencyPrice();
@@ -25,6 +30,7 @@ const ScaffoldEthApp = ({ Component, pageProps }: AppProps) => {
   const setUserSigner = useGlobalState(state => state.setUserSigner);
   // This variable is required for initial client side rendering of correct theme for RainbowKit
   const [isDarkTheme, setIsDarkTheme] = useState(true);
+  const [userAttestations, setUserAttestations] = useState<Attestation[]>([]);
   const { isDarkMode } = useDarkMode();
   const { address, connector } = useAccount();
 
@@ -34,6 +40,74 @@ const ScaffoldEthApp = ({ Component, pageProps }: AppProps) => {
   useEffect(() => {
     setMounted(true)
 }, [])
+
+  const userSmartAccount = useGlobalState(state => state.userSmartAccount);
+  const userRegistration = useGlobalState(state => state.userRegistration);
+  const [userRegIsNull, setUserRegIsNull] = useState(userRegistration == null);
+  const setUserRegistration = useGlobalState(state => state.setUserRegistration);
+
+  const userRegistrationSchemaEncoder = new SchemaEncoder(
+    "address account,string name,bytes32 emailHash,string location,uint8 role",
+  );
+
+  const userUpdateSchemaEncoder = new SchemaEncoder(
+    "address newAccount,string newName,bytes32 newEmailHash,string newLocation,uint8 newRole",
+  );
+
+//   const { data: registrationSchemaUID } = useScaffoldContractRead({
+//     contractName: "UserRegistry",
+//     functionName: "registrationSchemaUID",
+//   });
+
+//   const { data: updateSchemaUID } = useScaffoldContractRead({
+//     contractName: "UserRegistry",
+//     functionName: "updateSchemaUID",
+//   });
+
+
+// useEffect(() => {
+//   const getUserAttestations = async () => {
+//     let tmpAttestations = await getUserAttestationsForAddress(
+//       userSmartAccount ? userSmartAccount : address ? address : "",
+//       updateSchemaUID ? updateSchemaUID : "",
+//     );
+//     if (tmpAttestations.length == 0) {
+//       tmpAttestations = await getUserAttestationsForAddress(
+//         userSmartAccount ? userSmartAccount : address ? address : "",
+//         registrationSchemaUID ? registrationSchemaUID : "",
+//       );
+//     }
+//     setUserAttestations(tmpAttestations);
+//     if (tmpAttestations.length > 0) {
+//       // Found initial user record
+//       console.log("Found user registration...");
+//       const decodedData = userRegistrationSchemaEncoder.decodeData(tmpAttestations[0].data);
+//       setUserRegistration({
+//         uid: tmpAttestations[0].id,
+//         account: decodedData[0].value.value.toString(),
+//         name: decodedData[1].value.value.toString(),
+//         emailHash: decodedData[2].value.value.toString(),
+//         location: decodedData[3].value.value.toString(),
+//         role: Number(decodedData[4].value.value),
+//       });
+//       setUserRegIsNull(false);
+//     } else {
+//       console.log("Did not find user registration");
+//       setUserRegistration(null);
+//     }
+//   };
+//   getUserAttestations();
+//   console.log("User registration UID: %s", userRegistration?.uid);
+// }, [
+//   address,
+//   registrationSchemaUID,
+//   setUserRegistration,
+//   updateSchemaUID,
+//   userRegIsNull,
+//   userRegistration?.uid,
+//   userRegistrationSchemaEncoder,
+//   userSmartAccount,
+// ]);
 
   useEffect(() => {
     if (price > 0) {
@@ -58,27 +132,24 @@ const ScaffoldEthApp = ({ Component, pageProps }: AppProps) => {
       }
     };
     getUserInfo();
-  }, [connector]);
+  }, [connector, setUserInfo]);
 
   useEffect(() => {
     const tryZeroDevSigner = async () => {
-      console.log("TRYING ZERO DEV SIGNER",web3AuthInstance && address)
       if (web3AuthInstance && address) {
         const tmpSigner = await getZeroDevSigner({
           projectId: defaultProjectId,
           owner: getRPCProviderOwner(web3AuthInstance.provider),
         });
         setUserSigner(tmpSigner);
-        console.log("SIGNER",tmpSigner);
         const tmpAddress = await tmpSigner.getAddress();
-        console.log("Smart account address: %s", tmpAddress);
         if (tmpAddress) {
           setUserSmartAccount(tmpAddress);
         }
       }
     };
     tryZeroDevSigner();
-  }, [web3AuthInstance]);
+  }, [address, defaultProjectId, setUserSigner, setUserSmartAccount]);
 
   return (mounted && (
     <WagmiConfig config={wagmiConfig}>
@@ -91,7 +162,9 @@ const ScaffoldEthApp = ({ Component, pageProps }: AppProps) => {
         <div className="flex flex-col min-h-screen">
           <Header />
           <main className="relative flex flex-col flex-1">
+            <Wrapper>
             <Component {...pageProps} />
+            </Wrapper>
           </main>
           <Footer />
         </div>

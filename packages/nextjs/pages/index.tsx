@@ -77,7 +77,16 @@ const Home: NextPage = () => {
     };
     getUserAttestations();
     console.log("User registration UID: %s", userRegistration?.uid);
-  }, [address, userRegIsNull, userSmartAccount]);
+  }, [
+    address,
+    registrationSchemaUID,
+    setUserRegistration,
+    updateSchemaUID,
+    userRegIsNull,
+    userRegistration?.uid,
+    userRegistrationSchemaEncoder,
+    userSmartAccount,
+  ]);
 
   return ( mounted &&
     (<>
