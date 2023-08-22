@@ -2,8 +2,9 @@ import React from "react";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import { SchemaEncoder } from "@ethereum-attestation-service/eas-sdk";
 import AddIcon from "@mui/icons-material/Add";
-import { CardActionArea, MenuItem, TextField } from "@mui/material";
+import { CardActionArea, MenuItem, Select, SelectChangeEvent, TextField } from "@mui/material";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Card from "@mui/material/Card";
@@ -19,10 +20,12 @@ import Typography from "@mui/material/Typography";
 import moment from "moment";
 import type { NextPage } from "next";
 import invariant from "tiny-invariant";
+import { number } from "zod";
 import { MetaHeader } from "~~/components/MetaHeader";
 import TaskCard from "~~/components/TaskCard";
 import { TaskCreationForm } from "~~/components/TaskCreationForm";
 import { useScaffoldContractRead } from "~~/hooks/scaffold-eth";
+import { Task, TaskReward } from "~~/services/eas/customSchemaTypes";
 import { getTasksForCommunity } from "~~/services/eas/utils";
 import { useGlobalState } from "~~/services/store/store";
 
@@ -186,12 +189,12 @@ function getRandomEvenNumber(min: number, max: number) {
   return randomEven;
 }
 
-const displayTasks = () => {
+const displayTasks = (taskList: Task[]) => {
   let tasksDisplay = <React.Fragment></React.Fragment>;
   const tasks: any[] = [];
   let counter = 0;
-  const numberOfTasks = sampleTasks.length;
-  sampleTasks.forEach((task, i) => {
+  const numberOfTasks = taskList.length;
+  taskList.forEach((task, i) => {
     const width = getRandomEvenNumber(2, 6);
     // console.log('width',width)
     if (counter >= 12) {
@@ -199,38 +202,44 @@ const displayTasks = () => {
     }
     if (i === numberOfTasks - 1) {
       tasks.push(
-        <Grid key={task.id} xs={12 - counter} sx={{ padding: "5px" }}>
+        <Grid key={task.uid} xs={12 - counter} sx={{ padding: "5px" }}>
           <TaskCard
-            title={task.title}
+            uid={task.uid}
+            title={task.name}
+            description={task.description}
             startTime={task.startTime}
             endTime={task.endTime}
-            rewards={task.reward}
-            image={task.image}
+            rewards={task.rewards}
+            image={task.imageURL}
           />
         </Grid>,
       );
     } else if (counter + width <= 12) {
       counter = counter + width;
       tasks.push(
-        <Grid key={task.id} xs={width} sx={{ padding: "5px" }}>
+        <Grid key={task.uid} xs={width} sx={{ padding: "5px" }}>
           <TaskCard
-            title={task.title}
+            uid={task.uid}
+            title={task.name}
+            description={task.description}
             startTime={task.startTime}
             endTime={task.endTime}
-            rewards={task.reward}
-            image={task.image}
+            rewards={task.rewards}
+            image={task.imageURL}
           />
         </Grid>,
       );
     } else {
       tasks.push(
-        <Grid key={task.id} xs={12 - counter} sx={{ padding: "5px" }}>
+        <Grid key={task.uid} xs={12 - counter} sx={{ padding: "5px" }}>
           <TaskCard
-            title={task.title}
+            uid={task.uid}
+            title={task.name}
+            description={task.description}
             startTime={task.startTime}
             endTime={task.endTime}
-            rewards={task.reward}
-            image={task.image}
+            rewards={task.rewards}
+            image={task.imageURL}
           />
         </Grid>,
       );
@@ -266,12 +275,26 @@ const Tasks: NextPage = () => {
   let [open, setOpen] = useState<any>(false);
   const [community, setCommunity] = useState("");
   const communities = useGlobalState(state => state.communities);
+  const userRegistration = useGlobalState(state => state.userRegistration);
   let communityUID = searchParams.get("community");
 
   const { data: taskSchemaUID } = useScaffoldContractRead({
     contractName: "TaskRegistry",
     functionName: "taskCreationSchemaUID",
   });
+
+  const { data: rewardSchemaUID } = useScaffoldContractRead({
+    contractName: "TaskRegistry",
+    functionName: "taskFundedSchemaUID",
+  });
+
+  const rewardSchemaEncoder = new SchemaEncoder(
+    "address tokenAddress,bool isErc1155,bool isErc20,uint256 amount,uint256 tokenId,string tokenName",
+  );
+
+  const taskSchemaEncoder = new SchemaEncoder(
+    "bytes32 communityUID,string name,string description,address creator,uint256 startTime,uint256 endTime,bool recurring,uint256 frequency,string imageURL",
+  );
 
   useEffect(() => {
     if (communities && communityUID) {
@@ -282,26 +305,40 @@ const Tasks: NextPage = () => {
       });
     }
     const getTasks = async () => {
-      invariant(taskSchemaUID, "schema UID must be defined");
-      const tmpAttestations = await getTasksForCommunity(community, taskSchemaUID);
-      console.log("Found %s tasks for community %s", tmpAttestations.length, community);
+      if (taskSchemaUID && rewardSchemaUID) {
+        const taskList = await getTasksForCommunity(
+          community,
+          taskSchemaUID,
+          rewardSchemaUID,
+          taskSchemaEncoder,
+          rewardSchemaEncoder,
+        );
+        console.log("Found %s tasks for community %s", taskList.length, community);
+        setTasks(displayTasks(taskList));
+      }
     };
     getTasks();
-    setTasks(displayTasks());
-  }, [communityUID, community, open]);
+  }, [communityUID, taskSchemaUID, community, open, userRegistration]);
+
+  const handleChange = (event: SelectChangeEvent<typeof community>) => {
+    const {
+      target: { value },
+    } = event;
+    setCommunity(value);
+  };
 
   return (
     <React.Fragment>
       {communities && (
         <div className="flex items-left flex-col flex-grow pt-5 pb-5">
           <div className="px-5">
-            <TextField label="Select a Community" select value={community}>
+            <Select label="Select a Community" value={community} onChange={handleChange}>
               {communities.map(community => (
                 <MenuItem key={community.uid} value={community.uid}>
                   {community.name}
                 </MenuItem>
               ))}
-            </TextField>
+            </Select>
           </div>
         </div>
       )}
