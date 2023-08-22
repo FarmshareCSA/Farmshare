@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "@openzeppelin/contracts/token/ERC1155/IERC1155Receiver.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@safe-global/safe-contracts/contracts/proxies/SafeProxyFactory.sol";
 import "@ethereum-attestation-service/eas-contracts/contracts/resolver/SchemaResolver.sol";
@@ -17,11 +17,11 @@ import "./interfaces/ICommunityRegistry.sol";
 import "./FarmShareTokens.sol";
 
 contract TaskRegistry is ITaskRegistry, IERC1155Receiver, Ownable, SchemaResolver {
-	using SafeERC20 for IERC20;
+	using SafeERC20 for IERC20Metadata;
 
     string public constant taskCreationSchema = "bytes32 communityUID,string name,string description,address creator,uint256 startTime,uint256 endTime,bool recurring,uint256 frequency,string imageURL";
     bytes32 public immutable taskCreationSchemaUID;
-	string public constant taskFundedSchema = "address tokenAddress,bool isErc1155,bool isErc20,uint256 amount,uint256 tokenId";
+	string public constant taskFundedSchema = "address tokenAddress,bool isErc1155,bool isErc20,uint256 amount,uint256 tokenId,string tokenName";
 	bytes32 public immutable taskFundedSchemaUID;
 	string public constant taskApplicationSchema = "bytes32 taskUID,bytes32 userUID,bytes32[] skillUIDs";
 	bytes32 public immutable taskApplicationSchemaUID;
@@ -148,14 +148,15 @@ contract TaskRegistry is ITaskRegistry, IERC1155Receiver, Ownable, SchemaResolve
 		address tokenAddress,
 		uint amount
 	) external returns (bytes32 taskFundedUID) {
-		IERC20 token = IERC20(tokenAddress);
+		IERC20Metadata token = IERC20Metadata(tokenAddress);
 		token.safeTransferFrom(msg.sender, address(this), amount);
 		bytes memory taskFundedData = abi.encode(
 			tokenAddress,	// tokenAddress
 			false,			// isErc1155
 			true,			// isErc20
 			amount,			// amount
-			0				// tokenId
+			0,				// tokenId
+			token.name()	// token name
 		);
 		AttestationRequestData memory requestData = AttestationRequestData({
 			recipient: msg.sender,
@@ -195,7 +196,8 @@ contract TaskRegistry is ITaskRegistry, IERC1155Receiver, Ownable, SchemaResolve
 			true,		// isErc1155
 			false,		// isErc20
 			_value,		// amount
-			_id			// tokenId
+			_id,		// tokenId
+			shareTokens.name(_id)	// token name
 		);
 		AttestationRequestData memory requestData = AttestationRequestData({
 			recipient: tx.origin,
@@ -279,12 +281,13 @@ contract TaskRegistry is ITaskRegistry, IERC1155Receiver, Ownable, SchemaResolve
 				bool isErc1155,
 				bool isErc20,
 				uint amount,
-				uint tokenId
-			) = abi.decode(attestation.data, (address, bool, bool, uint, uint));
+				uint tokenId,
+				string memory tokenName
+			) = abi.decode(attestation.data, (address, bool, bool, uint, uint, string));
 			if (isErc1155 == isErc20) revert UnsupportedTokenType();
 			bytes32 taskUID = attestation.refUID;
 			taskRewardUIDsByTaskUID[taskUID].push(attestation.uid);
-			emit TaskFunded(taskUID, attestation.uid, tokenAddress, isErc1155, isErc20, amount, tokenId);
+			emit TaskFunded(taskUID, attestation.uid, tokenAddress, isErc1155, isErc20, amount, tokenId, tokenName);
 			return true;
 		} else if (attestation.schema == taskApplicationSchemaUID) {
 			(
@@ -355,7 +358,7 @@ contract TaskRegistry is ITaskRegistry, IERC1155Receiver, Ownable, SchemaResolve
 				uint tokenId
 			) = abi.decode(rewardAttestation.data, (address, bool, bool, uint, uint));
 			if (isErc20) {
-				IERC20(tokenAddress).safeTransfer(to, amount);
+				IERC20Metadata(tokenAddress).safeTransfer(to, amount);
 			} else if (isErc1155) {
 				IERC1155(tokenAddress).safeTransferFrom(address(this), to, tokenId, amount, "");
 			} else {

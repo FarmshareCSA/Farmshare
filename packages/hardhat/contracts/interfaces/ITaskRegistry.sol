@@ -26,7 +26,8 @@ interface ITaskRegistry {
         bool isErc1155,
         bool isErc20,
         uint256 amount,
-        uint256 tokenId
+        uint256 tokenId,
+        string tokenName
     );
 
     event TaskApplicationSubmitted(
