@@ -21,7 +21,7 @@ export const CommunityRegistrationForm = () => {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [website, setWebsite] = useState("");
-  const [streetAddress, setStreetAddress] = useState("We only store city, state, country & postal code");
+  const [streetAddress, setStreetAddress] = useState("Search here: we only store city, state, country & postal code");
   const [city, setCity] = useState("");
   const [state, setState] = useState("");
   const [country, setCountry] = useState("");
@@ -67,7 +67,7 @@ export const CommunityRegistrationForm = () => {
 
   // Initialize SchemaEncoder with the schema string
   const schemaEncoder = new SchemaEncoder(
-    "string name,string description,string city,string state,string country,string postalCode",
+    "string name,string description,string city,string state,string country,string postalCode,string websiteURL,string imageURL",
   );
 
   const handleImage = async (e: ChangeEvent<HTMLInputElement>) => {
@@ -99,8 +99,8 @@ export const CommunityRegistrationForm = () => {
         { name: "state", value: state, type: "string" },
         { name: "country", value: country, type: "string" },
         { name: "postalCode", value: postalCode, type: "string" },
-        { name: "websiteUrl", value: website, type: "string" },
-        { name: "imageUrl", value: imageUrl, type: "string" },
+        { name: "websiteURL", value: website, type: "string" },
+        { name: "imageURL", value: imageUrl, type: "string" },
       ]);
 
       const tx = await eas.attest({
@@ -118,7 +118,7 @@ export const CommunityRegistrationForm = () => {
       console.log("New attestation UID:", newAttestationUID);
 
       setSubmitting(false);
-      notification.success("You successfully registered your farm!");
+      notification.success("You successfully registered your community!");
     } catch (error: any) {
       console.error("⚡️ ~ file: CommunityRegistrationForm.tsx:handleSubmit ~ error", error);
       notification.error(error.toString());
@@ -128,7 +128,6 @@ export const CommunityRegistrationForm = () => {
 
   return (
     <div className="flex flex-col gap-3 py-5 first:pt-0 last:pb-1">
-      <p className="font-medium my-0 break-words">Create a new FarmShare community!</p>
       <InputBase
         value={name}
         onChange={e => setName(e)}
@@ -148,7 +147,7 @@ export const CommunityRegistrationForm = () => {
       <InputBase
         value={website}
         onChange={e => setWebsite(e)}
-        placeholder="www.applepondfarm.com"
+        placeholder="Community website (optional)"
         prefix={<span className="self-center cursor-pointer text-xl font-semibold px-4 text-accent">🌐</span>}
       />
       <AddressMapBoxForm
