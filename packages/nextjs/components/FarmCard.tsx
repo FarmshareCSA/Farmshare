@@ -6,14 +6,14 @@ import CardMedia from "@mui/material/CardMedia";
 import Typography from "@mui/material/Typography";
 
 export default function FarmCard({ farm }: any) {
-  const { description, img, title } = farm;
+  const { description, imageURL, name, websiteURL } = farm;
   return (
     <Card sx={{ maxWidth: 345 }}>
       <CardActionArea>
-        <CardMedia component="img" height="140" image={img} alt="Image Not Found" />
+        <CardMedia component="img" height="140" image={imageURL} alt="Image Not Found" />
         <CardContent>
           <Typography gutterBottom variant="h5" component="div">
-            {title || "No Title"}
+            {name || "No Title"}
           </Typography>
           <Typography variant="body2" color="text.secondary">
             {description || "No Description"}
@@ -21,8 +21,8 @@ export default function FarmCard({ farm }: any) {
         </CardContent>
       </CardActionArea>
       <CardActions>
-        <Button size="small" color="primary">
-          Learn More
+        <Button size="small" color="primary" href={websiteURL}>
+          Visit Website
         </Button>
       </CardActions>
     </Card>
