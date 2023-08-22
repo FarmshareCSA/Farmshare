@@ -100,7 +100,7 @@ export async function getUserAttestationsForAddress(address: string, schema: str
   return response.data.data.attestations;
 }
 
-export async function getTasksForCommunity(communityId: string, schema: string) {
+export async function getAllAttestationsForSchema(schema: string) {
   const response = await axios.post<MyAttestationResult>(
     `${baseURL}/graphql`,
     {
@@ -111,9 +111,6 @@ export async function getTasksForCommunity(communityId: string, schema: string) 
         where: {
           schemaId: {
             equals: schema,
-          },
-          communityId: {
-              equals: communityId,
           },
         },
         orderBy: [
@@ -127,7 +124,39 @@ export async function getTasksForCommunity(communityId: string, schema: string) 
       headers: {
         "content-type": "application/json",
       },
-    }
+    },
+  );
+  return response.data.data.attestations;
+}
+
+export async function getTasksForCommunity(communityId: string, schema: string) {
+  const response = await axios.post<MyAttestationResult>(
+    `${baseURL}/graphql`,
+    {
+      query:
+        "query Attestations($where: AttestationWhereInput, $orderBy: [AttestationOrderByWithRelationInput!]) {\n  attestations(where: $where, orderBy: $orderBy) {\n    attester\n    revocationTime\n    expirationTime\n    time\n    recipient\n    id\n    data\n  }\n}",
+
+      variables: {
+        where: {
+          schemaId: {
+            equals: schema,
+          },
+          communityId: {
+            equals: communityId,
+          },
+        },
+        orderBy: [
+          {
+            time: "desc",
+          },
+        ],
+      },
+    },
+    {
+      headers: {
+        "content-type": "application/json",
+      },
+    },
   );
   return response.data.data.attestations;
 }
