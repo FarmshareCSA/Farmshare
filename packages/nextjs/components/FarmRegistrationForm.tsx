@@ -88,12 +88,20 @@ export const FarmRegistrationForm = ({ onSubmit }: any) => {
     }
   };
 
-  const getCoordinates = async (streetAddress: string) => {
-    const apiURL = `${MAP_BOX_GEOCODING_API_URL}/${streetAddress}?access_token=${REACT_APP_MAPBOX_API_KEY}`;
+  const getCoordinates = async (
+    streetAddress: string,
+    city: string,
+    state: string,
+    country: string,
+    postalCode: string,
+  ) => {
+    const fullAddr = `${streetAddress.replaceAll(" ", "%20")}%20${city}%20${state}%20${country}%20${postalCode}`;
+    const apiURL = `${MAP_BOX_GEOCODING_API_URL}/${fullAddr}.json?access_token=${REACT_APP_MAPBOX_API_KEY}`;
+    console.log("API URL is: %s", apiURL);
     const response = await fetch(apiURL);
     const responseJson = await response.json();
     const coordinates = "features" in responseJson ? responseJson.features[0].geometry.coordinates.join() : "";
-    console.log(coordinates);
+    console.log("API call here: coordinates %s", coordinates);
     return coordinates;
   };
 
@@ -107,7 +115,7 @@ export const FarmRegistrationForm = ({ onSubmit }: any) => {
       invariant(userUID && userUID != "0x0", "user must be registered");
       invariant(schemaUID, "schema UID must be defined");
       // Geocode and concatenate here!
-      const latAndLong = await getCoordinates(streetAddress);
+      const latAndLong = await getCoordinates(streetAddress, city, state, country, postalCode);
       const encodedData = schemaEncoder.encodeData([
         { name: "ownerUID", value: userUID, type: "bytes32" },
         { name: "farmName", value: name, type: "string" },
