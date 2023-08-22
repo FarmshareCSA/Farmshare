@@ -63,7 +63,10 @@ export default function TaskCard({
           </CardContent>
           <CardActions>
             <Button variant="contained" style={{ backgroundColor: "rgb(46, 125, 50)" }}>
-              Apply for Task
+              Apply
+            </Button>
+            <Button variant="contained" style={{ backgroundColor: "rgb(46, 125, 50)" }}>
+              Fund
             </Button>
             <Button
               variant="contained"
