@@ -17,7 +17,7 @@ const AddressMapBoxForm = dynamic(() => import("~~/components/AddressMapBoxForm"
   ssr: false,
 });
 
-export const FarmRegistrationForm = () => {
+export const FarmRegistrationForm = ({ onSubmit }: any) => {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [website, setWebsite] = useState("");
@@ -67,7 +67,7 @@ export const FarmRegistrationForm = () => {
 
   // Initialize SchemaEncoder with the schema string
   const schemaEncoder = new SchemaEncoder(
-    "bytes32 ownerUID,string farmName,string description,string streetAddress,string city,string state,string country,string postalCode,string websiteUrl,string imageUrl",
+    "bytes32 ownerUID,string farmName,string description,string streetAddress,string city,string state,string country,string postalCode,string latAndLong,string websiteUrl,string imageUrl",
   );
 
   const handleImage = async (e: ChangeEvent<HTMLInputElement>) => {
@@ -92,6 +92,8 @@ export const FarmRegistrationForm = () => {
       const userUID = userRegistration?.uid;
       invariant(userUID && userUID != "0x0", "user must be registered");
       invariant(schemaUID, "schema UID must be defined");
+      // Geocode and concatenate here!
+      const latAndLong = "";
       const encodedData = schemaEncoder.encodeData([
         { name: "ownerUID", value: userUID, type: "bytes32" },
         { name: "farmName", value: name, type: "string" },
@@ -101,6 +103,7 @@ export const FarmRegistrationForm = () => {
         { name: "state", value: state, type: "string" },
         { name: "country", value: country, type: "string" },
         { name: "postalCode", value: postalCode, type: "string" },
+        { name: "latAndLong", value: latAndLong, type: "string" },
         { name: "websiteUrl", value: website, type: "string" },
         { name: "imageUrl", value: imageUrl, type: "string" },
       ]);
@@ -121,6 +124,7 @@ export const FarmRegistrationForm = () => {
 
       setSubmitting(false);
       notification.success("You successfully registered your farm!");
+      onSubmit(true);
     } catch (error: any) {
       console.error("⚡️ ~ file: RegistrationForm.tsx:handleSubmit ~ error", error);
       notification.error(error.toString());
@@ -130,7 +134,6 @@ export const FarmRegistrationForm = () => {
 
   return (
     <div className="flex flex-col gap-3 py-5 first:pt-0 last:pb-1">
-      <p className="font-medium my-0 break-words">Ready to register your farm?</p>
       <InputBase
         value={name}
         onChange={e => setName(e)}
