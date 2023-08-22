@@ -18,9 +18,12 @@ import Tabs from "@mui/material/Tabs";
 import Typography from "@mui/material/Typography";
 import moment from "moment";
 import type { NextPage } from "next";
+import invariant from "tiny-invariant";
 import { MetaHeader } from "~~/components/MetaHeader";
 import TaskCard from "~~/components/TaskCard";
 import { TaskCreationForm } from "~~/components/TaskCreationForm";
+import { useScaffoldContractRead } from "~~/hooks/scaffold-eth";
+import { getTasksForCommunity } from "~~/services/eas/utils";
 import { useGlobalState } from "~~/services/store/store";
 
 interface TabPanelProps {
@@ -265,6 +268,11 @@ const Tasks: NextPage = () => {
   const communities = useGlobalState(state => state.communities);
   let communityUID = searchParams.get("community");
 
+  const { data: taskSchemaUID } = useScaffoldContractRead({
+    contractName: "TaskRegistry",
+    functionName: "taskCreationSchemaUID",
+  });
+
   useEffect(() => {
     if (communities && communityUID) {
       communities.forEach(comm => {
@@ -273,8 +281,14 @@ const Tasks: NextPage = () => {
         }
       });
     }
+    const getTasks = async () => {
+      invariant(taskSchemaUID, "schema UID must be defined");
+      const tmpAttestations = await getTasksForCommunity(community, taskSchemaUID);
+      console.log("Found %s tasks for community %s", tmpAttestations.length, community);
+    };
+    getTasks();
     setTasks(displayTasks());
-  }, [communityUID]);
+  }, [communityUID, community, open]);
 
   return (
     <React.Fragment>
@@ -317,7 +331,7 @@ const Tasks: NextPage = () => {
             <Typography id="modal-modal-title" variant="h6" component="h2">
               Create Task
             </Typography>
-            <TaskCreationForm />
+            <TaskCreationForm communityUID={community} onClose={setOpen} />
           </Box>
         </Modal>
       </Box>
