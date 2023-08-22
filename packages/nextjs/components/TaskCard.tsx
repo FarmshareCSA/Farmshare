@@ -65,65 +65,69 @@ export default function TaskCard({
       );
     } else {
       setContent(
-        <Card sx={{ height: "350px", borderRadius: "20px", backgroundColor: "#545454" }}>
-          <CardContent>
-            <Typography sx={{ fontSize: 14 }} color="white" gutterBottom>
-              {moment.unix(startTime).format("MMM D, YYYY, hh:mmA") +
-                " - " +
-                moment.unix(endTime).format("MMM D, YYYY, hh:mmA")}
-            </Typography>
-            <Typography variant="h5" color="white" component="div">
-              {title}
-            </Typography>
-            <Typography variant="body1" color="white">
-              {description}
-            </Typography>
-            {rewards.length > 0 && (
-              <Typography variant="body2" color="white">
-                {"Rewards: " + rewards}
+        <>
+          <Card sx={{ height: "350px", borderRadius: "20px", backgroundColor: "#545454" }}>
+            <CardContent>
+              <Typography sx={{ fontSize: 14 }} color="white" gutterBottom>
+                {moment.unix(startTime).format("MMM D, YYYY, hh:mmA") +
+                  " - " +
+                  moment.unix(endTime).format("MMM D, YYYY, hh:mmA")}
               </Typography>
-            )}
-          </CardContent>
-          <CardActions>
-            <Button variant="contained" style={{ backgroundColor: "rgb(46, 125, 50)" }}>
-              Apply
-            </Button>
-            <Button variant="contained" style={{ backgroundColor: "rgb(46, 125, 50)" }}>
-              Fund
-            </Button>
-            <Button
-              variant="contained"
-              style={{ backgroundColor: "rgb(46, 125, 50)" }}
-              onClick={() => {
-                setShowDetails(false);
-              }}
-            >
-              Close
-            </Button>
-          </CardActions>
-        </Card>,
+              <Typography variant="h5" color="white" component="div">
+                {title}
+              </Typography>
+              <Typography variant="body1" color="white">
+                {description}
+              </Typography>
+              {rewards.length > 0 && (
+                <Typography variant="body2" color="white">
+                  {"Rewards: " + rewards}
+                </Typography>
+              )}
+            </CardContent>
+            <CardActions>
+              <Button variant="contained" style={{ backgroundColor: "rgb(46, 125, 50)" }}>
+                Apply
+              </Button>
+              <Button
+                variant="contained"
+                style={{ backgroundColor: "rgb(46, 125, 50)" }}
+                onClick={() => {
+                  setOpen(true);
+                }}
+              >
+                Fund
+              </Button>
+              <Button
+                variant="contained"
+                style={{ backgroundColor: "rgb(46, 125, 50)" }}
+                onClick={() => {
+                  setShowDetails(false);
+                }}
+              >
+                Close
+              </Button>
+            </CardActions>
+          </Card>
+          <Modal
+            open={open}
+            onClose={() => {
+              setOpen(false);
+            }}
+            aria-labelledby="modal-modal-title"
+            aria-describedby="modal-modal-description"
+          >
+            <Box sx={style}>
+              <Typography id="modal-modal-title" variant="h6" component="h2">
+                Create Task
+              </Typography>
+              <TaskFundingForm taskUID={uid} onClose={setOpen} />
+            </Box>
+          </Modal>
+        </>,
       );
     }
   }, [showDetails]);
 
-  return (
-    <React.Fragment>
-      {content}
-      <Modal
-        open={open}
-        onClose={() => {
-          setOpen(false);
-        }}
-        aria-labelledby="modal-modal-title"
-        aria-describedby="modal-modal-description"
-      >
-        <Box sx={style}>
-          <Typography id="modal-modal-title" variant="h6" component="h2">
-            Create Task
-          </Typography>
-          <TaskFundingForm taskUID={uid} onClose={setOpen} />
-        </Box>
-      </Modal>
-    </React.Fragment>
-  );
+  return <React.Fragment>{content}</React.Fragment>;
 }

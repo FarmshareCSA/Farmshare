@@ -66,7 +66,7 @@ export const TaskFundingForm = ({ taskUID, onClose }: any) => {
 
   return (
     <div className="flex flex-col gap-3 py-5 first:pt-0 last:pb-1">
-      {userRegistration?.role == UserRole.Farmer || userRegistration?.role == UserRole.Manager ? (
+      {(userRegistration?.role == UserRole.Farmer || userRegistration?.role == UserRole.Manager) && (
         <FormControlLabel
           control={
             <Switch
@@ -77,7 +77,8 @@ export const TaskFundingForm = ({ taskUID, onClose }: any) => {
           }
           label="Fund with farm shares"
         />
-      ) : (
+      )}
+      {!fundWithShares && (
         <Select
           labelId="select-multiple-chip-label"
           id="select-multiple-chip"
