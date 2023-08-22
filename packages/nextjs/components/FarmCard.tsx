@@ -6,7 +6,7 @@ import CardMedia from "@mui/material/CardMedia";
 import Typography from "@mui/material/Typography";
 
 export default function FarmCard({ farm }: any) {
-  const { description, img, title } = farm;
+  const { description, img, title } = farm?.properties;
   return (
     <Card sx={{ maxWidth: 345 }}>
       <CardActionArea>
