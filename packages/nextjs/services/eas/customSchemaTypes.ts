@@ -29,8 +29,7 @@ export type Farm = {
   state: string;
   country: string;
   postalCode: string;
-  latitude: string;
-  longitude: string;
+  latAndLong: string;
   websiteURL: string;
   imageURL: string;
 };
