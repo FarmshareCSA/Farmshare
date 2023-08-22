@@ -76,7 +76,7 @@ const Farms: NextPage = () => {
 
   // Initialize SchemaEncoder with the schema string
   const farmSchemaEncoder = new SchemaEncoder(
-    "address owner,string name,string description,string streetAddress,string city,string state,string country,string postalCode,string latAndLong,string websiteUrl,string imageUrl",
+    "bytes32 ownerUID,string name,string description,string streetAddress,string city,string state,string country,string postalCode,string latAndLong,string websiteUrl,string imageUrl",
   );
 
   useEffect(() => {
