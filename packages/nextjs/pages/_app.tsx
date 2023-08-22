@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import type { AppProps } from "next/app";
+import { SchemaEncoder } from "@ethereum-attestation-service/eas-sdk";
 import { RainbowKitProvider, darkTheme, lightTheme } from "@rainbow-me/rainbowkit";
 import "@rainbow-me/rainbowkit/styles.css";
 import { getRPCProviderOwner, getZeroDevSigner } from "@zerodevapp/sdk";
@@ -9,18 +10,17 @@ import { useDarkMode } from "usehooks-ts";
 import { WagmiConfig, useAccount } from "wagmi";
 import { Footer } from "~~/components/Footer";
 import { Header } from "~~/components/Header";
+import Wrapper from "~~/components/Wrapper";
 import { BlockieAvatar } from "~~/components/scaffold-eth";
 import { useNativeCurrencyPrice } from "~~/hooks/scaffold-eth";
+import { useScaffoldContractRead } from "~~/hooks/scaffold-eth";
+import type { Attestation } from "~~/services/eas/types";
+import { getUserAttestationsForAddress } from "~~/services/eas/utils";
 import { useGlobalState } from "~~/services/store/store";
 import { wagmiConfig } from "~~/services/web3/wagmiConfig";
 import { appChains } from "~~/services/web3/wagmiConnectors";
 import { web3AuthInstance } from "~~/services/web3/wagmiConnectors";
-import { getUserAttestationsForAddress } from "~~/services/eas/utils";
 import "~~/styles/globals.css";
-import { useScaffoldContractRead } from "~~/hooks/scaffold-eth";
-import { SchemaEncoder } from "@ethereum-attestation-service/eas-sdk";
-import type { Attestation } from "~~/services/eas/types";
-import Wrapper from "~~/components/wrapper";
 
 const ScaffoldEthApp = ({ Component, pageProps }: AppProps) => {
   const price = useNativeCurrencyPrice();
@@ -38,8 +38,8 @@ const ScaffoldEthApp = ({ Component, pageProps }: AppProps) => {
 
   const [mounted, setMounted] = useState(false);
   useEffect(() => {
-    setMounted(true)
-}, [])
+    setMounted(true);
+  }, []);
 
   const userSmartAccount = useGlobalState(state => state.userSmartAccount);
   const userRegistration = useGlobalState(state => state.userRegistration);
@@ -53,61 +53,6 @@ const ScaffoldEthApp = ({ Component, pageProps }: AppProps) => {
   const userUpdateSchemaEncoder = new SchemaEncoder(
     "address newAccount,string newName,bytes32 newEmailHash,string newLocation,uint8 newRole",
   );
-
-//   const { data: registrationSchemaUID } = useScaffoldContractRead({
-//     contractName: "UserRegistry",
-//     functionName: "registrationSchemaUID",
-//   });
-
-//   const { data: updateSchemaUID } = useScaffoldContractRead({
-//     contractName: "UserRegistry",
-//     functionName: "updateSchemaUID",
-//   });
-
-
-// useEffect(() => {
-//   const getUserAttestations = async () => {
-//     let tmpAttestations = await getUserAttestationsForAddress(
-//       userSmartAccount ? userSmartAccount : address ? address : "",
-//       updateSchemaUID ? updateSchemaUID : "",
-//     );
-//     if (tmpAttestations.length == 0) {
-//       tmpAttestations = await getUserAttestationsForAddress(
-//         userSmartAccount ? userSmartAccount : address ? address : "",
-//         registrationSchemaUID ? registrationSchemaUID : "",
-//       );
-//     }
-//     setUserAttestations(tmpAttestations);
-//     if (tmpAttestations.length > 0) {
-//       // Found initial user record
-//       console.log("Found user registration...");
-//       const decodedData = userRegistrationSchemaEncoder.decodeData(tmpAttestations[0].data);
-//       setUserRegistration({
-//         uid: tmpAttestations[0].id,
-//         account: decodedData[0].value.value.toString(),
-//         name: decodedData[1].value.value.toString(),
-//         emailHash: decodedData[2].value.value.toString(),
-//         location: decodedData[3].value.value.toString(),
-//         role: Number(decodedData[4].value.value),
-//       });
-//       setUserRegIsNull(false);
-//     } else {
-//       console.log("Did not find user registration");
-//       setUserRegistration(null);
-//     }
-//   };
-//   getUserAttestations();
-//   console.log("User registration UID: %s", userRegistration?.uid);
-// }, [
-//   address,
-//   registrationSchemaUID,
-//   setUserRegistration,
-//   updateSchemaUID,
-//   userRegIsNull,
-//   userRegistration?.uid,
-//   userRegistrationSchemaEncoder,
-//   userSmartAccount,
-// ]);
 
   useEffect(() => {
     if (price > 0) {
@@ -151,27 +96,29 @@ const ScaffoldEthApp = ({ Component, pageProps }: AppProps) => {
     tryZeroDevSigner();
   }, [address, defaultProjectId, setUserSigner, setUserSmartAccount]);
 
-  return (mounted && (
-    <WagmiConfig config={wagmiConfig}>
-      <NextNProgress />
-      <RainbowKitProvider
-        chains={appChains.chains}
-        avatar={BlockieAvatar}
-        theme={isDarkTheme ? darkTheme() : lightTheme()}
-      >
-        <div className="flex flex-col min-h-screen">
-          <Header />
-          <main className="relative flex flex-col flex-1">
-            <Wrapper>
-            <Component {...pageProps} />
-            </Wrapper>
-          </main>
-          <Footer />
-        </div>
-        <Toaster />
-      </RainbowKitProvider>
-    </WagmiConfig>
-  ));
+  return (
+    mounted && (
+      <WagmiConfig config={wagmiConfig}>
+        <NextNProgress />
+        <RainbowKitProvider
+          chains={appChains.chains}
+          avatar={BlockieAvatar}
+          theme={isDarkTheme ? darkTheme() : lightTheme()}
+        >
+          <div className="flex flex-col min-h-screen">
+            <Header />
+            <main className="relative flex flex-col flex-1">
+              <Wrapper>
+                <Component {...pageProps} />
+              </Wrapper>
+            </main>
+            <Footer />
+          </div>
+          <Toaster />
+        </RainbowKitProvider>
+      </WagmiConfig>
+    )
+  );
 };
 
 export default ScaffoldEthApp;
