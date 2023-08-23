@@ -1,4 +1,43 @@
-# 🏗 Scaffold-ETH 2
+# FarmShare
+
+## Decentralized Community-Supported Agriculture
+
+Submitted for the ETH Toronto online hackathon!
+
+[Demo video](https://youtu.be/y4CfR6Xh9Ks)
+
+[DoraHacks](https://dorahacks.io/buidl/6900)
+
+### Vision
+
+In many ways, our food system is broken. To start off, food prices are on the rise. In Canada, statistics show that food prices are up 10 percent from last year, which has led to an increase in the number of people experiencing food insecurity. Secondly, the environmental impacts due to big agriculture have created problems such as soil erosion, water pollution, and lack of biodiversity. Finally, almost one-third of food produced globally is lost or wasted, while over 780 million people experience hunger.
+
+To address these issues, FarmShare provides local communities with more options through community supported agriculture, also known as CSAs. Traditional CSAs are costly to maintain, but by using blockchain technology, we are able to revolutionize CSAs by tapping into the many resources local communities can provide.
+
+### Features
+
+The core features of our app are:
+
+1. Each community will create a Safe multisig wallet upon registering, owned by the farmers in the community. This is the first step towards unlocking a world of public goods funding through web3 protocols, backed by the transparency of blockchains.
+2. Anyone can join the community to contribute. Account abstraction and social login using Web3Auth and ZeroDev make it easy for anyone to create an account and start contributing resources such as time, skills, labor and financial capital. Our paymaster pays the gas for any transactions that interact with our contracts through the Ethereum Attestation Service.
+3. Farmers create tasks using EAS, which anyone can then fund with rewards. Once a task is complete, the farmer can attest to it and the user will receive tokens which can be redeemed for shares of food harvested from the farm. Plus, anyone who believes the task is valuable can add additional rewards by funding it with ERC-20 tokens.
+4. In the future, streaming payments will open up even more funding opportunities for the farm. Farmers can apply for public goods funding or receive subscription payments in USDC as an upfront payment before the season starts.
+
+### Bounties sought
+
+- Base: _Help bring Base to the masses with creating a consumer focused product_
+- Ethereum Attestation Service: _Building with attestations_ (pretty much everything we built uses EAS)
+
+### Next Steps
+
+While for this hackathon we focused primarily on the user on-boarding and completing tasks for farm shares, we plan on continuing to develop FarmShare going forward. Our next steps are:
+
+- Implement a marketplace, where users can exchange their rewards for different types of food on the farm.
+- Implement new funding mechanisms for further incentivizing the creation of new CSAs by farmers, such as public goods funding via Allo protocol and streaming subscription plans using Superfluid or Sablier.
+
+---
+
+# 🏗 Built with Scaffold-ETH 2
 
 🧪 An open-source, up-to-date toolkit for building decentralized applications (dapps) on the Ethereum blockchain. It's designed to make it easier for developers to create and deploy smart contracts and build user interfaces that interact with those contracts.
 
