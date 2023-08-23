@@ -7,9 +7,11 @@ import CardContent from "@mui/material/CardContent";
 import CardMedia from "@mui/material/CardMedia";
 import Typography from "@mui/material/Typography";
 import moment from "moment";
+import { useNetwork } from "wagmi";
 // import style from "styled-jsx/style";
 import { TaskReward } from "~~/services/eas/customSchemaTypes";
 import { useGlobalState } from "~~/services/store/store";
+import { contracts } from "~~/utils/scaffold-eth/contract";
 
 export default function TaskCard({
   uid,
@@ -32,6 +34,7 @@ export default function TaskCard({
 }) {
   const [open, setOpen] = useState(false);
   const userAddress = useGlobalState(state => state.userSmartAccount);
+  const { chain } = useNetwork();
   let [showDetails, setShowDetails] = useState<any>(false);
   let [content, setContent] = useState<any>(<React.Fragment></React.Fragment>);
 
@@ -46,6 +49,13 @@ export default function TaskCard({
     boxShadow: 24,
     p: 4,
   };
+
+  const farmSharesAddress =
+    chain && contracts
+      ? contracts[chain.id]?.[0]?.["contracts"]?.["FarmShares"]
+        ? contracts[chain.id]?.[0]?.["contracts"]?.["FarmShares"].address
+        : "0xFF2d8417c275F06e69392C08B6b4292D556409f5"
+      : "0xFF2d8417c275F06e69392C08B6b4292D556409f5";
 
   React.useEffect(() => {
     if (!showDetails) {
@@ -69,9 +79,13 @@ export default function TaskCard({
                 <Typography variant="body2" color="text.secondary">
                   Rewards: <br />{" "}
                   {rewards.map((reward, index) => (
-                    <span key={index}>
-                      {reward.amount} {reward.tokenName}
-                    </span>
+                    <>
+                      <span key={index}>
+                        {reward.tokenName.endsWith(" Share") ? reward.amount / 1e2 : reward.amount / 1e18}{" "}
+                        {reward.tokenName}
+                      </span>
+                      <br />
+                    </>
                   ))}
                 </Typography>
               )}
@@ -99,9 +113,13 @@ export default function TaskCard({
                 <Typography variant="body2" color="white">
                   Rewards: <br />{" "}
                   {rewards.map((reward, index) => (
-                    <span key={index}>
-                      {reward.amount} {reward.tokenName}
-                    </span>
+                    <>
+                      <span key={index}>
+                        {reward.tokenName.endsWith(" Share") ? reward.amount / 1e2 : reward.amount / 1e18}{" "}
+                        {reward.tokenName}
+                      </span>
+                      <br />
+                    </>
                   ))}
                 </Typography>
               )}
