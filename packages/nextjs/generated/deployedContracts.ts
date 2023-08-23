@@ -2701,7 +2701,7 @@ const contracts = {
       name: "baseGoerli",
       contracts: {
         CommunityRegistry: {
-          address: "0xBB6a6ECb95413BBf5be7Bf1E256376eeAad83D49",
+          address: "0xFA2AA8C3217d26bF91831c7b7F016E2fB0834FF4",
           abi: [
             {
               inputs: [
@@ -3663,7 +3663,7 @@ const contracts = {
           ],
         },
         FarmRegistry: {
-          address: "0x74132081bBc4b943b945D7f71E53353d46125916",
+          address: "0x8D85AdE5A51C0Cdd83c0859e42879fF97f85Ceba",
           abi: [
             {
               inputs: [
@@ -4710,7 +4710,7 @@ const contracts = {
           ],
         },
         FarmShareTokens: {
-          address: "0xaD72CaDE83BaE7b7Ec979Bd8192cbAb086357244",
+          address: "0x34C8Ce2AAA1002962095E65a958eD1a18891dD1D",
           abi: [
             {
               inputs: [
@@ -4897,6 +4897,19 @@ const contracts = {
                 },
               ],
               stateMutability: "view",
+              type: "function",
+            },
+            {
+              inputs: [],
+              name: "decimals",
+              outputs: [
+                {
+                  internalType: "uint256",
+                  name: "",
+                  type: "uint256",
+                },
+              ],
+              stateMutability: "pure",
               type: "function",
             },
             {
@@ -5134,7 +5147,7 @@ const contracts = {
           ],
         },
         TaskRegistry: {
-          address: "0x775Adab1C3325d89A1e6df137ABC66c4c7929D9e",
+          address: "0xc2062d48b4ef7392cA5Bf9acDD456d94Ed5a2283",
           abi: [
             {
               inputs: [

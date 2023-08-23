@@ -7,12 +7,14 @@ import CardContent from "@mui/material/CardContent";
 import CardMedia from "@mui/material/CardMedia";
 import Typography from "@mui/material/Typography";
 import moment from "moment";
+import { useNetwork } from "wagmi";
 // import style from "styled-jsx/style";
 import { TaskReward } from "~~/services/eas/customSchemaTypes";
 import { useGlobalState } from "~~/services/store/store";
 import { getTaskApplicationsByTaskID } from "~~/services/eas/utils";
 import { useScaffoldContractRead } from "~~/hooks/scaffold-eth";
 import { getAttestation } from "~~/services/eas/utils";
+import { contracts } from "~~/utils/scaffold-eth/contract";
 
 export default function TaskCard({
   uid,
@@ -36,10 +38,11 @@ export default function TaskCard({
   const [open, setOpen] = useState(false);
   const [openApplications, setOpenApplications] = useState(false);
   const userAddress = useGlobalState(state => state.userSmartAccount);
-  let [showDetails, setShowDetails] = useState<any>(false);
-  let [content, setContent] = useState<any>(<React.Fragment></React.Fragment>);
-  let [applications, setApplications] = useState<any>([]);
-  let [usersWhoApplied, setUsersWhoApplied] = useState<any>([]);
+  const { chain } = useNetwork();
+  const [showDetails, setShowDetails] = useState<any>(false);
+  const [content, setContent] = useState<any>(<React.Fragment></React.Fragment>);
+  const [applications, setApplications] = useState<any>([]);
+  const [usersWhoApplied, setUsersWhoApplied] = useState<any>([]);
 
   //Use this state to set if task is accepted
   let [taskAccepted, setTaskAccepted] = useState<any>(false);
@@ -74,6 +77,12 @@ export default function TaskCard({
       getUserAttestations()
     }
   }, [applications]);
+  const farmSharesAddress =
+    chain && contracts
+      ? contracts[chain.id]?.[0]?.["contracts"]?.["FarmShares"]
+        ? contracts[chain.id]?.[0]?.["contracts"]?.["FarmShares"].address
+        : "0xFF2d8417c275F06e69392C08B6b4292D556409f5"
+      : "0xFF2d8417c275F06e69392C08B6b4292D556409f5";
 
   React.useEffect(() => {
     if (!showDetails) {
@@ -97,9 +106,13 @@ export default function TaskCard({
                 <Typography variant="body2" color="text.secondary">
                   Rewards: <br />{" "}
                   {rewards.map((reward, index) => (
-                    <span key={index}>
-                      {reward.amount} {reward.tokenName}
-                    </span>
+                    <>
+                      <span key={index}>
+                        {reward.tokenName.endsWith(" Share") ? reward.amount / 1e2 : reward.amount / 1e18}{" "}
+                        {reward.tokenName}
+                      </span>
+                      <br />
+                    </>
                   ))}
                 </Typography>
               )}
@@ -125,7 +138,16 @@ export default function TaskCard({
               </Typography>
               {rewards.length > 0 && (
                 <Typography variant="body2" color="white">
-                  {"Rewards: " + rewards}
+                  Rewards: <br />{" "}
+                  {rewards.map((reward, index) => (
+                    <>
+                      <span key={index}>
+                        {reward.tokenName.endsWith(" Share") ? reward.amount / 1e2 : reward.amount / 1e18}{" "}
+                        {reward.tokenName}
+                      </span>
+                      <br />
+                    </>
+                  ))}
                 </Typography>
               )}
             </CardContent>
