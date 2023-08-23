@@ -1,4 +1,6 @@
-# 🏗 Scaffold-ETH 2
+# FarmShare
+
+![FarmShare_GitDemo_720p](https://github.com/FarmshareCSA/Farmshare/assets/48034595/7a790a75-bbe4-4066-a6be-945c7a688484)
 
 🧪 An open-source, up-to-date toolkit for building decentralized applications (dapps) on the Ethereum blockchain. It's designed to make it easier for developers to create and deploy smart contracts and build user interfaces that interact with those contracts.
 
