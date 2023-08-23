@@ -5,6 +5,7 @@ import { FormControlLabel, MenuItem, Select, Switch, TextField } from "@mui/mate
 import { Contract } from "ethers";
 import moment from "moment";
 import invariant from "tiny-invariant";
+import { parseEther } from "viem";
 import { useNetwork, useWalletClient } from "wagmi";
 import { useScaffoldContractRead } from "~~/hooks/scaffold-eth";
 import { UserRole } from "~~/services/eas/customSchemaTypes";
@@ -60,7 +61,15 @@ export const TaskFundingForm = ({ taskUID, onClose }: any) => {
     "function balanceOf(address account, uint256 id) external view returns (uint256 balance)",
   ];
 
-  const taskRegistryABI = ["function fundTaskWithFarmShares(bytes32 taskUID,bytes32 farmUID,uint amount)"];
+  const taskRegistryABI = [
+    "function fundTaskWithFarmShares(bytes32 taskUID,bytes32 farmUID,uint amount) public",
+    "function fundTaskWithERC20(bytes32 taskUID,address tokenAddress,uint amount) public returns (bytes32 taskFundedUID)",
+  ];
+
+  const erc20ApproveABI = [
+    "function approve(address guy, uint wad) public returns (bool)",
+    "function balanceOf(address account) public view returns (uint256)",
+  ];
 
   const writeDisabled = !chain || chain?.id !== getTargetNetwork().id;
 
@@ -93,7 +102,7 @@ export const TaskFundingForm = ({ taskUID, onClose }: any) => {
         );
 
         const taskRegistryContract = new Contract(taskRegistry, taskRegistryABI, signer);
-        const receipt = await taskRegistryContract.fundTaskWithFarmShares(taskUID, farmUID, amount);
+        const receipt = await taskRegistryContract.fundTaskWithFarmShares(taskUID, farmUID, amount * 1e2);
         await receipt.wait();
         const farmSharesContract = new Contract(farmSharesAddress, farmSharesABI, signer);
 
@@ -102,6 +111,14 @@ export const TaskFundingForm = ({ taskUID, onClose }: any) => {
         );
       } else {
         // Fund with ERC-20
+        const erc20Contract = new Contract(token, erc20ApproveABI, signer);
+        const erc20Amount = parseEther(amount.toString());
+        const approveReceipt = await erc20Contract.approve(taskRegistry, erc20Amount);
+        await approveReceipt.wait();
+        const taskRegistryContract = new Contract(taskRegistry, taskRegistryABI, signer);
+        const receipt = await taskRegistryContract.fundTaskWithERC20(taskUID, token, erc20Amount);
+        await receipt.wait();
+        console.log(`TaskRegistry shares balance: ${await erc20Contract.balanceOf(taskRegistry)}`);
       }
       setSubmitting(false);
       notification.success("You successfully funded a task");
@@ -163,8 +180,11 @@ export const TaskFundingForm = ({ taskUID, onClose }: any) => {
         label="Amount"
         value={amount}
         type="number"
-        onChange={e => setAmount(parseInt(e.target.value))}
+        onChange={e => setAmount(parseFloat(e.target.value))}
         placeholder="Token amount"
+        inputProps={{
+          step: "0.0001",
+        }}
         InputProps={{
           startAdornment: <span className="self-center cursor-pointer text-xl font-semibold px-3 text-accent">💰</span>,
         }}
