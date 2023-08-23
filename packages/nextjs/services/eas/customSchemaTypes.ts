@@ -49,6 +49,8 @@ export type Task = {
   applicants: TaskApplicant[];
   started: boolean;
   completed: boolean;
+  userUID: string | null;
+  userAddress: string | null;
 };
 
 export type TaskReward = {
@@ -66,6 +68,7 @@ export type TaskApplicant = {
   uid: string;
   userUID: string;
   userName: string;
+  userAddress: string;
   skillUIDs: string[];
 };
 
