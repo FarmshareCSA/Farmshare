@@ -330,9 +330,7 @@ const Tasks: NextPage = () => {
     setCommunity(value);
   };
 
-  useEffect(() => {
-    console.log("community", community);
-}, [community]);
+
 
   return (
     <React.Fragment>
