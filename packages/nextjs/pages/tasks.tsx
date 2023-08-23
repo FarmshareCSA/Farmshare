@@ -200,7 +200,8 @@ const displayTasks = (taskList: Task[]) => {
     if (counter >= 12) {
       counter = 0;
     }
-    if (i === numberOfTasks - 1) {
+    if (task.completed) {
+    } else if (i === numberOfTasks - 1) {
       tasks.push(
         <Grid key={task.uid} xs={12 - counter} sx={{ padding: "5px" }}>
           <TaskCard
@@ -211,6 +212,11 @@ const displayTasks = (taskList: Task[]) => {
             startTime={task.startTime}
             endTime={task.endTime}
             rewards={task.rewards}
+            applicants={task.applicants}
+            started={task.started}
+            completed={task.completed}
+            startedByUserUID={task.userUID}
+            startedByUserAddress={task.userAddress}
             image={task.imageURL}
           />
         </Grid>,
@@ -227,6 +233,11 @@ const displayTasks = (taskList: Task[]) => {
             startTime={task.startTime}
             endTime={task.endTime}
             rewards={task.rewards}
+            applicants={task.applicants}
+            started={task.started}
+            completed={task.completed}
+            startedByUserUID={task.userUID}
+            startedByUserAddress={task.userAddress}
             image={task.imageURL}
           />
         </Grid>,
@@ -242,6 +253,11 @@ const displayTasks = (taskList: Task[]) => {
             startTime={task.startTime}
             endTime={task.endTime}
             rewards={task.rewards}
+            applicants={task.applicants}
+            started={task.started}
+            completed={task.completed}
+            startedByUserUID={task.userUID}
+            startedByUserAddress={task.userAddress}
             image={task.imageURL}
           />
         </Grid>,
@@ -279,6 +295,7 @@ const Tasks: NextPage = () => {
   const [community, setCommunity] = useState("");
   const communities = useGlobalState(state => state.communities);
   const userRegistration = useGlobalState(state => state.userRegistration);
+  const userSigner = useGlobalState(state => state.userSigner);
   let communityUID = searchParams.get("community");
 
   const { data: taskSchemaUID } = useScaffoldContractRead({
@@ -317,15 +334,18 @@ const Tasks: NextPage = () => {
   const applicationSchemaEncoder = new SchemaEncoder("bytes32 taskUID,bytes32 userUID,bytes32[] skillUIDs");
   const startedSchemaEncoder = new SchemaEncoder("bytes32 taskUID,bytes32 userUID,uint256 startTimestamp");
   const completedSchemaEncoder = new SchemaEncoder("bytes32 taskUID,bytes32 userUID,uint256 completeTimestamp");
+  const userSchemaEncoder = new SchemaEncoder(
+    "address account,string name,bytes32 emailHash,string location,uint8 role",
+  );
 
   useEffect(() => {
-    // if (communities && communityUID) {
-    //   communities.forEach(comm => {
-    //     if (comm.uid == communityUID) {
-    //       setCommunity(comm.uid);
-    //     }
-    //   });
-    // }
+    if (communities && communityUID) {
+      communities.forEach(comm => {
+        if (comm.uid == communityUID) {
+          setCommunity(comm.uid);
+        }
+      });
+    }
     getTasks();
   }, [communityUID, taskSchemaUID, community, open, userRegistration]);
 
@@ -342,7 +362,7 @@ const Tasks: NextPage = () => {
         rewardSchemaEncoder,
         applicationSchemaEncoder,
         startedSchemaEncoder,
-        completedSchemaEncoder,
+        userSchemaEncoder,
       );
       console.log("Found %s tasks for community %s", taskList.length, community);
       setTasks(displayTasks(taskList));
