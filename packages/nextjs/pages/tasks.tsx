@@ -307,21 +307,22 @@ const Tasks: NextPage = () => {
     //     }
     //   });
     // }
-    const getTasks = async () => {
-      if (taskSchemaUID && rewardSchemaUID) {
-        const taskList = await getTasksForCommunity(
-          community,
-          taskSchemaUID,
-          rewardSchemaUID,
-          taskSchemaEncoder,
-          rewardSchemaEncoder,
-        );
-        console.log("Found %s tasks for community %s", taskList.length, community);
-        setTasks(displayTasks(taskList));
-      }
-    };
     getTasks();
   }, [communityUID, taskSchemaUID, community, open, userRegistration]);
+
+  const getTasks = async () => {
+    if (taskSchemaUID && rewardSchemaUID) {
+      const taskList = await getTasksForCommunity(
+        community,
+        taskSchemaUID,
+        rewardSchemaUID,
+        taskSchemaEncoder,
+        rewardSchemaEncoder,
+      );
+      console.log("Found %s tasks for community %s", taskList.length, community);
+      setTasks(displayTasks(taskList));
+    }
+  };
 
   const handleChange = (event: SelectChangeEvent<typeof community>) => {
     const {
@@ -374,7 +375,7 @@ const Tasks: NextPage = () => {
             <Typography id="modal-modal-title" variant="h6" component="h2">
               Create Task
             </Typography>
-            <TaskCreationForm communityUID={community} onClose={setOpen} />
+            <TaskCreationForm communityUID={community} onClose={setOpen} getTasks={getTasks}/>
           </Box>
         </Modal>
       </Box>

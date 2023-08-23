@@ -10,6 +10,9 @@ import moment from "moment";
 // import style from "styled-jsx/style";
 import { TaskReward } from "~~/services/eas/customSchemaTypes";
 import { useGlobalState } from "~~/services/store/store";
+import { getTaskApplicationsByTaskID } from "~~/services/eas/utils";
+import { useScaffoldContractRead } from "~~/hooks/scaffold-eth";
+import { getAttestation } from "~~/services/eas/utils";
 
 export default function TaskCard({
   uid,
@@ -31,9 +34,15 @@ export default function TaskCard({
   image: string;
 }) {
   const [open, setOpen] = useState(false);
+  const [openApplications, setOpenApplications] = useState(false);
   const userAddress = useGlobalState(state => state.userSmartAccount);
   let [showDetails, setShowDetails] = useState<any>(false);
   let [content, setContent] = useState<any>(<React.Fragment></React.Fragment>);
+  let [applications, setApplications] = useState<any>([]);
+  let [usersWhoApplied, setUsersWhoApplied] = useState<any>([]);
+
+  //Use this state to set if task is accepted
+  let [taskAccepted, setTaskAccepted] = useState<any>(false);
 
   const style = {
     position: "absolute",
@@ -46,6 +55,25 @@ export default function TaskCard({
     boxShadow: 24,
     p: 4,
   };
+
+  const { data: taskApplicationSchemaUID } = useScaffoldContractRead({
+    contractName: "TaskRegistry",
+    functionName: "taskApplicationSchemaUID",
+  });
+
+  const getUserAttestations = async () => {
+    const Users = []
+    for( const application of applications) {
+      Users.push(getAttestation(application.userUID));
+    }
+    setUsersWhoApplied(Users);
+  };
+
+  React.useEffect(() => {
+    if (userAddress === creator) {
+      getUserAttestations()
+    }
+  }, [applications]);
 
   React.useEffect(() => {
     if (!showDetails) {
@@ -97,19 +125,20 @@ export default function TaskCard({
               </Typography>
               {rewards.length > 0 && (
                 <Typography variant="body2" color="white">
-                  Rewards: <br />{" "}
-                  {rewards.map((reward, index) => (
-                    <span key={index}>
-                      {reward.amount} {reward.tokenName}
-                    </span>
-                  ))}
+                  {"Rewards: " + rewards}
                 </Typography>
               )}
             </CardContent>
             <CardActions>
-              <Button variant="contained" style={{ backgroundColor: "rgb(46, 125, 50)" }}>
+            {userAddress !== creator &&
+            <Button variant="contained" style={{ backgroundColor: "rgb(46, 125, 50)" }}
+            onClick={() => {
+              //create an attestation with the taskApplicationSchema here
+            }}
+            >
                 Apply
               </Button>
+            }
               <Button
                 variant="contained"
                 style={{ backgroundColor: "rgb(46, 125, 50)" }}
@@ -119,6 +148,28 @@ export default function TaskCard({
               >
                 Fund
               </Button>
+              {userAddress === creator && <Button
+                variant="contained"
+                style={{ backgroundColor: "rgb(46, 125, 50)" }}
+                onClick={async () => {
+                  const applications = await getTaskApplicationsByTaskID(uid,taskApplicationSchemaUID as string);
+                  setApplications(applications);
+                  setOpenApplications(true);
+                }}
+              >
+                Accept Applicants
+              </Button>}
+              {userAddress === creator && taskAccepted ? <Button
+                variant="contained"
+                style={{ backgroundColor: "rgb(46, 125, 50)" }}
+                onClick={()=>{}
+                  // create one last attestation using the taskCompletedSchema here
+                }
+              >
+                Complete
+              </Button>
+              : null
+              }
               <Button
                 variant="contained"
                 style={{ backgroundColor: "rgb(46, 125, 50)" }}
@@ -145,10 +196,29 @@ export default function TaskCard({
               <TaskFundingForm taskUID={uid} onClose={setOpen} />
             </Box>
           </Modal>
+          <Modal
+            open={openApplications}
+            onClose={() => {
+              setOpenApplications(false);
+            }}
+            aria-labelledby="modal-modal-title"
+            aria-describedby="modal-modal-description"
+          >
+            <Box sx={style}>
+              <Typography id="modal-modal-title" variant="h6" component="h2">
+                {
+                  usersWhoApplied.map((user: any) => {
+                    return <Button key={user.account} variant="contained">{user.name}</Button>
+                  })
+                }
+              </Typography>
+              <TaskFundingForm taskUID={uid} onClose={setOpenApplications} />
+            </Box>
+          </Modal>
         </>,
       );
     }
-  }, [showDetails, open]);
+  }, [showDetails, open,]);
 
   return <React.Fragment>{content}</React.Fragment>;
 }

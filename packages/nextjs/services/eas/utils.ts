@@ -315,3 +315,39 @@ export async function getSkillUIDByName(
   }
   return "";
 }
+
+export async function getTaskApplicationsByTaskID(
+  taskId: string,
+  taskApplicationSchema: string
+) {
+  const response = await axios.post<MyAttestationResult>(
+    `${baseURL}/graphql`,
+    {
+      query:
+        "query Attestations($where: AttestationWhereInput, $orderBy: [AttestationOrderByWithRelationInput!]) {\n  attestations(where: $where, orderBy: $orderBy) {\n    attester\n    revocationTime\n    expirationTime\n    time\n    recipient\n    id\n    data\n  }\n}",
+
+      variables: {
+        where: {
+          schemaId: {
+            equals: taskApplicationSchema,
+          },
+          refUID: {
+            equals: taskId,
+          },
+        },
+        orderBy: [
+          {
+            time: "desc",
+          },
+        ],
+      },
+    },
+    {
+      headers: {
+        "content-type": "application/json",
+      },
+    },
+  );
+
+  return response.data.data.attestations;
+}
