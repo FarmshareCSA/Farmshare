@@ -4710,7 +4710,7 @@ const contracts = {
           ],
         },
         FarmShareTokens: {
-          address: "0x34C8Ce2AAA1002962095E65a958eD1a18891dD1D",
+          address: "0xa40cC99ea9a02e09745c7386792705b511DD7833",
           abi: [
             {
               inputs: [
@@ -5147,7 +5147,7 @@ const contracts = {
           ],
         },
         TaskRegistry: {
-          address: "0xc2062d48b4ef7392cA5Bf9acDD456d94Ed5a2283",
+          address: "0xe4b9d0C5b817B0C645ce51ce87874B8045097964",
           abi: [
             {
               inputs: [
