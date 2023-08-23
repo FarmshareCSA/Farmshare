@@ -79,49 +79,53 @@ export const TaskCreationForm = ({ communityUID, onClose }: any) => {
   };
 
   const handleSubmit = async () => {
-    setSubmitting(true);
-    try {
-      invariant(signer, "Signer must be defined");
-      eas.connect(signer as any);
-      const address = await signer.getAddress();
-      const userUID = userRegistration?.uid;
-      invariant(userUID && userUID != "0x0", "user must be registered");
-      invariant(schemaUID, "schema UID must be defined");
-      const encodedData = schemaEncoder.encodeData([
-        { name: "communityUID", value: communityUID, type: "bytes32" },
-        { name: "name", value: name, type: "string" },
-        { name: "description", value: description, type: "string" },
-        { name: "creator", value: address, type: "address" },
-        { name: "startTime", value: moment(startTime).unix(), type: "uint256" },
-        { name: "endTime", value: moment(endTime).unix(), type: "uint256" },
-        { name: "recurring", value: recurring, type: "bool" },
-        { name: "frequency", value: frequency, type: "uint256" },
-        { name: "imageURL", value: imageUrl, type: "string" },
-      ]);
+    if(!communityUID){
+      notification.error("You must select a community to create a task");
+    } else {
+      setSubmitting(true);
+      try {
+        invariant(signer, "Signer must be defined");
+        eas.connect(signer as any);
+        const address = await signer.getAddress();
+        const userUID = userRegistration?.uid;
+        invariant(userUID && userUID != "0x0", "user must be registered");
+        invariant(schemaUID, "schema UID must be defined");
+        const encodedData = schemaEncoder.encodeData([
+          { name: "communityUID", value: communityUID, type: "bytes32" },
+          { name: "name", value: name, type: "string" },
+          { name: "description", value: description, type: "string" },
+          { name: "creator", value: address, type: "address" },
+          { name: "startTime", value: moment(startTime).unix(), type: "uint256" },
+          { name: "endTime", value: moment(endTime).unix(), type: "uint256" },
+          { name: "recurring", value: recurring, type: "bool" },
+          { name: "frequency", value: frequency, type: "uint256" },
+          { name: "imageURL", value: imageUrl, type: "string" },
+        ]);
 
-      const tx = await eas.attest({
-        schema: schemaUID,
-        data: {
-          recipient: address,
-          expirationTime: BigInt(0),
-          revocable: false,
-          data: encodedData,
-          refUID: communityUID,
-        },
-      });
+        const tx = await eas.attest({
+          schema: schemaUID,
+          data: {
+            recipient: address,
+            expirationTime: BigInt(0),
+            revocable: false,
+            data: encodedData,
+            refUID: communityUID,
+          },
+        });
 
-      const newAttestationUID = await tx.wait();
+        const newAttestationUID = await tx.wait();
 
-      console.log("New attestation UID:", newAttestationUID);
+        console.log("New attestation UID:", newAttestationUID);
 
-      setSubmitting(false);
-      notification.success("You successfully added a task");
-      onClose(false);
-    } catch (error: any) {
-      console.error("⚡️ ~ file: RegistrationForm.tsx:handleSubmit ~ error", error);
-      notification.error(error.toString());
-      setSubmitting(false);
+        setSubmitting(false);
+        notification.success("You successfully added a task");
+        onClose(false);
+      } catch (error: any) {
+        console.error("⚡️ ~ file: RegistrationForm.tsx:handleSubmit ~ error", error);
+        notification.error(error.toString());
+        setSubmitting(false);
     }
+  }
   };
 
   return (
