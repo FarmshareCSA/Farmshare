@@ -332,6 +332,8 @@ const Tasks: NextPage = () => {
 
   return (
     <React.Fragment>
+      
+      <Box style={{ backgroundColor: "#F9FFF1" }}>
       {communities && (
         <div className="flex items-left flex-col flex-grow pt-5 pb-5">
           <div className="px-5">
@@ -345,7 +347,6 @@ const Tasks: NextPage = () => {
           </div>
         </div>
       )}
-      <Box style={{ backgroundColor: "#F9FFF1" }}>
         <Grid container sx={{ padding: "5px" }}>
           {tasks}
           <Fab
