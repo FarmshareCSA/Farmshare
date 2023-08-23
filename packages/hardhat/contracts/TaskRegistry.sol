@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "@openzeppelin/contracts/token/ERC1155/IERC1155Receiver.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@safe-global/safe-contracts/contracts/proxies/SafeProxyFactory.sol";
 import "@ethereum-attestation-service/eas-contracts/contracts/resolver/SchemaResolver.sol";
@@ -17,11 +17,11 @@ import "./interfaces/ICommunityRegistry.sol";
 import "./FarmShareTokens.sol";
 
 contract TaskRegistry is ITaskRegistry, IERC1155Receiver, Ownable, SchemaResolver {
-	using SafeERC20 for IERC20;
+	using SafeERC20 for IERC20Metadata;
 
     string public constant taskCreationSchema = "bytes32 communityUID,string name,string description,address creator,uint256 startTime,uint256 endTime,bool recurring,uint256 frequency,string imageURL";
     bytes32 public immutable taskCreationSchemaUID;
-	string public constant taskFundedSchema = "address tokenAddress,bool isErc1155,bool isErc20,uint256 amount,uint256 tokenId";
+	string public constant taskFundedSchema = "address tokenAddress,bool isErc1155,bool isErc20,uint256 amount,uint256 tokenId,string tokenName";
 	bytes32 public immutable taskFundedSchemaUID;
 	string public constant taskApplicationSchema = "bytes32 taskUID,bytes32 userUID,bytes32[] skillUIDs";
 	bytes32 public immutable taskApplicationSchemaUID;
@@ -44,6 +44,8 @@ contract TaskRegistry is ITaskRegistry, IERC1155Receiver, Ownable, SchemaResolve
 	mapping(bytes32 => TaskStatus) public taskStatusByUID;
 	mapping(bytes32 => bytes32[]) public taskRewardUIDsByTaskUID;
 	mapping(bytes32 => address[]) public taskApplicantsByTaskUID;
+	mapping(bytes32 => bytes32) public taskStartedUIDByTaskUID;
+	mapping(bytes32 => bytes32) public taskCompletionUIDByTaskUID;
 	mapping(bytes32 => bool) public isTaskRewardPaid;
 	
 	error InvalidTaskId();
@@ -68,7 +70,7 @@ contract TaskRegistry is ITaskRegistry, IERC1155Receiver, Ownable, SchemaResolve
 		taskStartedSchemaUID = _schemaRegistry.register(taskStartedSchema, this, false);
 		taskCompletedSchemaUID = _schemaRegistry.register(taskCompletedSchema, this, false);
 		taskReviewSchemaUID = _schemaRegistry.register(taskReviewSchema, this, true);
-		shareTokens = new FarmShareTokens(_userRegistry, _farmRegistry, this);
+		// shareTokens = new FarmShareTokens(_userRegistry, _farmRegistry, this);
 	}
 
 
@@ -130,12 +132,13 @@ contract TaskRegistry is ITaskRegistry, IERC1155Receiver, Ownable, SchemaResolve
 		bytes32 taskUID,
 		bytes32 farmUID,
 		uint amount
-	) external returns (bytes32 taskFundedUID) {
+	) external {
+		require(
+			farmRegistry.authorizedFarmerOrManager(farmUID, msg.sender), 
+			"Only farmer or manager can mint farm shares"
+		);
 		uint tokenId = uint(farmUID);
-		uint prevRewards = taskRewardUIDsByTaskUID[taskUID].length;
 		shareTokens.mint(address(this), tokenId, amount, abi.encode(taskUID));
-		require(taskRewardUIDsByTaskUID[taskUID].length == prevRewards + 1);
-		return taskRewardUIDsByTaskUID[taskUID][prevRewards];
 	}
 
 	/// Funds a task with an ERC-20 token
@@ -148,14 +151,15 @@ contract TaskRegistry is ITaskRegistry, IERC1155Receiver, Ownable, SchemaResolve
 		address tokenAddress,
 		uint amount
 	) external returns (bytes32 taskFundedUID) {
-		IERC20 token = IERC20(tokenAddress);
+		IERC20Metadata token = IERC20Metadata(tokenAddress);
 		token.safeTransferFrom(msg.sender, address(this), amount);
 		bytes memory taskFundedData = abi.encode(
 			tokenAddress,	// tokenAddress
 			false,			// isErc1155
 			true,			// isErc20
 			amount,			// amount
-			0				// tokenId
+			0,				// tokenId
+			token.name()	// token name
 		);
 		AttestationRequestData memory requestData = AttestationRequestData({
 			recipient: msg.sender,
@@ -195,7 +199,8 @@ contract TaskRegistry is ITaskRegistry, IERC1155Receiver, Ownable, SchemaResolve
 			true,		// isErc1155
 			false,		// isErc20
 			_value,		// amount
-			_id			// tokenId
+			_id,		// tokenId
+			shareTokens.name(_id)	// token name
 		);
 		AttestationRequestData memory requestData = AttestationRequestData({
 			recipient: tx.origin,
@@ -236,6 +241,12 @@ contract TaskRegistry is ITaskRegistry, IERC1155Receiver, Ownable, SchemaResolve
 		return ERC1155_BATCH_RECEIVED;
 	}
 
+	// External admin functions
+
+	function setFarmShareTokens(FarmShareTokens _shares) external onlyOwner {
+		shareTokens = _shares;
+	}
+
 	// Internal SchemaResolver functions
 
 	function onAttest(
@@ -259,6 +270,7 @@ contract TaskRegistry is ITaskRegistry, IERC1155Receiver, Ownable, SchemaResolve
 			require(bytes(description).length > 0, "Description cannot be empty");
 			require(bytes(communityRegistry.communityByUID(communityUID).name).length > 0, "Invalid community UID");
 			taskUIDsByCommunityUID[communityUID].push(attestation.uid);
+			taskStatusByUID[attestation.uid] = TaskStatus.CREATED;
 			emit TaskRegistered(
 				attestation.uid,
 				communityUID,
@@ -279,12 +291,14 @@ contract TaskRegistry is ITaskRegistry, IERC1155Receiver, Ownable, SchemaResolve
 				bool isErc1155,
 				bool isErc20,
 				uint amount,
-				uint tokenId
-			) = abi.decode(attestation.data, (address, bool, bool, uint, uint));
+				uint tokenId,
+				string memory tokenName
+			) = abi.decode(attestation.data, (address, bool, bool, uint, uint, string));
 			if (isErc1155 == isErc20) revert UnsupportedTokenType();
 			bytes32 taskUID = attestation.refUID;
 			taskRewardUIDsByTaskUID[taskUID].push(attestation.uid);
-			emit TaskFunded(taskUID, attestation.uid, tokenAddress, isErc1155, isErc20, amount, tokenId);
+			isTaskRewardPaid[attestation.uid] = false;
+			emit TaskFunded(taskUID, attestation.uid, tokenAddress, isErc1155, isErc20, amount, tokenId, tokenName);
 			return true;
 		} else if (attestation.schema == taskApplicationSchemaUID) {
 			(
@@ -313,9 +327,11 @@ contract TaskRegistry is ITaskRegistry, IERC1155Receiver, Ownable, SchemaResolve
 				bytes32 userUID,
 			) = abi.decode(attestation.data, (bytes32, bytes32, uint));
 			require(attestation.attester == taskByUID(taskUID).creator, "Only task creator can attest that their task has been started");
+			require(taskStatusByUID[taskUID] == TaskStatus.CREATED, "Task is either already in-progress or completed");
 			UserRecord memory user = userRegistry.userRecordByUID(userUID);
 			if(user.account == address(0)) revert InvalidUserAddress();
 			taskStatusByUID[taskUID] = TaskStatus.INPROGRESS;
+			taskStartedUIDByTaskUID[taskUID] = attestation.uid;
 			emit TaskStarted(taskUID, attestation.uid, userUID, block.timestamp);
 			return true;
 		} else if (attestation.schema == taskCompletedSchemaUID) {
@@ -324,6 +340,7 @@ contract TaskRegistry is ITaskRegistry, IERC1155Receiver, Ownable, SchemaResolve
 				bytes32 userUID,
 			) = abi.decode(attestation.data, (bytes32, bytes32, uint));
 			require(attestation.attester == taskByUID(taskUID).creator, "Only task creator can attest that their task has been completed");
+			require(taskStatusByUID[taskUID] == TaskStatus.INPROGRESS, "Task has not been started yet");
 			UserRecord memory user = userRegistry.userRecordByUID(userUID);
 			if(user.account != attestation.recipient) revert InvalidUserAddress();
 			taskStatusByUID[taskUID] = TaskStatus.COMPLETE;
@@ -344,24 +361,24 @@ contract TaskRegistry is ITaskRegistry, IERC1155Receiver, Ownable, SchemaResolve
 	function payoutTaskRewards(bytes32 taskUID, address to) internal {
 		for (uint i; i < taskRewardUIDsByTaskUID[taskUID].length; ++i) {
 			bytes32 rewardUID = taskRewardUIDsByTaskUID[taskUID][i];
-			if(isTaskRewardPaid[rewardUID] != false) revert TaskRewardAlreadyPaid();
-			isTaskRewardPaid[rewardUID] = true;
 			Attestation memory rewardAttestation = _eas.getAttestation(rewardUID);
 			(
 				address tokenAddress,
 				bool isErc1155,
 				bool isErc20,
 				uint amount,
-				uint tokenId
-			) = abi.decode(rewardAttestation.data, (address, bool, bool, uint, uint));
+				uint tokenId,
+			) = abi.decode(rewardAttestation.data, (address, bool, bool, uint, uint, string));
 			if (isErc20) {
-				IERC20(tokenAddress).safeTransfer(to, amount);
+				IERC20Metadata(tokenAddress).safeTransfer(to, amount);
 			} else if (isErc1155) {
 				IERC1155(tokenAddress).safeTransferFrom(address(this), to, tokenId, amount, "");
 			} else {
 				revert UnsupportedTokenType();
 			}
 			emit RewardPaid(taskUID, rewardAttestation.uid, tokenAddress, to, amount);
+			isTaskRewardPaid[rewardUID] = true;
 		}
+		taskRewardUIDsByTaskUID[taskUID] = new bytes32[](0);
 	}
 }

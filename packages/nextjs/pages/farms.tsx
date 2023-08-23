@@ -1,106 +1,162 @@
-import Link from "next/link";
+import { useEffect, useState } from "react";
+import mapsData from "./sampleMapData.json";
+import { EAS, SchemaEncoder } from "@ethereum-attestation-service/eas-sdk";
+import "mapbox-gl/dist/mapbox-gl.css";
 import type { NextPage } from "next";
-import { BugAntIcon, MagnifyingGlassIcon, SparklesIcon } from "@heroicons/react/24/outline";
+import { useNetwork } from "wagmi";
 import FarmCard from "~~/components/FarmCard";
+import { FarmRegistrationForm } from "~~/components/FarmRegistrationForm";
+import MapDisplay from "~~/components/MapDisplay";
 import { MetaHeader } from "~~/components/MetaHeader";
+import { useScaffoldContractRead } from "~~/hooks/scaffold-eth";
+import { Farm, UserRole } from "~~/services/eas/customSchemaTypes";
+import { getAllAttestationsForSchema } from "~~/services/eas/utils";
+import { useGlobalState } from "~~/services/store/store";
+import { contracts } from "~~/utils/scaffold-eth/contract";
 
-const samepleFarms = [
-  {
-    id: 1,
-    title: "Red Rooster's Farm",
-    description:
-      "Lizards are a widespread group of squamate reptiles, with over 6,000 species, ranging across all continents except Antarctica",
-    img: "https://live.staticflickr.com/65535/50881797506_176f3d534f_z.jpg",
-  },
-  {
-    id: 2,
-    title: "Red Rooster's Farm",
-    description:
-      "Lizards are a widespread group of squamate reptiles, with over 6,000 species, ranging across all continents except Antarctica",
-    img: "https://live.staticflickr.com/65535/50881797506_176f3d534f_z.jpg",
-  },
-  {
-    id: 3,
-    title: "Red Rooster's Farm",
-    description:
-      "Lizards are a widespread group of squamate reptiles, with over 6,000 species, ranging across all continents except Antarctica",
-    img: "https://live.staticflickr.com/65535/50881797506_176f3d534f_z.jpg",
-  },
-  {
-    id: 4,
-    title: "Red Rooster's Farm",
-    description:
-      "Lizards are a widespread group of squamate reptiles, with over 6,000 species, ranging across all continents except Antarctica",
-    img: "https://live.staticflickr.com/65535/50881797506_176f3d534f_z.jpg",
-  },
-  {
-    id: 5,
-    title: "Red Rooster's Farm",
-    description:
-      "Lizards are a widespread group of squamate reptiles, with over 6,000 species, ranging across all continents except Antarctica",
-    img: "https://live.staticflickr.com/65535/50881797506_176f3d534f_z.jpg",
-  },
-];
+type Feature = {
+  type: string;
+  properties: {
+    title: string;
+    description: string;
+    streetAddress?: string;
+    city?: string;
+    state?: string;
+    country?: string;
+    postalCode?: string;
+    img: string;
+    websiteURL?: string;
+  };
+  geometry: {
+    coordinates: number[];
+    type: string;
+  };
+};
+
+type GeoJson = {
+  features: Feature[];
+};
 
 const Farms: NextPage = () => {
+  const hasMapData = "features" in mapsData;
+  const [isLoading, setIsLoading] = useState(true);
+  const [geoJson, setGeoJson] = useState<GeoJson>();
+  const sampleKeys = [...Array(geoJson?.features?.length).keys()].map(i => i + 1);
+
+  const userRegistration = useGlobalState(state => state.userRegistration);
+  const smartAccount = useGlobalState(state => state.userSmartAccount);
+  const [userFarmIsRegistered, setUserFarmIsRegistered] = useState(false);
+  const [farms, setFarms] = useState<Farm[]>([]);
+  const { chain } = useNetwork();
+
+  const { data: farmSchemaUID } = useScaffoldContractRead({
+    contractName: "FarmRegistry",
+    functionName: "registrationSchemaUID",
+  });
+
+  const easAddress =
+    chain && contracts
+      ? contracts[chain.id]?.[0]?.["contracts"]?.["EAS"]
+        ? contracts[chain.id]?.[0]?.["contracts"]?.["EAS"]?.address
+        : chain.name == "Sepolia"
+        ? "0xC2679fBD37d54388Ce493F1DB75320D236e1815e"
+        : chain.name == "Base Goerli"
+        ? "0xAcfE09Fd03f7812F022FBf636700AdEA18Fd2A7A"
+        : "0x87A33bc39A49Bd3e50aa053Bee91a988A510ED6a"
+      : "0xC2679fBD37d54388Ce493F1DB75320D236e1815e";
+  const eas = new EAS(easAddress);
+
+  // Initialize SchemaEncoder with the schema string
+  const farmSchemaEncoder = new SchemaEncoder(
+    "bytes32 ownerUID,string name,string description,string streetAddress,string city,string state,string country,string postalCode,string latAndLong,string websiteUrl,string imageUrl",
+  );
+
+  useEffect(() => {
+    const getFarmRegistrations = async () => {
+      if (farmSchemaUID && userRegistration) {
+        const farmAttestations = await getAllAttestationsForSchema(farmSchemaUID);
+        const farmList: Farm[] = [];
+        const featureArray: Feature[] = [];
+        const farmsGeoJson = { features: featureArray };
+        farmAttestations.forEach(attestation => {
+          const decodedData = farmSchemaEncoder.decodeData(attestation.data);
+          if (decodedData[0].value.value == userRegistration.uid) setUserFarmIsRegistered(true);
+          farmList.push({
+            uid: attestation.id,
+            owner: decodedData[0].value.value.toString(),
+            name: decodedData[1].value.value.toString(),
+            description: decodedData[2].value.value.toString(),
+            streetAddress: decodedData[3].value.value.toString(),
+            city: decodedData[4].value.value.toString(),
+            state: decodedData[5].value.value.toString(),
+            country: decodedData[6].value.value.toString(),
+            postalCode: decodedData[7].value.value.toString(),
+            latAndLong: decodedData[8].value.value.toString(),
+            websiteURL: decodedData[9].value.value.toString(),
+            imageURL: decodedData[10].value.value.toString(),
+          });
+          const lat = parseFloat(decodedData[8].value.value.toString().split(",")[0]);
+          const long = parseFloat(decodedData[8].value.value.toString().split(",")[1]);
+          farmsGeoJson.features.push({
+            type: "Feature",
+            properties: {
+              title: decodedData[1].value.value.toString(),
+              description: decodedData[2].value.value.toString(),
+              streetAddress: decodedData[3].value.value.toString(),
+              city: decodedData[4].value.value.toString(),
+              state: decodedData[5].value.value.toString(),
+              country: decodedData[6].value.value.toString(),
+              postalCode: decodedData[7].value.value.toString(),
+              img: decodedData[10].value.value.toString(),
+              websiteURL: decodedData[9].value.value.toString(),
+            },
+            geometry: {
+              coordinates: [lat, long],
+              type: "Point",
+            },
+          });
+        });
+        setGeoJson(farmsGeoJson);
+        setIsLoading(false);
+        setFarms(farmList);
+      }
+    };
+    getFarmRegistrations();
+  }, [farmSchemaUID, userFarmIsRegistered]);
+  console.log("useEffect in FARMS RAN", geoJson);
+
   return (
     <>
       <MetaHeader />
+      {!isLoading && <MapDisplay geoJson={geoJson} />}
       <div className="flex items-center flex-col flex-grow pt-10">
         <div className="px-5">
           <h1 className="text-center mb-8">
             <span className="block text-4xl font-bold">FarmShare</span>
           </h1>
-          <p className="text-center text-lg">
-            Get started by editing{" "}
-            <code className="italic bg-base-300 text-base font-bold">packages/nextjs/pages/index.tsx</code>
-          </p>
-          <p className="text-center text-lg">
-            Edit your smart contract <code className="italic bg-base-300 text-base font-bold">YourContract.sol</code> in{" "}
-            <code className="italic bg-base-300 text-base font-bold">packages/hardhat/contracts</code>
-          </p>
         </div>
-
-        <div className="grid grid-cols-3 gap-4">
-          {samepleFarms.map(farm => (
-            <div key={farm.id}>
-              <FarmCard farm={farm} />
-            </div>
-          ))}
-        </div>
-
+        {!isLoading && (
+          <div className="grid grid-cols-3 gap-4">
+            {geoJson?.features.map((farm, idx) => (
+              <div key={sampleKeys[idx]}>
+                <FarmCard farm={farm} />
+              </div>
+            ))}
+          </div>
+        )}
         <div className="flex-grow bg-base-100 w-full mt-16 px-8 py-12">
           <div className="flex justify-center items-center gap-12 flex-col sm:flex-row">
-            <div className="flex flex-col bg-base-100 px-10 py-10 text-center items-center max-w-xs rounded-3xl">
-              <BugAntIcon className="h-8 w-8 fill-secondary" />
-              <p>
-                Tinker with your smart contract using the{" "}
-                <Link href="/debug" passHref className="link">
-                  Debug Contract
-                </Link>{" "}
-                tab.
-              </p>
-            </div>
-            <div className="flex flex-col bg-base-100 px-10 py-10 text-center items-center max-w-xs rounded-3xl">
-              <SparklesIcon className="h-8 w-8 fill-secondary" />
-              <p>
-                Experiment with{" "}
-                <Link href="/example-ui" passHref className="link">
-                  Example UI
-                </Link>{" "}
-                to build your own UI.
-              </p>
-            </div>
-            <div className="flex flex-col bg-base-100 px-10 py-10 text-center items-center max-w-xs rounded-3xl">
-              <MagnifyingGlassIcon className="h-8 w-8 fill-secondary" />
-              <p>
-                Explore your local transactions with the{" "}
-                <Link href="/blockexplorer" passHref className="link">
-                  Block Explorer
-                </Link>{" "}
-                tab.
-              </p>
-            </div>
+            {userRegistration && userRegistration.role == UserRole.Farmer && !userFarmIsRegistered && (
+              <>
+                <h3 className="text-center mb-8">
+                  <span className="block text-4xl font-bold">
+                    🚜 <br />
+                    Ready to register your farm?
+                  </span>
+                </h3>
+                <FarmRegistrationForm onSubmit={setUserFarmIsRegistered} />
+              </>
+            )}
           </div>
         </div>
       </div>

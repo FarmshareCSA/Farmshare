@@ -12,6 +12,7 @@ import "@rainbow-me/rainbowkit/styles.css";
 import { getRPCProviderOwner, getZeroDevSigner } from "@zerodevapp/sdk";
 import NextNProgress from "nextjs-progressbar";
 import { Toaster } from "react-hot-toast";
+import invariant from "tiny-invariant";
 import { useDarkMode } from "usehooks-ts";
 import { WagmiConfig, useAccount } from "wagmi";
 import { Footer } from "~~/components/Footer";
@@ -19,8 +20,9 @@ import { Header } from "~~/components/Header";
 import { BlockieAvatar } from "~~/components/scaffold-eth";
 import { useNativeCurrencyPrice } from "~~/hooks/scaffold-eth";
 import { useScaffoldContractRead } from "~~/hooks/scaffold-eth";
+import { Community } from "~~/services/eas/customSchemaTypes";
 import type { Attestation } from "~~/services/eas/types";
-import { getUserAttestationsForAddress } from "~~/services/eas/utils";
+import { getAllAttestationsForSchema, getAttestation, getUserAttestationsForAddress } from "~~/services/eas/utils";
 import { useGlobalState } from "~~/services/store/store";
 import { wagmiConfig } from "~~/services/web3/wagmiConfig";
 import { appChains } from "~~/services/web3/wagmiConnectors";
@@ -34,6 +36,8 @@ export default function Wrapper(props: any) {
 
   const userSmartAccount = useGlobalState(state => state.userSmartAccount);
   const userRegistration = useGlobalState(state => state.userRegistration);
+  const communities = useGlobalState(state => state.communities);
+  const setCommunities = useGlobalState(state => state.setCommunities);
   const [userRegIsNull, setUserRegIsNull] = useState(userRegistration == null);
   const setUserRegistration = useGlobalState(state => state.setUserRegistration);
   const [userAttestations, setUserAttestations] = useState<Attestation[]>([]);
@@ -56,6 +60,32 @@ export default function Wrapper(props: any) {
     contractName: "UserRegistry",
     functionName: "updateSchemaUID",
   });
+
+  const { data: communitySchemaUID } = useScaffoldContractRead({
+    contractName: "CommunityRegistry",
+    functionName: "registrationSchemaUID",
+  });
+
+  const getCommunity = async (uid: string) => {
+    const attestation = await getAttestation(uid);
+    invariant(attestation, "Attestation not found");
+    const communitySchemaEncoder = new SchemaEncoder(
+      "string name,string description,string city,string state,string country,string postalCode,string websiteURL,string imageURL",
+    );
+    const decodedData = communitySchemaEncoder.decodeData(attestation.data);
+
+    return {
+      uid: attestation.id,
+      name: decodedData[0].value.value.toString(),
+      description: decodedData[1].value.value.toString(),
+      city: decodedData[2].value.value.toString(),
+      state: decodedData[3].value.value.toString(),
+      country: decodedData[4].value.value.toString(),
+      postalCode: decodedData[5].value.value.toString(),
+      websiteURL: decodedData[6].value.value.toString(),
+      imageURL: decodedData[7].value.value.toString(),
+    } as Community;
+  };
 
   React.useEffect(() => {
     const getUserAttestations = async () => {
@@ -88,7 +118,18 @@ export default function Wrapper(props: any) {
         setUserRegistration(null);
       }
     };
+    const getCommunityAttestations = async () => {
+      if (communitySchemaUID) {
+        const tmpAttestations = await getAllAttestationsForSchema(communitySchemaUID);
+        const tmpCommunities: Community[] = [];
+        for (let i = 0; i < tmpAttestations.length; i++) {
+          tmpCommunities.push(await getCommunity(tmpAttestations[i].id));
+        }
+        setCommunities(tmpCommunities);
+      }
+    };
     if (!userRegistration) getUserAttestations();
+    if (!communities) getCommunityAttestations();
     console.log("User registration UID: %s", userRegistration?.uid);
   }, [
     address,

@@ -6,7 +6,7 @@ import CardMedia from "@mui/material/CardMedia";
 import Typography from "@mui/material/Typography";
 
 export default function FarmCard({ farm }: any) {
-  const { description, img, title } = farm;
+  const { description, img, title, websiteURL } = farm?.properties;
   return (
     <Card sx={{ maxWidth: 345 }}>
       <CardActionArea>
@@ -21,8 +21,8 @@ export default function FarmCard({ farm }: any) {
         </CardContent>
       </CardActionArea>
       <CardActions>
-        <Button size="small" color="primary">
-          Learn More
+        <Button size="small" color="primary" href={websiteURL}>
+          Visit Website
         </Button>
       </CardActions>
     </Card>

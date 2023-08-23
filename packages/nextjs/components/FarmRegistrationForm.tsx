@@ -17,7 +17,12 @@ const AddressMapBoxForm = dynamic(() => import("~~/components/AddressMapBoxForm"
   ssr: false,
 });
 
-export const FarmRegistrationForm = () => {
+// const REACT_APP_MAPBOX_API_KEY = process.env.NEXT_PUBLIC_MAPBOX_API_KEY || "";
+const REACT_APP_MAPBOX_API_KEY =
+  "pk.eyJ1IjoidW1hcjk2IiwiYSI6ImNsbDl5ZHBxcTBocjgzcG56aXZrMzUzNWkifQ.ysIeMTq4U_kJpQSniYOmCA";
+
+const MAP_BOX_GEOCODING_API_URL = "https://api.mapbox.com/geocoding/v5/mapbox.places";
+export const FarmRegistrationForm = ({ onSubmit }: any) => {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [website, setWebsite] = useState("");
@@ -67,7 +72,7 @@ export const FarmRegistrationForm = () => {
 
   // Initialize SchemaEncoder with the schema string
   const schemaEncoder = new SchemaEncoder(
-    "bytes32 ownerUID,string farmName,string description,string streetAddress,string city,string state,string country,string postalCode,string websiteUrl,string imageUrl",
+    "bytes32 ownerUID,string farmName,string description,string streetAddress,string city,string state,string country,string postalCode,string latAndLong,string websiteUrl,string imageUrl",
   );
 
   const handleImage = async (e: ChangeEvent<HTMLInputElement>) => {
@@ -83,6 +88,23 @@ export const FarmRegistrationForm = () => {
     }
   };
 
+  const getCoordinates = async (
+    streetAddress: string,
+    city: string,
+    state: string,
+    country: string,
+    postalCode: string,
+  ) => {
+    const fullAddr = `${streetAddress.replaceAll(" ", "%20")}%20${city}%20${state}%20${country}%20${postalCode}`;
+    const apiURL = `${MAP_BOX_GEOCODING_API_URL}/${fullAddr}.json?access_token=${REACT_APP_MAPBOX_API_KEY}`;
+    console.log("API URL is: %s", apiURL);
+    const response = await fetch(apiURL);
+    const responseJson = await response.json();
+    const coordinates = "features" in responseJson ? responseJson.features[0].geometry.coordinates.join() : "";
+    console.log("API call here: coordinates %s", coordinates);
+    return coordinates;
+  };
+
   const handleSubmit = async () => {
     setSubmitting(true);
     try {
@@ -92,6 +114,8 @@ export const FarmRegistrationForm = () => {
       const userUID = userRegistration?.uid;
       invariant(userUID && userUID != "0x0", "user must be registered");
       invariant(schemaUID, "schema UID must be defined");
+      // Geocode and concatenate here!
+      const latAndLong = await getCoordinates(streetAddress, city, state, country, postalCode);
       const encodedData = schemaEncoder.encodeData([
         { name: "ownerUID", value: userUID, type: "bytes32" },
         { name: "farmName", value: name, type: "string" },
@@ -101,6 +125,7 @@ export const FarmRegistrationForm = () => {
         { name: "state", value: state, type: "string" },
         { name: "country", value: country, type: "string" },
         { name: "postalCode", value: postalCode, type: "string" },
+        { name: "latAndLong", value: latAndLong, type: "string" },
         { name: "websiteUrl", value: website, type: "string" },
         { name: "imageUrl", value: imageUrl, type: "string" },
       ]);
@@ -112,6 +137,7 @@ export const FarmRegistrationForm = () => {
           expirationTime: BigInt(0),
           revocable: false,
           data: encodedData,
+          refUID: userUID,
         },
       });
 
@@ -121,6 +147,7 @@ export const FarmRegistrationForm = () => {
 
       setSubmitting(false);
       notification.success("You successfully registered your farm!");
+      onSubmit(true);
     } catch (error: any) {
       console.error("⚡️ ~ file: RegistrationForm.tsx:handleSubmit ~ error", error);
       notification.error(error.toString());
@@ -130,7 +157,6 @@ export const FarmRegistrationForm = () => {
 
   return (
     <div className="flex flex-col gap-3 py-5 first:pt-0 last:pb-1">
-      <p className="font-medium my-0 break-words">Ready to register your farm?</p>
       <InputBase
         value={name}
         onChange={e => setName(e)}
@@ -177,7 +203,7 @@ export const FarmRegistrationForm = () => {
       </div>
       {imageUrl && (
         <div>
-          <img src={imageUrl} width="600px" />
+          <img src={imageUrl} width="600px" alt="Farm Image" />
           {/* <a href={imageUrl} target="_blank">{imageUrl}</a> */}
         </div>
       )}

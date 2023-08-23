@@ -12,6 +12,8 @@ import { useScaffoldContractRead } from "~~/hooks/scaffold-eth";
 import { useGlobalState } from "~~/services/store/store";
 import { getTargetNetwork, notification } from "~~/utils/scaffold-eth";
 import { contracts } from "~~/utils/scaffold-eth/contract";
+import { getAllAttestationsForSchema, getAttestation, getUserAttestationsForAddress } from "~~/services/eas/utils";
+import { Community } from "~~/services/eas/customSchemaTypes";
 
 const AddressMapBoxForm = dynamic(() => import("~~/components/AddressMapBoxForm"), {
   ssr: false,
@@ -32,6 +34,7 @@ export const CommunityRegistrationForm = () => {
   const signer = useGlobalState(state => state.userSigner);
   const userRegistration = useGlobalState(state => state.userRegistration);
   const writeDisabled = !chain || chain?.id !== getTargetNetwork().id;
+  const setCommunities= useGlobalState(state => state.setCommunities);
 
   /* configure Infura IPFS auth settings */
   const projectId = "2TcFlGWq8noGJV2ylEnCVpqCr30";
@@ -46,6 +49,11 @@ export const CommunityRegistrationForm = () => {
     headers: {
       authorization: auth,
     },
+  });
+
+  const { data: communitySchemaUID } = useScaffoldContractRead({
+    contractName: "CommunityRegistry",
+    functionName: "registrationSchemaUID",
   });
 
   const { data: schemaUID } = useScaffoldContractRead({
@@ -83,6 +91,27 @@ export const CommunityRegistrationForm = () => {
     }
   };
 
+  const getCommunity = async (uid: string) => {
+    const attestation = await getAttestation(uid);
+    invariant(attestation, "Attestation not found");
+    const communitySchemaEncoder = new SchemaEncoder(
+      "string name,string description,string city,string state,string country,string postalCode,string websiteURL,string imageURL",
+    );
+    const decodedData = communitySchemaEncoder.decodeData(attestation.data);
+
+    return {
+      uid: attestation.id,
+      name: decodedData[0].value.value.toString(),
+      description: decodedData[1].value.value.toString(),
+      city: decodedData[2].value.value.toString(),
+      state: decodedData[3].value.value.toString(),
+      country: decodedData[4].value.value.toString(),
+      postalCode: decodedData[5].value.value.toString(),
+      websiteURL: decodedData[6].value.value.toString(),
+      imageURL: decodedData[7].value.value.toString(),
+    } as Community;
+  };
+
   const handleSubmit = async () => {
     setSubmitting(true);
     try {
@@ -116,9 +145,20 @@ export const CommunityRegistrationForm = () => {
       const newAttestationUID = await tx.wait();
 
       console.log("New attestation UID:", newAttestationUID);
-
+      const getCommunityAttestations = async () => {
+        if (communitySchemaUID) {
+          const tmpAttestations = await getAllAttestationsForSchema(communitySchemaUID);
+          const tmpCommunities: Community[] = [];
+          for (let i = 0; i < tmpAttestations.length; i++) {
+            tmpCommunities.push(await getCommunity(tmpAttestations[i].id));
+          }
+          setCommunities(tmpCommunities);
+        }
+      };
+      getCommunityAttestations();
       setSubmitting(false);
       notification.success("You successfully registered your community!");
+      // window.location.reload();
     } catch (error: any) {
       console.error("⚡️ ~ file: CommunityRegistrationForm.tsx:handleSubmit ~ error", error);
       notification.error(error.toString());
