@@ -68,7 +68,7 @@ contract TaskRegistry is ITaskRegistry, IERC1155Receiver, Ownable, SchemaResolve
 		taskStartedSchemaUID = _schemaRegistry.register(taskStartedSchema, this, false);
 		taskCompletedSchemaUID = _schemaRegistry.register(taskCompletedSchema, this, false);
 		taskReviewSchemaUID = _schemaRegistry.register(taskReviewSchema, this, true);
-		shareTokens = new FarmShareTokens(_userRegistry, _farmRegistry, this);
+		// shareTokens = new FarmShareTokens(_userRegistry, _farmRegistry, this);
 	}
 
 
@@ -130,12 +130,13 @@ contract TaskRegistry is ITaskRegistry, IERC1155Receiver, Ownable, SchemaResolve
 		bytes32 taskUID,
 		bytes32 farmUID,
 		uint amount
-	) external returns (bytes32 taskFundedUID) {
+	) external {
+		require(
+			farmRegistry.authorizedFarmerOrManager(farmUID, msg.sender), 
+			"Only farmer or manager can mint farm shares"
+		);
 		uint tokenId = uint(farmUID);
-		uint prevRewards = taskRewardUIDsByTaskUID[taskUID].length;
 		shareTokens.mint(address(this), tokenId, amount, abi.encode(taskUID));
-		require(taskRewardUIDsByTaskUID[taskUID].length == prevRewards + 1);
-		return taskRewardUIDsByTaskUID[taskUID][prevRewards];
 	}
 
 	/// Funds a task with an ERC-20 token
@@ -236,6 +237,12 @@ contract TaskRegistry is ITaskRegistry, IERC1155Receiver, Ownable, SchemaResolve
 			);
 		}
 		return ERC1155_BATCH_RECEIVED;
+	}
+
+	// External admin functions
+
+	function setFarmShareTokens(FarmShareTokens _shares) external onlyOwner {
+		shareTokens = _shares;
 	}
 
 	// Internal SchemaResolver functions

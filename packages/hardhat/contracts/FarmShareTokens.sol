@@ -32,7 +32,7 @@ contract FarmShareTokens is ERC1155 {
         require(farmRecord.farmOwner != address(0), "Farm not found");
         require(
             farmRegistry.authorizedFarmerOrManager(farmUID, msg.sender)
-            || msg.sender == address(taskRegistry) && farmRegistry.authorizedFarmerOrManager(farmUID, tx.origin), 
+            || msg.sender == address(taskRegistry), 
             "Only farm owner or manager can mint shares"
         );
         _mint(to, id, amount, data);
@@ -46,10 +46,10 @@ contract FarmShareTokens is ERC1155 {
         uint256[] memory, 
         bytes memory
     ) internal virtual override {
-        if (to != address(0)) {
-            // Check if receiver address is a registered user
-            bytes32 userUID = userRegistry.userRegistrations(to);
-            require(userUID != bytes32(0), "Receiver must be a registered user");
-        }
+        // if (to != address(0) && to != address(taskRegistry)) {
+        //     // Check if receiver address is a registered user
+        //     bytes32 userUID = userRegistry.userRegistrations(to);
+        //     require(userUID != bytes32(0), "Receiver must be a registered user");
+        // }
     }
 }
