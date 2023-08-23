@@ -300,13 +300,13 @@ const Tasks: NextPage = () => {
   );
 
   useEffect(() => {
-    if (communities && communityUID) {
-      communities.forEach(comm => {
-        if (comm.uid == communityUID) {
-          setCommunity(comm.uid);
-        }
-      });
-    }
+    // if (communities && communityUID) {
+    //   communities.forEach(comm => {
+    //     if (comm.uid == communityUID) {
+    //       setCommunity(comm.uid);
+    //     }
+    //   });
+    // }
     const getTasks = async () => {
       if (taskSchemaUID && rewardSchemaUID) {
         const taskList = await getTasksForCommunity(
@@ -329,6 +329,10 @@ const Tasks: NextPage = () => {
     } = event;
     setCommunity(value);
   };
+
+  useEffect(() => {
+    console.log("community", community);
+}, [community]);
 
   return (
     <React.Fragment>
