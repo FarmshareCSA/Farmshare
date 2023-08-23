@@ -4710,7 +4710,7 @@ const contracts = {
           ],
         },
         FarmShareTokens: {
-          address: "0xa40cC99ea9a02e09745c7386792705b511DD7833",
+          address: "0x9C64a05A5554C225b4F83158cE674356b575BA40",
           abi: [
             {
               inputs: [
@@ -5147,7 +5147,7 @@ const contracts = {
           ],
         },
         TaskRegistry: {
-          address: "0xe4b9d0C5b817B0C645ce51ce87874B8045097964",
+          address: "0xDF928D94532c573Ce49d08bBdd18555f988A2d82",
           abi: [
             {
               inputs: [
@@ -6221,6 +6221,25 @@ const contracts = {
               type: "function",
             },
             {
+              inputs: [
+                {
+                  internalType: "bytes32",
+                  name: "",
+                  type: "bytes32",
+                },
+              ],
+              name: "taskCompletionUIDByTaskUID",
+              outputs: [
+                {
+                  internalType: "bytes32",
+                  name: "",
+                  type: "bytes32",
+                },
+              ],
+              stateMutability: "view",
+              type: "function",
+            },
+            {
               inputs: [],
               name: "taskCreationSchema",
               outputs: [
@@ -6338,6 +6357,25 @@ const contracts = {
             {
               inputs: [],
               name: "taskStartedSchemaUID",
+              outputs: [
+                {
+                  internalType: "bytes32",
+                  name: "",
+                  type: "bytes32",
+                },
+              ],
+              stateMutability: "view",
+              type: "function",
+            },
+            {
+              inputs: [
+                {
+                  internalType: "bytes32",
+                  name: "",
+                  type: "bytes32",
+                },
+              ],
+              name: "taskStartedUIDByTaskUID",
               outputs: [
                 {
                   internalType: "bytes32",
