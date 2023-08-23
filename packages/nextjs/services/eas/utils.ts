@@ -179,6 +179,7 @@ export async function getTasksForCommunity(
   taskSchemaEncoder: SchemaEncoder,
   rewardSchemaEncoder: SchemaEncoder,
   applicationSchemaEncoder: SchemaEncoder,
+  startedSchemaEncoder: SchemaEncoder,
   userSchemaEncoder: SchemaEncoder,
 ) {
   const response = await axios.post<MyAttestationResult>(
@@ -292,10 +293,15 @@ export async function getTasksForCommunity(
     const applicants: TaskApplicant[] = [];
     for (const applicantAttestation of applicantAttestations) {
       const applicantData = applicationSchemaEncoder.decodeData(applicantAttestation.data);
+      const nameAndAddress = await getUserNameAndAddressByUID(
+        applicantData[1].value.value.toString(),
+        userSchemaEncoder,
+      );
       applicants.push({
         uid: applicantAttestation.id,
         userUID: applicantData[1].value.value.toString(),
-        userName: await getUserNameByUID(applicantData[1].value.value.toString(), userSchemaEncoder),
+        userName: nameAndAddress?.name,
+        userAddress: nameAndAddress?.address,
         skillUIDs: Array.isArray(applicantData[2].value.value)
           ? applicantData[2].value.value
           : [applicantData[2].value.value.toString()],
@@ -331,6 +337,18 @@ export async function getTasksForCommunity(
       },
     );
     const startedAttestations = startedResponse.data.data.attestations;
+    let startedByUserUID: string | null;
+    let startedByUserAddress: string | null;
+    if (startedAttestations.length > 0) {
+      const startedAttestation = startedAttestations[0];
+      startedByUserAddress = startedAttestation.recipient;
+      const startedData = startedSchemaEncoder.decodeData(startedAttestation.data);
+      startedByUserUID = startedData[1].value.value.toString();
+    } else {
+      startedByUserAddress = null;
+      startedByUserUID = null;
+    }
+    console.log(`Found ${startedAttestations.length} started attestations for task ${taskAttestation.id}`);
     // Get completed attestations
     const completedResponse = await axios.post<MyAttestationResult>(
       `${baseURL}/graphql`,
@@ -376,16 +394,18 @@ export async function getTasksForCommunity(
       applicants: applicants,
       started: startedAttestations.length > 0,
       completed: completedAttestations.length > 0,
+      userUID: startedByUserUID,
+      userAddress: startedByUserAddress,
     });
   }
   return tasks;
 }
 
-export async function getUserNameByUID(userUID: string, userSchemaEncoder: SchemaEncoder) {
+export async function getUserNameAndAddressByUID(userUID: string, userSchemaEncoder: SchemaEncoder) {
   const userAttestation = await getAttestation(userUID);
   if (!userAttestation) return null;
   const decodedData = userSchemaEncoder.decodeData(userAttestation.data);
-  return decodedData[1].value.value.toString();
+  return { name: decodedData[1].value.value.toString(), address: decodedData[0].value.value.toString() };
 }
 
 export async function getSkillUIDByName(
