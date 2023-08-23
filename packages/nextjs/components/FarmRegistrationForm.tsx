@@ -17,9 +17,7 @@ const AddressMapBoxForm = dynamic(() => import("~~/components/AddressMapBoxForm"
   ssr: false,
 });
 
-// const REACT_APP_MAPBOX_API_KEY = process.env.NEXT_PUBLIC_MAPBOX_API_KEY || "";
-const REACT_APP_MAPBOX_API_KEY =
-  "pk.eyJ1IjoidW1hcjk2IiwiYSI6ImNsbDl5ZHBxcTBocjgzcG56aXZrMzUzNWkifQ.ysIeMTq4U_kJpQSniYOmCA";
+const REACT_APP_MAPBOX_API_KEY = process.env.NEXT_PUBLIC_MAPBOX_API_KEY || "";
 
 const MAP_BOX_GEOCODING_API_URL = "https://api.mapbox.com/geocoding/v5/mapbox.places";
 export const FarmRegistrationForm = ({ onSubmit }: any) => {

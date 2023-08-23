@@ -2,9 +2,7 @@ import React from "react";
 import { InputBase } from "./scaffold-eth";
 import { AddressAutofill } from "@mapbox/search-js-react";
 
-// const REACT_APP_MAPBOX_API_KEY = process.env.NEXT_PUBLIC_MAPBOX_API_KEY || "";
-const REACT_APP_MAPBOX_API_KEY =
-  "pk.eyJ1IjoidW1hcjk2IiwiYSI6ImNsbDl5ZHBxcTBocjgzcG56aXZrMzUzNWkifQ.ysIeMTq4U_kJpQSniYOmCA";
+const REACT_APP_MAPBOX_API_KEY = process.env.NEXT_PUBLIC_MAPBOX_API_KEY || "";
 
 export const AddressMapBoxForm = ({
   address,
