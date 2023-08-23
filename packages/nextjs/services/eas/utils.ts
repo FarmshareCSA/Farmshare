@@ -179,8 +179,7 @@ export async function getTasksForCommunity(
   taskSchemaEncoder: SchemaEncoder,
   rewardSchemaEncoder: SchemaEncoder,
   applicationSchemaEncoder: SchemaEncoder,
-  startedSchemaEncoder: SchemaEncoder,
-  completedSchemaEncoder: SchemaEncoder,
+  userSchemaEncoder: SchemaEncoder,
 ) {
   const response = await axios.post<MyAttestationResult>(
     `${baseURL}/graphql`,
@@ -288,17 +287,20 @@ export async function getTasksForCommunity(
       },
     );
     const applicantAttestations = applicantsResponse.data.data.attestations;
+    console.log(`Found ${applicantAttestations.length} application attestations for task ${taskAttestation.id}`);
     // Decode applications
-    const applicants = applicantAttestations.map(applicantAttestation => {
+    const applicants: TaskApplicant[] = [];
+    for (const applicantAttestation of applicantAttestations) {
       const applicantData = applicationSchemaEncoder.decodeData(applicantAttestation.data);
-      return {
+      applicants.push({
         uid: applicantAttestation.id,
         userUID: applicantData[1].value.value.toString(),
+        userName: await getUserNameByUID(applicantData[1].value.value.toString(), userSchemaEncoder),
         skillUIDs: Array.isArray(applicantData[2].value.value)
           ? applicantData[2].value.value
           : [applicantData[2].value.value.toString()],
-      } as TaskApplicant;
-    });
+      } as TaskApplicant);
+    }
     // Get started attestations
     const startedResponse = await axios.post<MyAttestationResult>(
       `${baseURL}/graphql`,
@@ -377,6 +379,13 @@ export async function getTasksForCommunity(
     });
   }
   return tasks;
+}
+
+export async function getUserNameByUID(userUID: string, userSchemaEncoder: SchemaEncoder) {
+  const userAttestation = await getAttestation(userUID);
+  if (!userAttestation) return null;
+  const decodedData = userSchemaEncoder.decodeData(userAttestation.data);
+  return decodedData[1].value.value.toString();
 }
 
 export async function getSkillUIDByName(

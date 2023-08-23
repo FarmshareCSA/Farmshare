@@ -65,6 +65,7 @@ export type TaskReward = {
 export type TaskApplicant = {
   uid: string;
   userUID: string;
+  userName: string;
   skillUIDs: string[];
 };
 
