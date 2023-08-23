@@ -5,7 +5,7 @@ import { MetaHeader } from "~~/components/MetaHeader";
 import { useGlobalState } from "~~/services/store/store";
 
 const Communities: NextPage = () => {
-  const communities = useGlobalState(state => state.communities);
+  const communities= useGlobalState(state => state.communities);
 
   return (
     <>

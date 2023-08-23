@@ -300,13 +300,13 @@ const Tasks: NextPage = () => {
   );
 
   useEffect(() => {
-    if (communities && communityUID) {
-      communities.forEach(comm => {
-        if (comm.uid == communityUID) {
-          setCommunity(comm.uid);
-        }
-      });
-    }
+    // if (communities && communityUID) {
+    //   communities.forEach(comm => {
+    //     if (comm.uid == communityUID) {
+    //       setCommunity(comm.uid);
+    //     }
+    //   });
+    // }
     const getTasks = async () => {
       if (taskSchemaUID && rewardSchemaUID) {
         const taskList = await getTasksForCommunity(
@@ -330,8 +330,12 @@ const Tasks: NextPage = () => {
     setCommunity(value);
   };
 
+
+
   return (
     <React.Fragment>
+      
+      <Box style={{ backgroundColor: "#F9FFF1" }}>
       {communities && (
         <div className="flex items-left flex-col flex-grow pt-5 pb-5">
           <div className="px-5">
@@ -345,7 +349,6 @@ const Tasks: NextPage = () => {
           </div>
         </div>
       )}
-      <Box style={{ backgroundColor: "#F9FFF1" }}>
         <Grid container sx={{ padding: "5px" }}>
           {tasks}
           <Fab

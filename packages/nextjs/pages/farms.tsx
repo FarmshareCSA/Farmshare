@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import mapsData from "./sampleMapData.json";
 import { EAS, SchemaEncoder } from "@ethereum-attestation-service/eas-sdk";
 import "mapbox-gl/dist/mapbox-gl.css";
@@ -14,51 +13,6 @@ import { Farm, UserRole } from "~~/services/eas/customSchemaTypes";
 import { getAllAttestationsForSchema } from "~~/services/eas/utils";
 import { useGlobalState } from "~~/services/store/store";
 import { contracts } from "~~/utils/scaffold-eth/contract";
-
-const samepleFarms = {
-  features: [
-    {
-      properties: {
-        title: "Red Rooster's Farm",
-        description:
-          "Lizards are a widespread group of squamate reptiles, with over 6,000 species, ranging across all continents except Antarctica",
-        img: "https://live.staticflickr.com/65535/50881797506_176f3d534f_z.jpg",
-      },
-    },
-    {
-      properties: {
-        title: "Red Rooster's Farm",
-        description:
-          "Lizards are a widespread group of squamate reptiles, with over 6,000 species, ranging across all continents except Antarctica",
-        img: "https://live.staticflickr.com/65535/50881797506_176f3d534f_z.jpg",
-      },
-    },
-    {
-      properties: {
-        title: "Red Rooster's Farm",
-        description:
-          "Lizards are a widespread group of squamate reptiles, with over 6,000 species, ranging across all continents except Antarctica",
-        img: "https://live.staticflickr.com/65535/50881797506_176f3d534f_z.jpg",
-      },
-    },
-    {
-      properties: {
-        title: "Red Rooster's Farm",
-        description:
-          "Lizards are a widespread group of squamate reptiles, with over 6,000 species, ranging across all continents except Antarctica",
-        img: "https://live.staticflickr.com/65535/50881797506_176f3d534f_z.jpg",
-      },
-    },
-    {
-      properties: {
-        title: "Red Rooster's Farm",
-        description:
-          "Lizards are a widespread group of squamate reptiles, with over 6,000 species, ranging across all continents except Antarctica",
-        img: "https://live.staticflickr.com/65535/50881797506_176f3d534f_z.jpg",
-      },
-    },
-  ],
-};
 
 type Feature = {
   type: string;
@@ -85,7 +39,8 @@ type GeoJson = {
 
 const Farms: NextPage = () => {
   const hasMapData = "features" in mapsData;
-  const [geoJson, setGeoJson] = useState<GeoJson>(mapsData);
+  const [isLoading, setIsLoading] = useState(true);
+  const [geoJson, setGeoJson] = useState<GeoJson>();
   const sampleKeys = [...Array(geoJson?.features?.length).keys()].map(i => i + 1);
 
   const userRegistration = useGlobalState(state => state.userRegistration);
@@ -162,29 +117,33 @@ const Farms: NextPage = () => {
           });
         });
         setGeoJson(farmsGeoJson);
+        setIsLoading(false);
         setFarms(farmList);
       }
     };
     getFarmRegistrations();
   }, [farmSchemaUID, userFarmIsRegistered]);
+  console.log("useEffect in FARMS RAN", geoJson);
 
   return (
     <>
       <MetaHeader />
-      <MapDisplay geoJson={geoJson} />
+      {!isLoading && <MapDisplay geoJson={geoJson} />}
       <div className="flex items-center flex-col flex-grow pt-10">
         <div className="px-5">
           <h1 className="text-center mb-8">
             <span className="block text-4xl font-bold">FarmShare</span>
           </h1>
         </div>
-        <div className="grid grid-cols-3 gap-4">
-          {geoJson?.features.map((farm, idx) => (
-            <div key={sampleKeys[idx]}>
-              <FarmCard farm={farm} />
-            </div>
-          ))}
-        </div>
+        {!isLoading && (
+          <div className="grid grid-cols-3 gap-4">
+            {geoJson?.features.map((farm, idx) => (
+              <div key={sampleKeys[idx]}>
+                <FarmCard farm={farm} />
+              </div>
+            ))}
+          </div>
+        )}
         <div className="flex-grow bg-base-100 w-full mt-16 px-8 py-12">
           <div className="flex justify-center items-center gap-12 flex-col sm:flex-row">
             {userRegistration && userRegistration.role == UserRole.Farmer && !userFarmIsRegistered && (
