@@ -137,6 +137,7 @@ export const FarmRegistrationForm = ({ onSubmit }: any) => {
           expirationTime: BigInt(0),
           revocable: false,
           data: encodedData,
+          refUID: userUID,
         },
       });
 
