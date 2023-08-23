@@ -202,7 +202,7 @@ export const FarmRegistrationForm = ({ onSubmit }: any) => {
       </div>
       {imageUrl && (
         <div>
-          <img src={imageUrl} width="600px" />
+          <img src={imageUrl} width="600px" alt="Farm Image" />
           {/* <a href={imageUrl} target="_blank">{imageUrl}</a> */}
         </div>
       )}
