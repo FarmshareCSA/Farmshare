@@ -7,13 +7,19 @@ const REACT_APP_MAPBOX_API_KEY =
 
 mapboxgl.accessToken = REACT_APP_MAPBOX_API_KEY;
 
-export default function MapDisplay(props: any) {
-  const { geoJson } = props;
+export default function MapDisplay({ geoJson }: any) {
   const mapContainer = useRef(null);
   const map = useRef(null as any);
   const [lng, setLng] = useState(-70.9);
   const [lat, setLat] = useState(42.35);
   const [zoom, setZoom] = useState(9);
+
+  const centerOnRandomFarm = geoJson => {
+    const randIndex = Math.floor(Math.random() * geoJson["features"].length);
+    map.current.flyTo({
+      center: geoJson["features"][randIndex]["geometry"]["coordinates"],
+    });
+  };
 
   useEffect(() => {
     if (map.current) {
@@ -26,11 +32,7 @@ export default function MapDisplay(props: any) {
       zoom: zoom,
     });
 
-    // geoJson.features.map((feature: any) =>
-    //   new mapboxgl.Marker().setLngLat(feature.geometry.coordinates).addTo(map.current),
-    // );
-
-    map.current.on("load", function () {
+    const addGeoJson = () => {
       // Add an image to use as a custom marker
       map.current.loadImage("https://docs.mapbox.com/mapbox-gl-js/assets/custom_marker.png", function (error, image) {
         if (error) throw error;
@@ -57,13 +59,11 @@ export default function MapDisplay(props: any) {
             "text-anchor": "top",
           },
         });
-        const randIndex = Math.floor(Math.random() * geoJson["features"].length);
-        map.current.flyTo({
-          center: geoJson["features"][randIndex]["geometry"]["coordinates"],
-        });
+        centerOnRandomFarm(geoJson);
       });
-    });
+    };
 
+    map.current.on("load", addGeoJson);
     map.current.on("move", () => {
       setLng(map.current.getCenter().lng.toFixed(4));
       setLat(map.current.getCenter().lat.toFixed(4));
