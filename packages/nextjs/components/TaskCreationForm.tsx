@@ -13,8 +13,9 @@ import { useScaffoldContractRead } from "~~/hooks/scaffold-eth";
 import { useGlobalState } from "~~/services/store/store";
 import { getTargetNetwork, notification } from "~~/utils/scaffold-eth";
 import { contracts } from "~~/utils/scaffold-eth/contract";
+import { get } from "http";
 
-export const TaskCreationForm = ({ communityUID, onClose }: any) => {
+export const TaskCreationForm = ({ communityUID, onClose ,getTasks}: any) => {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [startTime, setStartTime] = useState(moment().format("yyyy-MM-DDThh:mm"));
@@ -120,6 +121,7 @@ export const TaskCreationForm = ({ communityUID, onClose }: any) => {
         setSubmitting(false);
         notification.success("You successfully added a task");
         onClose(false);
+        getTasks();
       } catch (error: any) {
         console.error("⚡️ ~ file: RegistrationForm.tsx:handleSubmit ~ error", error);
         notification.error(error.toString());
