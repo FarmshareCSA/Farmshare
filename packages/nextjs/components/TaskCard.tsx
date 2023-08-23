@@ -230,7 +230,9 @@ export default function TaskCard({
               <Typography id="modal-modal-title" variant="h6" component="h2">
                 {
                   usersWhoApplied.map((user: any) => {
-                    return <Button key={user.account} variant="contained">{user.name}</Button>
+                    return <Button key={user.account} variant="contained" onClick={()=>{
+                      //create an attestation with the taskStartedSchema here
+                    }}>{user.name} </Button>
                   })
                 }
               </Typography>
