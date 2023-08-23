@@ -26,12 +26,10 @@ const MenuProps = {
   },
 };
 
-export const TaskFundingForm = ({ taskUID, onClose }: any) => {
+export const TaskFundingForm = ({ taskUID, onClose }: { taskUID: string; onClose: (open: boolean) => void }) => {
   const [amount, setAmount] = useState(0);
   const [farmUID, setFarmUID] = useState<`0x${string}`>("0x0");
   const [token, setToken] = useState("0x4200000000000000000000000000000000000006");
-  const [startTime, setStartTime] = useState(moment().format("yyyy-MM-DDThh:mm"));
-  const [endTime, setEndTime] = useState(moment().add(7, "day").format("yyyy-MM-DDThh:mm"));
   const [submitting, setSubmitting] = useState(false);
   const { chain } = useNetwork();
   let signer = useGlobalState(state => state.userSigner);
@@ -98,7 +96,7 @@ export const TaskFundingForm = ({ taskUID, onClose }: any) => {
       invariant(signer, "Signer must be defined");
       if (fundWithShares) {
         console.log(
-          `Mint args: to: ${taskRegistry} id: ${BigInt(farmUID)} amount: ${BigInt(amount)} taskUID: ${taskUID}`,
+          `Mint args: to: ${taskRegistry} id: ${BigInt(farmUID)} amount: ${BigInt(amount * 1e2)} taskUID: ${taskUID}`,
         );
 
         const taskRegistryContract = new Contract(taskRegistry, taskRegistryABI, signer);
