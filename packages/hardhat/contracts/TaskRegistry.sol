@@ -268,6 +268,7 @@ contract TaskRegistry is ITaskRegistry, IERC1155Receiver, Ownable, SchemaResolve
 			require(bytes(description).length > 0, "Description cannot be empty");
 			require(bytes(communityRegistry.communityByUID(communityUID).name).length > 0, "Invalid community UID");
 			taskUIDsByCommunityUID[communityUID].push(attestation.uid);
+			taskStatusByUID[attestation.uid] = TaskStatus.CREATED;
 			emit TaskRegistered(
 				attestation.uid,
 				communityUID,
@@ -323,6 +324,7 @@ contract TaskRegistry is ITaskRegistry, IERC1155Receiver, Ownable, SchemaResolve
 				bytes32 userUID,
 			) = abi.decode(attestation.data, (bytes32, bytes32, uint));
 			require(attestation.attester == taskByUID(taskUID).creator, "Only task creator can attest that their task has been started");
+			require(taskStatusByUID[taskUID] == TaskStatus.CREATED, "Task is either already in-progress or completed");
 			UserRecord memory user = userRegistry.userRecordByUID(userUID);
 			if(user.account == address(0)) revert InvalidUserAddress();
 			taskStatusByUID[taskUID] = TaskStatus.INPROGRESS;
@@ -334,6 +336,7 @@ contract TaskRegistry is ITaskRegistry, IERC1155Receiver, Ownable, SchemaResolve
 				bytes32 userUID,
 			) = abi.decode(attestation.data, (bytes32, bytes32, uint));
 			require(attestation.attester == taskByUID(taskUID).creator, "Only task creator can attest that their task has been completed");
+			require(taskStatusByUID[taskUID] == TaskStatus.INPROGRESS, "Task has not been yet");
 			UserRecord memory user = userRegistry.userRecordByUID(userUID);
 			if(user.account != attestation.recipient) revert InvalidUserAddress();
 			taskStatusByUID[taskUID] = TaskStatus.COMPLETE;
