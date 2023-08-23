@@ -35,6 +35,8 @@ While for this hackathon we focused primarily on the user on-boarding and comple
 - Implement a marketplace, where users can exchange their rewards for different types of food on the farm.
 - Implement new funding mechanisms for further incentivizing the creation of new CSAs by farmers, such as public goods funding via Allo protocol and streaming subscription plans using Superfluid or Sablier.
 
+![FarmShare_GitDemo_720p](https://github.com/FarmshareCSA/Farmshare/assets/48034595/7a790a75-bbe4-4066-a6be-945c7a688484)
+
 ---
 
 # 🏗 Built with Scaffold-ETH 2
