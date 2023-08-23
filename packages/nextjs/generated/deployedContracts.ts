@@ -2701,7 +2701,7 @@ const contracts = {
       name: "baseGoerli",
       contracts: {
         CommunityRegistry: {
-          address: "0xE60726df0FA0dc0769819E74e406959dC43ffB59",
+          address: "0xBB6a6ECb95413BBf5be7Bf1E256376eeAad83D49",
           abi: [
             {
               inputs: [
@@ -3663,7 +3663,7 @@ const contracts = {
           ],
         },
         FarmRegistry: {
-          address: "0xe50A93E5F37EF3A12C3eba1c59885B770deb6389",
+          address: "0x74132081bBc4b943b945D7f71E53353d46125916",
           abi: [
             {
               inputs: [
@@ -4709,8 +4709,432 @@ const contracts = {
             },
           ],
         },
+        FarmShareTokens: {
+          address: "0xaD72CaDE83BaE7b7Ec979Bd8192cbAb086357244",
+          abi: [
+            {
+              inputs: [
+                {
+                  internalType: "contract IUserRegistry",
+                  name: "_userRegistry",
+                  type: "address",
+                },
+                {
+                  internalType: "contract IFarmRegistry",
+                  name: "_farmRegistry",
+                  type: "address",
+                },
+                {
+                  internalType: "contract ITaskRegistry",
+                  name: "_taskRegistry",
+                  type: "address",
+                },
+              ],
+              stateMutability: "nonpayable",
+              type: "constructor",
+            },
+            {
+              anonymous: false,
+              inputs: [
+                {
+                  indexed: true,
+                  internalType: "address",
+                  name: "account",
+                  type: "address",
+                },
+                {
+                  indexed: true,
+                  internalType: "address",
+                  name: "operator",
+                  type: "address",
+                },
+                {
+                  indexed: false,
+                  internalType: "bool",
+                  name: "approved",
+                  type: "bool",
+                },
+              ],
+              name: "ApprovalForAll",
+              type: "event",
+            },
+            {
+              anonymous: false,
+              inputs: [
+                {
+                  indexed: true,
+                  internalType: "address",
+                  name: "operator",
+                  type: "address",
+                },
+                {
+                  indexed: true,
+                  internalType: "address",
+                  name: "from",
+                  type: "address",
+                },
+                {
+                  indexed: true,
+                  internalType: "address",
+                  name: "to",
+                  type: "address",
+                },
+                {
+                  indexed: false,
+                  internalType: "uint256[]",
+                  name: "ids",
+                  type: "uint256[]",
+                },
+                {
+                  indexed: false,
+                  internalType: "uint256[]",
+                  name: "values",
+                  type: "uint256[]",
+                },
+              ],
+              name: "TransferBatch",
+              type: "event",
+            },
+            {
+              anonymous: false,
+              inputs: [
+                {
+                  indexed: true,
+                  internalType: "address",
+                  name: "operator",
+                  type: "address",
+                },
+                {
+                  indexed: true,
+                  internalType: "address",
+                  name: "from",
+                  type: "address",
+                },
+                {
+                  indexed: true,
+                  internalType: "address",
+                  name: "to",
+                  type: "address",
+                },
+                {
+                  indexed: false,
+                  internalType: "uint256",
+                  name: "id",
+                  type: "uint256",
+                },
+                {
+                  indexed: false,
+                  internalType: "uint256",
+                  name: "value",
+                  type: "uint256",
+                },
+              ],
+              name: "TransferSingle",
+              type: "event",
+            },
+            {
+              anonymous: false,
+              inputs: [
+                {
+                  indexed: false,
+                  internalType: "string",
+                  name: "value",
+                  type: "string",
+                },
+                {
+                  indexed: true,
+                  internalType: "uint256",
+                  name: "id",
+                  type: "uint256",
+                },
+              ],
+              name: "URI",
+              type: "event",
+            },
+            {
+              inputs: [
+                {
+                  internalType: "address",
+                  name: "account",
+                  type: "address",
+                },
+                {
+                  internalType: "uint256",
+                  name: "id",
+                  type: "uint256",
+                },
+              ],
+              name: "balanceOf",
+              outputs: [
+                {
+                  internalType: "uint256",
+                  name: "",
+                  type: "uint256",
+                },
+              ],
+              stateMutability: "view",
+              type: "function",
+            },
+            {
+              inputs: [
+                {
+                  internalType: "address[]",
+                  name: "accounts",
+                  type: "address[]",
+                },
+                {
+                  internalType: "uint256[]",
+                  name: "ids",
+                  type: "uint256[]",
+                },
+              ],
+              name: "balanceOfBatch",
+              outputs: [
+                {
+                  internalType: "uint256[]",
+                  name: "",
+                  type: "uint256[]",
+                },
+              ],
+              stateMutability: "view",
+              type: "function",
+            },
+            {
+              inputs: [],
+              name: "farmRegistry",
+              outputs: [
+                {
+                  internalType: "contract IFarmRegistry",
+                  name: "",
+                  type: "address",
+                },
+              ],
+              stateMutability: "view",
+              type: "function",
+            },
+            {
+              inputs: [
+                {
+                  internalType: "address",
+                  name: "account",
+                  type: "address",
+                },
+                {
+                  internalType: "address",
+                  name: "operator",
+                  type: "address",
+                },
+              ],
+              name: "isApprovedForAll",
+              outputs: [
+                {
+                  internalType: "bool",
+                  name: "",
+                  type: "bool",
+                },
+              ],
+              stateMutability: "view",
+              type: "function",
+            },
+            {
+              inputs: [
+                {
+                  internalType: "address",
+                  name: "to",
+                  type: "address",
+                },
+                {
+                  internalType: "uint256",
+                  name: "id",
+                  type: "uint256",
+                },
+                {
+                  internalType: "uint256",
+                  name: "amount",
+                  type: "uint256",
+                },
+                {
+                  internalType: "bytes",
+                  name: "data",
+                  type: "bytes",
+                },
+              ],
+              name: "mint",
+              outputs: [],
+              stateMutability: "nonpayable",
+              type: "function",
+            },
+            {
+              inputs: [
+                {
+                  internalType: "uint256",
+                  name: "tokenId",
+                  type: "uint256",
+                },
+              ],
+              name: "name",
+              outputs: [
+                {
+                  internalType: "string",
+                  name: "",
+                  type: "string",
+                },
+              ],
+              stateMutability: "view",
+              type: "function",
+            },
+            {
+              inputs: [
+                {
+                  internalType: "address",
+                  name: "from",
+                  type: "address",
+                },
+                {
+                  internalType: "address",
+                  name: "to",
+                  type: "address",
+                },
+                {
+                  internalType: "uint256[]",
+                  name: "ids",
+                  type: "uint256[]",
+                },
+                {
+                  internalType: "uint256[]",
+                  name: "amounts",
+                  type: "uint256[]",
+                },
+                {
+                  internalType: "bytes",
+                  name: "data",
+                  type: "bytes",
+                },
+              ],
+              name: "safeBatchTransferFrom",
+              outputs: [],
+              stateMutability: "nonpayable",
+              type: "function",
+            },
+            {
+              inputs: [
+                {
+                  internalType: "address",
+                  name: "from",
+                  type: "address",
+                },
+                {
+                  internalType: "address",
+                  name: "to",
+                  type: "address",
+                },
+                {
+                  internalType: "uint256",
+                  name: "id",
+                  type: "uint256",
+                },
+                {
+                  internalType: "uint256",
+                  name: "amount",
+                  type: "uint256",
+                },
+                {
+                  internalType: "bytes",
+                  name: "data",
+                  type: "bytes",
+                },
+              ],
+              name: "safeTransferFrom",
+              outputs: [],
+              stateMutability: "nonpayable",
+              type: "function",
+            },
+            {
+              inputs: [
+                {
+                  internalType: "address",
+                  name: "operator",
+                  type: "address",
+                },
+                {
+                  internalType: "bool",
+                  name: "approved",
+                  type: "bool",
+                },
+              ],
+              name: "setApprovalForAll",
+              outputs: [],
+              stateMutability: "nonpayable",
+              type: "function",
+            },
+            {
+              inputs: [
+                {
+                  internalType: "bytes4",
+                  name: "interfaceId",
+                  type: "bytes4",
+                },
+              ],
+              name: "supportsInterface",
+              outputs: [
+                {
+                  internalType: "bool",
+                  name: "",
+                  type: "bool",
+                },
+              ],
+              stateMutability: "view",
+              type: "function",
+            },
+            {
+              inputs: [],
+              name: "taskRegistry",
+              outputs: [
+                {
+                  internalType: "contract ITaskRegistry",
+                  name: "",
+                  type: "address",
+                },
+              ],
+              stateMutability: "view",
+              type: "function",
+            },
+            {
+              inputs: [
+                {
+                  internalType: "uint256",
+                  name: "",
+                  type: "uint256",
+                },
+              ],
+              name: "uri",
+              outputs: [
+                {
+                  internalType: "string",
+                  name: "",
+                  type: "string",
+                },
+              ],
+              stateMutability: "view",
+              type: "function",
+            },
+            {
+              inputs: [],
+              name: "userRegistry",
+              outputs: [
+                {
+                  internalType: "contract IUserRegistry",
+                  name: "",
+                  type: "address",
+                },
+              ],
+              stateMutability: "view",
+              type: "function",
+            },
+          ],
+        },
         TaskRegistry: {
-          address: "0xeD8c322E6425642eB5E7249DF31906Fb0DB93Cf5",
+          address: "0x775Adab1C3325d89A1e6df137ABC66c4c7929D9e",
           abi: [
             {
               inputs: [
@@ -5224,13 +5648,7 @@ const contracts = {
                 },
               ],
               name: "fundTaskWithFarmShares",
-              outputs: [
-                {
-                  internalType: "bytes32",
-                  name: "taskFundedUID",
-                  type: "bytes32",
-                },
-              ],
+              outputs: [],
               stateMutability: "nonpayable",
               type: "function",
             },
@@ -5585,6 +6003,19 @@ const contracts = {
                 },
               ],
               stateMutability: "payable",
+              type: "function",
+            },
+            {
+              inputs: [
+                {
+                  internalType: "contract FarmShareTokens",
+                  name: "_shares",
+                  type: "address",
+                },
+              ],
+              name: "setFarmShareTokens",
+              outputs: [],
+              stateMutability: "nonpayable",
               type: "function",
             },
             {
@@ -6280,7 +6711,7 @@ const contracts = {
           ],
         },
         UserRegistry: {
-          address: "0x81c16d2eec8F7Abaad15e8404991ED8115BCaAD1",
+          address: "0x4A667C948d9b916B5599a0ec73fEC384945dF5D8",
           abi: [
             {
               inputs: [
