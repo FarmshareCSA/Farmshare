@@ -192,6 +192,14 @@ export const TaskFundingForm = ({ taskUID, onClose }: any) => {
       <button className={`btn btn-secondary btn-sm`} disabled={writeDisabled || submitting} onClick={handleSubmit}>
         {submitting ? <Spinner /> : "Fund Task 💸"}
       </button>
+      <button
+        className={`btn btn-secondary btn-sm`}
+        onClick={() => {
+          onClose(false);
+        }}
+      >
+        Cancel
+      </button>
     </div>
   );
 };
