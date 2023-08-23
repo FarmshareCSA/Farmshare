@@ -97,7 +97,12 @@ export default function TaskCard({
               </Typography>
               {rewards.length > 0 && (
                 <Typography variant="body2" color="white">
-                  {"Rewards: " + rewards}
+                  Rewards: <br />{" "}
+                  {rewards.map((reward, index) => (
+                    <span key={index}>
+                      {reward.amount} {reward.tokenName}
+                    </span>
+                  ))}
                 </Typography>
               )}
             </CardContent>
