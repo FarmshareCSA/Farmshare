@@ -1,4 +1,4 @@
-import { Task, TaskReward } from "./customSchemaTypes";
+import { Task, TaskApplicant, TaskReward } from "./customSchemaTypes";
 import type { Attestation, AttestationResult, EASChainConfig, MyAttestationResult } from "./types";
 import { SchemaEncoder } from "@ethereum-attestation-service/eas-sdk";
 import axios from "axios";
@@ -173,8 +173,14 @@ export async function getTasksForCommunity(
   communityUID: string,
   taskSchemaUID: string,
   rewardSchemaUID: string,
+  applicationSchemaUID: string,
+  startedSchemaUID: string,
+  completedSchemaUID: string,
   taskSchemaEncoder: SchemaEncoder,
   rewardSchemaEncoder: SchemaEncoder,
+  applicationSchemaEncoder: SchemaEncoder,
+  startedSchemaEncoder: SchemaEncoder,
+  completedSchemaEncoder: SchemaEncoder,
 ) {
   const response = await axios.post<MyAttestationResult>(
     `${baseURL}/graphql`,
@@ -209,7 +215,7 @@ export async function getTasksForCommunity(
   for (const taskAttestation of taskAttestations) {
     const taskData = taskSchemaEncoder.decodeData(taskAttestation.data);
     // Get rewards
-    const response2 = await axios.post<MyAttestationResult>(
+    const rewardsResponse = await axios.post<MyAttestationResult>(
       `${baseURL}/graphql`,
       {
         query:
@@ -237,7 +243,7 @@ export async function getTasksForCommunity(
         },
       },
     );
-    const rewardAttestations = response2.data.data.attestations;
+    const rewardAttestations = rewardsResponse.data.data.attestations;
     // Decode rewards
     const rewards = rewardAttestations.map(rewardAttestation => {
       const rewardData = rewardSchemaEncoder.decodeData(rewardAttestation.data);
@@ -252,6 +258,107 @@ export async function getTasksForCommunity(
         tokenName: rewardData[5].value.value.toString(),
       } as TaskReward;
     });
+    // Get applicants
+    const applicantsResponse = await axios.post<MyAttestationResult>(
+      `${baseURL}/graphql`,
+      {
+        query:
+          "query Attestations($where: AttestationWhereInput, $orderBy: [AttestationOrderByWithRelationInput!]) {\n  attestations(where: $where, orderBy: $orderBy) {\n    attester\n    revocationTime\n    expirationTime\n    time\n    recipient\n    id\n    data\n  }\n}",
+
+        variables: {
+          where: {
+            schemaId: {
+              equals: applicationSchemaUID,
+            },
+            refUID: {
+              equals: taskAttestation.id,
+            },
+          },
+          orderBy: [
+            {
+              time: "desc",
+            },
+          ],
+        },
+      },
+      {
+        headers: {
+          "content-type": "application/json",
+        },
+      },
+    );
+    const applicantAttestations = applicantsResponse.data.data.attestations;
+    // Decode applications
+    const applicants = applicantAttestations.map(applicantAttestation => {
+      const applicantData = applicationSchemaEncoder.decodeData(applicantAttestation.data);
+      return {
+        uid: applicantAttestation.id,
+        userUID: applicantData[1].value.value.toString(),
+        skillUIDs: Array.isArray(applicantData[2].value.value)
+          ? applicantData[2].value.value
+          : [applicantData[2].value.value.toString()],
+      } as TaskApplicant;
+    });
+    // Get started attestations
+    const startedResponse = await axios.post<MyAttestationResult>(
+      `${baseURL}/graphql`,
+      {
+        query:
+          "query Attestations($where: AttestationWhereInput, $orderBy: [AttestationOrderByWithRelationInput!]) {\n  attestations(where: $where, orderBy: $orderBy) {\n    attester\n    revocationTime\n    expirationTime\n    time\n    recipient\n    id\n    data\n  }\n}",
+
+        variables: {
+          where: {
+            schemaId: {
+              equals: startedSchemaUID,
+            },
+            refUID: {
+              equals: taskAttestation.id,
+            },
+          },
+          orderBy: [
+            {
+              time: "desc",
+            },
+          ],
+        },
+      },
+      {
+        headers: {
+          "content-type": "application/json",
+        },
+      },
+    );
+    const startedAttestations = startedResponse.data.data.attestations;
+    // Get completed attestations
+    const completedResponse = await axios.post<MyAttestationResult>(
+      `${baseURL}/graphql`,
+      {
+        query:
+          "query Attestations($where: AttestationWhereInput, $orderBy: [AttestationOrderByWithRelationInput!]) {\n  attestations(where: $where, orderBy: $orderBy) {\n    attester\n    revocationTime\n    expirationTime\n    time\n    recipient\n    id\n    data\n  }\n}",
+
+        variables: {
+          where: {
+            schemaId: {
+              equals: completedSchemaUID,
+            },
+            refUID: {
+              equals: taskAttestation.id,
+            },
+          },
+          orderBy: [
+            {
+              time: "desc",
+            },
+          ],
+        },
+      },
+      {
+        headers: {
+          "content-type": "application/json",
+        },
+      },
+    );
+    const completedAttestations = completedResponse.data.data.attestations;
     tasks.push({
       uid: taskAttestation.id,
       communityUID: communityUID,
@@ -264,6 +371,9 @@ export async function getTasksForCommunity(
       frequency: parseInt(taskData[7].value.value.toString()),
       imageURL: taskData[8].value.value.toString(),
       rewards: rewards,
+      applicants: applicants,
+      started: startedAttestations.length > 0,
+      completed: completedAttestations.length > 0,
     });
   }
   return tasks;
@@ -316,10 +426,7 @@ export async function getSkillUIDByName(
   return "";
 }
 
-export async function getTaskApplicationsByTaskID(
-  taskId: string,
-  taskApplicationSchema: string
-) {
+export async function getTaskApplicationsByTaskID(taskId: string, taskApplicationSchema: string) {
   const response = await axios.post<MyAttestationResult>(
     `${baseURL}/graphql`,
     {

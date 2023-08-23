@@ -46,6 +46,9 @@ export type Task = {
   frequency: number;
   imageURL: string;
   rewards: TaskReward[];
+  applicants: TaskApplicant[];
+  started: boolean;
+  completed: boolean;
 };
 
 export type TaskReward = {
@@ -57,6 +60,12 @@ export type TaskReward = {
   amount: number;
   tokenId: number;
   tokenName: string;
+};
+
+export type TaskApplicant = {
+  uid: string;
+  userUID: string;
+  skillUIDs: string[];
 };
 
 export type UserRegistration = {
