@@ -350,6 +350,7 @@ const Tasks: NextPage = () => {
   }, [communityUID, taskSchemaUID, community, open, userRegistration]);
 
   const getTasks = async () => {
+
     if (taskSchemaUID && rewardSchemaUID && applicationSchemaUID && startedSchemaUID && completedSchemaUID) {
       const taskList = await getTasksForCommunity(
         community,
