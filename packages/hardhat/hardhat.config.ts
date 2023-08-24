@@ -43,7 +43,7 @@ const config: HardhatUserConfig = {
       },
     ],
   },
-  defaultNetwork: "baseGoerli",
+  defaultNetwork: "xdcTestnet",
   namedAccounts: {
     deployer: {
       // By default, it will take the first Hardhat account as the deployer
@@ -104,6 +104,11 @@ const config: HardhatUserConfig = {
       accounts: [deployerPrivateKey],
       chainId: 84531,
       gasPrice: 1000000000,
+    },
+    xdcTestnet: {
+      url: `https://erpc.apothem.network`,
+      accounts: [deployerPrivateKey],
+      chainId: 51,
     },
     zkSyncTestnet: {
       url: "https://testnet.era.zksync.dev",

@@ -34,7 +34,7 @@ export const networkConfig: networkConfigInfo = {
     schemaRegistryAddress: "0x0a7E2Ff54e76B8E6659aedc9103FB21c038050D0",
     safeAddress: "0x9fb6Eacdd0DAC54f37D9852eAD55dc25495D3e62",
     safeFactoryAddress: "0x38dF3ac5Bf7a46Fed3f28ef5f68D6494174dDe09",
-    safeFallbackHandlerAddress: "0x4F7B35969Fd796ce07021220A77ec5Ff8d02858a"
+    safeFallbackHandlerAddress: "0x4F7B35969Fd796ce07021220A77ec5Ff8d02858a",
   },
   84531: {
     name: "base goerli",
@@ -43,7 +43,15 @@ export const networkConfig: networkConfigInfo = {
     safeAddress: "0x110418c98832Ce96b67384fC8C0F7A30e67eac64",
     safeFactoryAddress: "0xb2F04C53f4622e1dE99659FC2de7343EF53Bb816",
     safeFallbackHandlerAddress: "0x3ef0C82dd951d40c8400D6E67f5bF14c254e2d49",
-  }
+  },
+  51: {
+    name: "xdc testnet",
+    easContractAddress: "0xB8fa3922345707Da836aeBa386f39Dc3721d48BF",
+    schemaRegistryAddress: "0x7C31307c71e81A3A8211cF9238bFe72F425eCd42",
+    safeAddress: "0x9fb6Eacdd0DAC54f37D9852eAD55dc25495D3e62",
+    safeFactoryAddress: "0x38dF3ac5Bf7a46Fed3f28ef5f68D6494174dDe09",
+    safeFallbackHandlerAddress: "0x4F7B35969Fd796ce07021220A77ec5Ff8d02858a",
+  },
 };
 
 export const developmentChains = ["hardhat", "localhost"];
