@@ -33,6 +33,7 @@ The core features of our app are:
   - Attestations: Practically every action on FarmShare involves attestations - from user registration to task creation and completion. Rather than store all of this data ourselves, when our contracts need to access user or task records they call the EAS contract to retrieve the attested information, avoiding duplication of data.
   - Identity and skills: When users register, they attest basic identity info like name/location, and can also attest to their skills. When users apply to complete tasks, farmers can view their attested skills to evaluate if they are qualified. We also implemented the back-end architecture to support endorsements of skills between users.
   - Resolver contracts: Other than the FarmShare tokens, all of our contracts inherit the EAS SchemaResolver and implement the bulk of their logic in the `onAttest` and `onRevoke` functions.
+  - EAS as architecture: Beyond just using attestations for data storage, we use the GraphQL endpoint to query and retrieve data for our frontend. Also, when not approving or transferring tokens, the user almost exclusively interacts with the EAS smart contract via the SDK rather than our own contracts directly. This architecture allows us to minimize our own smart contract logic and surface the power of EAS.
 
 ### Next Steps
 
