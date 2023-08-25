@@ -399,7 +399,7 @@ export default function TaskCard({
         </>,
       );
     }
-  }, [showDetails, openFund]);
+  }, [showDetails, openFund,openApplications]);
 
   return <React.Fragment>{content}</React.Fragment>;
 }
