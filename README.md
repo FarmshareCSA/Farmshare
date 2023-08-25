@@ -26,7 +26,13 @@ The core features of our app are:
 ### Bounties sought
 
 - Base: _Help bring Base to the masses with creating a consumer focused product_
-- Ethereum Attestation Service: _Building with attestations_ (pretty much everything we built uses EAS)
+  - Consumer-facing: FarmShare is an application for farmers and food lovers, not just crypto-natives. Agriculture is the least IT-intensive sector of the economy, and has largely gone unserved by Web2. Yet everyone needs to eat!
+  - User-friendly: We use Web3Auth and ZeroDev to ease the on-boarding process and abstract away transaction complexity and gas costs, providing a simple, intuitive experience. Specifically, our paymaster sponsors any transaction that interacts with EAS or our token contract.
+  - Deployed on Base: We deployed our contracts on the Base Goerli testnet, which was already supported by EAS and ZeroDev. We plan on continuing to develop this project after the hackathon, and will eventually deploy on Base mainnet.
+- Ethereum Attestation Service: _Building with attestations_
+  - Attestations: Practically every action on FarmShare involves attestations - from user registration to task creation and completion. Rather than store all of this data ourselves, when our contracts need to access user or task records they call the EAS contract to retrieve the attested information, avoiding duplication of data.
+  - Identity and skills: When users register, they attest basic identity info like name/location, and can also attest to their skills. When users apply to complete tasks, farmers can view their attested skills to evaluate if they are qualified. We also implemented the back-end architecture to support endorsements of skills between users.
+  - Resolver contracts: Other than the FarmShare tokens, all of our contracts inherit the EAS SchemaResolver and implement the bulk of their logic in the `onAttest` and `onRevoke` functions.
 
 ### Next Steps
 
