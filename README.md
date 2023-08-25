@@ -12,7 +12,7 @@ Submitted for the ETH Toronto online hackathon!
 
 In many ways, our food system is broken. To start off, food prices are on the rise. In Canada, statistics show that food prices are up 10 percent from last year, which has led to an increase in the number of people experiencing food insecurity. Secondly, the environmental impacts due to big agriculture have created problems such as soil erosion, water pollution, and lack of biodiversity. Finally, almost one-third of food produced globally is lost or wasted, while over 780 million people experience hunger.
 
-To address these issues, FarmShare provides local communities with more options through community supported agriculture, also known as CSAs. Traditional CSAs are costly to maintain, but by using blockchain technology, we are able to revolutionize CSAs by tapping into the many resources local communities can provide.
+To address these issues, FarmShare provides local communities with more options through community supported agriculture, also known as CSAs. Traditional CSAs are costly to maintain, but by using blockchain technology, we are able to revolutionize CSAs by tapping into the many resources local communities can provide. Taking inspiration from the [Eight Forms of Capital](http://appleseedpermaculture.com/wp-content/uploads/2011/04/8_Forms_of_Capital_PM68.pdf), this includes not only financial resources, but also skills (experiential capital), labor (living capital), connections (social capital) and community (cultural capital).
 
 ### Features
 
