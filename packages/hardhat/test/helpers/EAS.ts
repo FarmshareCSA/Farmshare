@@ -1,4 +1,4 @@
-import { Signer } from "ethers";
+import { BaseContract, Signer } from "ethers";
 import { EAS, SchemaRegistry } from "../../typechain-types";
 import { NO_EXPIRATION, ZERO_BYTES32 } from "../../utils/Constants";
 import { getUIDFromAttestTx } from "../../utils/EAS";
@@ -52,4 +52,28 @@ export const expectAttestation = async (
   expect(attestation.uid).to.equal(uid);
 
   return { uid, res };
+};
+
+export const expectFailedAttestation = async (
+  eas: EAS,
+  schema: string,
+  request: AttestationRequestData,
+  options: AttestationOptions,
+  err: string,
+) => {
+  const {
+    recipient,
+    expirationTime,
+    revocable = true,
+    refUID = ZERO_BYTES32,
+    data = ZERO_BYTES32,
+    value = 0n,
+  } = request;
+  const { from: txSender, deadline = NO_EXPIRATION } = options;
+  const msgValue = options.value ?? value;
+  const args = [
+    { schema, data: { recipient, expirationTime, revocable, refUID, data, value } },
+    { value: msgValue },
+  ] as const;
+  await expect(eas.connect(txSender).attest(...args)).to.be.revertedWith(err);
 };
