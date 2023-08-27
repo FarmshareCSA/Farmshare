@@ -2343,6 +2343,19 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@ethereum-attestation-service/eas-sdk@npm:^1.1.0-beta.3":
+  version: 1.1.0-beta.3
+  resolution: "@ethereum-attestation-service/eas-sdk@npm:1.1.0-beta.3"
+  dependencies:
+    "@ethereum-attestation-service/eas-contracts": 1.0.0-beta.0
+    ethers: ^6.7.1
+    js-base64: ^3.7.5
+    multiformats: 9.9.0
+    pako: ^2.1.0
+  checksum: a5054d2325dd282da1146e868c9d9ed550d43364edb5ec593b44f8ab12ab9d85a0d20ee040716abf9700862be8e11fa730447e3c9dd052c6837fca585ae231d0
+  languageName: node
+  linkType: hard
+
 "@ethereumjs/common@npm:^2.4.0":
   version: 2.6.5
   resolution: "@ethereumjs/common@npm:2.6.5"
@@ -4695,6 +4708,7 @@ __metadata:
   resolution: "@se-2/hardhat@workspace:packages/hardhat"
   dependencies:
     "@ethereum-attestation-service/eas-contracts": ^1.0.0-beta.0
+    "@ethereum-attestation-service/eas-sdk": ^1.1.0-beta.3
     "@ethersproject/abi": ^5.7.0
     "@ethersproject/providers": ^5.7.1
     "@matterlabs/hardhat-zksync-solc": ^0.3.17
@@ -12814,6 +12828,21 @@ __metadata:
     tslib: 2.4.0
     ws: 8.5.0
   checksum: 6d2ea085010da1c34750ce4a00a94d2abbeb3ababb23aa754acc7772682f145e8c1b3862d3b5374e1c182aee569c80ea48191107d469a4de3b0dd6af3d9ce6db
+  languageName: node
+  linkType: hard
+
+"ethers@npm:^6.7.1":
+  version: 6.7.1
+  resolution: "ethers@npm:6.7.1"
+  dependencies:
+    "@adraffy/ens-normalize": 1.9.2
+    "@noble/hashes": 1.1.2
+    "@noble/secp256k1": 1.7.1
+    "@types/node": 18.15.13
+    aes-js: 4.0.0-beta.5
+    tslib: 2.4.0
+    ws: 8.5.0
+  checksum: 07833692e3f53b18e28c4cba9f53f3d5ebff8360de02ad57b2584c00c52b88f5b790373f9b9f6b4f6b52ffa2074530a6101192b30c3260f7cdeff929d34bb88b
   languageName: node
   linkType: hard
 
