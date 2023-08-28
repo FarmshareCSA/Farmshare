@@ -2330,16 +2330,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@ethereum-attestation-service/eas-sdk@npm:1.1.0-beta.2":
-  version: 1.1.0-beta.2
-  resolution: "@ethereum-attestation-service/eas-sdk@npm:1.1.0-beta.2"
+"@ethereum-attestation-service/eas-sdk@npm:1.1.0-beta.3":
+  version: 1.1.0-beta.3
+  resolution: "@ethereum-attestation-service/eas-sdk@npm:1.1.0-beta.3"
   dependencies:
     "@ethereum-attestation-service/eas-contracts": 1.0.0-beta.0
-    ethers: ^6.7.0
+    ethers: ^6.7.1
     js-base64: ^3.7.5
     multiformats: 9.9.0
     pako: ^2.1.0
-  checksum: c5c7444bcc7cf9c8b8b954367a1f89311f0ec49344f95e1e879c63fec14b9c878a5e792ce5dcd574cf78ebda2917b0abfa700d3fe862f08e35b951d829500caf
+  checksum: a5054d2325dd282da1146e868c9d9ed550d43364edb5ec593b44f8ab12ab9d85a0d20ee040716abf9700862be8e11fa730447e3c9dd052c6837fca585ae231d0
   languageName: node
   linkType: hard
 
@@ -4740,7 +4740,7 @@ __metadata:
   dependencies:
     "@emotion/react": ^11.11.1
     "@emotion/styled": ^11.11.0
-    "@ethereum-attestation-service/eas-sdk": 1.1.0-beta.2
+    "@ethereum-attestation-service/eas-sdk": 1.1.0-beta.3
     "@ethersproject/providers": ^5.7.2
     "@googlemaps/google-maps-services-js": ^3.3.35
     "@heroicons/react": ^2.0.11
@@ -12802,9 +12802,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ethers@npm:^6.7.0":
-  version: 6.7.0
-  resolution: "ethers@npm:6.7.0"
+"ethers@npm:^6.7.1":
+  version: 6.7.1
+  resolution: "ethers@npm:6.7.1"
   dependencies:
     "@adraffy/ens-normalize": 1.9.2
     "@noble/hashes": 1.1.2
@@ -12813,7 +12813,7 @@ __metadata:
     aes-js: 4.0.0-beta.5
     tslib: 2.4.0
     ws: 8.5.0
-  checksum: 6d2ea085010da1c34750ce4a00a94d2abbeb3ababb23aa754acc7772682f145e8c1b3862d3b5374e1c182aee569c80ea48191107d469a4de3b0dd6af3d9ce6db
+  checksum: 07833692e3f53b18e28c4cba9f53f3d5ebff8360de02ad57b2584c00c52b88f5b790373f9b9f6b4f6b52ffa2074530a6101192b30c3260f7cdeff929d34bb88b
   languageName: node
   linkType: hard
 
