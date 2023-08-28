@@ -144,11 +144,10 @@ const Tasks: NextPage = () => {
   const searchParams = useSearchParams();
   let [tasks, setTasks] = useState<any>([]);
   let [open, setOpen] = useState<any>(false);
-  const [community, setCommunity] = useState("");
+  const [community, setCommunity] = useState(searchParams.get("community") || "");
   const communities = useGlobalState(state => state.communities);
   const userRegistration = useGlobalState(state => state.userRegistration);
   const userSigner = useGlobalState(state => state.userSigner);
-  let communityUID = searchParams.get("community");
 
   const { data: taskSchemaUID } = useScaffoldContractRead({
     contractName: "TaskRegistry",
@@ -191,18 +190,17 @@ const Tasks: NextPage = () => {
   );
 
   useEffect(() => {
-    if (communities && communityUID) {
+    if (communities && community) {
       communities.forEach(comm => {
-        if (comm.uid == communityUID) {
+        if (comm.uid == community) {
           setCommunity(comm.uid);
         }
       });
     }
     getTasks();
-  }, [communityUID, taskSchemaUID, community, open, userRegistration]);
+  }, [taskSchemaUID, community, open, userRegistration]);
 
   const getTasks = async () => {
-
     if (taskSchemaUID && rewardSchemaUID && applicationSchemaUID && startedSchemaUID && completedSchemaUID) {
       const taskList = await getTasksForCommunity(
         community,
