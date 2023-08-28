@@ -234,8 +234,7 @@ export default function TaskCard({
       setSubmitting(false);
     } catch (error: any) {
       console.error("⚡️ ~ file: TaskCard.tsx:handleComplete ~ error", error);
-      // notification.error(error.toString());
-      notification.success("You successfully marked the task as complete and paid out the rewards");
+      notification.error(error.toString());
       setSubmitting(false);
     }
   };
@@ -399,7 +398,7 @@ export default function TaskCard({
         </>,
       );
     }
-  }, [showDetails, openFund,openApplications]);
+  }, [showDetails, openFund, openApplications]);
 
   return <React.Fragment>{content}</React.Fragment>;
 }
