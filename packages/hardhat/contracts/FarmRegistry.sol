@@ -207,9 +207,12 @@ contract FarmRegistry is IFarmRegistry, Ownable, SchemaResolver {
 				(bytes32, string, string, string, string, string, string, string, string, string, string)
 			);
 		require(bytes(_name).length > 0, "Farm name cannot be empty");
+		require(farmRecordByUID(farmUIDByName[_name]).farmOwner == address(0), "Farm name already registered");
 		require(bytes(_latAndLong).length > 0, "Farm location is required");
         farmUIDByFarmerUID[_ownerUID] = attestation.uid;
 		address farmerAddress = userRegistry.userRecordByUID(_ownerUID).account;
+		require(farmerAddress!= address(0), "Invalid owner UID");
+		require(userRegistry.userRecordByUID(_ownerUID).role == UserRole.FARMER, "User must be a farmer");
 		farmUIDByFarmerAddress[farmerAddress] = attestation.uid;
         farmUIDByName[_name] = attestation.uid;        
 		emit FarmRegistered(
