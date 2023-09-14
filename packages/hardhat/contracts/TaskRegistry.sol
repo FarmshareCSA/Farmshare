@@ -214,8 +214,7 @@ contract TaskRegistry is ITaskRegistry, IERC1155Receiver, Ownable, SchemaResolve
 			schema: taskFundedSchemaUID,
 			data: requestData
 		});
-		bytes32 taskFundedUID = _eas.attest(request);
-		taskRewardUIDsByTaskUID[taskUID].push(taskFundedUID);
+		_eas.attest(request);
 		return ERC1155_RECEIVED;
 	}
 
