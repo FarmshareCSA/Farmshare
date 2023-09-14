@@ -10,6 +10,7 @@ import {
   Safe,
   SafeProxyFactory,
   CompatibilityFallbackHandler,
+  WETH9,
 } from "../../typechain-types";
 
 export const deployProtocol = async () => {
@@ -25,6 +26,7 @@ export const deployProtocol = async () => {
   const safeFactory = await ethers.getContractFactory("Safe", deployer);
   const safeProxyFactoryFactory = await ethers.getContractFactory("SafeProxyFactory", deployer);
   const safeFallbackHandlerFactory = await ethers.getContractFactory("CompatibilityFallbackHandler", deployer);
+  const wethFactory = await ethers.getContractFactory("WETH9", deployer);
 
   // Deploy EAS contracts
   const schemaRegistry = (await schemaRegistryFactory.deploy()) as SchemaRegistry;
@@ -81,6 +83,9 @@ export const deployProtocol = async () => {
 
   await taskRegistry.setFarmShareTokens(farmShareTokensAddress);
 
+  // Deploy WETH
+  const weth = (await wethFactory.deploy()) as WETH9;
+
   return {
     schemaRegistry: schemaRegistry,
     eas: eas,
@@ -89,5 +94,6 @@ export const deployProtocol = async () => {
     communityRegistry: communityRegistry,
     taskRegistry: taskRegistry,
     farmShareTokens: farmShareTokens,
+    weth: weth,
   };
 };
