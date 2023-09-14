@@ -13,9 +13,11 @@ import "./interfaces/IUserRegistry.sol";
 import "./interfaces/IFarmRegistry.sol";
 
 contract CommunityRegistry is ICommunityRegistry, Ownable, SchemaResolver {
-	string public constant registrationSchema = "string name,string description,string city,string state,string country,string postalCode,string websiteURL,string imageURL";
-    bytes32 public immutable registrationSchemaUID;
-	string public constant treasurySchema = "address treasury,address[] initialOwners";
+	string public constant registrationSchema =
+		"string name,string description,string city,string state,string country,string postalCode,string websiteURL,string imageURL";
+	bytes32 public immutable registrationSchemaUID;
+	string public constant treasurySchema =
+		"address treasury,address[] initialOwners";
 	bytes32 public immutable treasurySchemaUID;
 	string public constant memberSchema = "bytes32 userUID,uint8 memberRole";
 	bytes32 public immutable memberSchemaUID;
@@ -29,7 +31,7 @@ contract CommunityRegistry is ICommunityRegistry, Ownable, SchemaResolver {
 
 	// Community mappings
 	mapping(address => bytes32) public communityUIDByTreasury;
-	mapping(string => bytes32) public	communityUIDByName;
+	mapping(string => bytes32) public communityUIDByName;
 	mapping(string => address) public communityTreasuryByName;
 	mapping(bytes32 => bytes32) public treasuryUIDByCommunityUID;
 
@@ -47,27 +49,38 @@ contract CommunityRegistry is ICommunityRegistry, Ownable, SchemaResolver {
 		safeProxyFactory = SafeProxyFactory(_safeProxyFactory);
 		safeSingleton = _safeSingleton;
 		safeFallbackHandler = _safeFallbackHandler;
-		registrationSchemaUID = _schemaRegistry.register(registrationSchema, this, false);
-		treasurySchemaUID = _schemaRegistry.register(treasurySchema, this, false);
+		registrationSchemaUID = _schemaRegistry.register(
+			registrationSchema,
+			this,
+			false
+		);
+		treasurySchemaUID = _schemaRegistry.register(
+			treasurySchema,
+			this,
+			false
+		);
 		memberSchemaUID = _schemaRegistry.register(memberSchema, this, true);
 	}
 
 	// External view functions
 
-	function communityByUID(bytes32 uid) public view returns (Community memory) {
+	function communityByUID(
+		bytes32 uid
+	) public view returns (Community memory) {
 		if (uid == bytes32(0)) {
-			return Community({
-				uid: bytes32(0),
-				name: "",
-				description: "",
-				city: "",
-				state: "",
-				country: "",
-				postalCode: "",
-				websiteUrl: "",
-				imageUrl: "",
-				treasury: payable(0)
-			});
+			return
+				Community({
+					uid: bytes32(0),
+					name: "",
+					description: "",
+					city: "",
+					state: "",
+					country: "",
+					postalCode: "",
+					websiteUrl: "",
+					imageUrl: "",
+					treasury: payable(0)
+				});
 		}
 		Attestation memory communityRegistration = _eas.getAttestation(uid);
 		(
@@ -79,44 +92,66 @@ contract CommunityRegistry is ICommunityRegistry, Ownable, SchemaResolver {
 			string memory postalCode,
 			string memory websiteUrl,
 			string memory imageUrl
-		) = abi.decode(communityRegistration.data, (string, string, string, string, string, string, string, string));
+		) = abi.decode(
+				communityRegistration.data,
+				(string, string, string, string, string, string, string, string)
+			);
 		require(bytes(name).length > 0, "Invalid community record");
 		address payable treasury;
 		bytes32 treasuryUID = treasuryUIDByCommunityUID[uid];
 		if (treasuryUID != bytes32(0)) {
-			Attestation memory treasuryAttestation = _eas.getAttestation(treasuryUID);
-			(treasury, ) = abi.decode(treasuryAttestation.data, (address, address[]));
+			Attestation memory treasuryAttestation = _eas.getAttestation(
+				treasuryUID
+			);
+			(treasury, ) = abi.decode(
+				treasuryAttestation.data,
+				(address, address[])
+			);
 		}
-		return Community({
-			uid: uid,
-			name: name,
-			description: description,
-			city: city,
-			state: state,
-			country: country,
-			postalCode: postalCode,
-			websiteUrl: websiteUrl,
-			imageUrl: imageUrl,
-			treasury: treasury
-		});
+		return
+			Community({
+				uid: uid,
+				name: name,
+				description: description,
+				city: city,
+				state: state,
+				country: country,
+				postalCode: postalCode,
+				websiteUrl: websiteUrl,
+				imageUrl: imageUrl,
+				treasury: treasury
+			});
 	}
 
-	function communityByName(string calldata name) external view returns (Community memory) {
+	function communityByName(
+		string calldata name
+	) external view returns (Community memory) {
 		return communityByUID(communityUIDByName[name]);
 	}
 
 	// External registration functions
 
 	function createTreasury(
-		bytes32 communityUID, 
+		bytes32 communityUID,
 		address[] memory initialOwners
 	) external payable returns (address newTreasury) {
 		require(communityUID != bytes32(0), "Community UID cannot be 0");
 		require(initialOwners.length > 0, "Initial owners cannot be empty");
-		Attestation memory communityRegistration = _eas.getAttestation(communityUID);
-		require(communityRegistration.schema == registrationSchemaUID, "Invalid community registration schema");
-		(string memory name, , , ,) = abi.decode(communityRegistration.data, (string, string, string, string, string));
-		require(communityTreasuryByName[name] == address(0), "Community treasury already exists");
+		Attestation memory communityRegistration = _eas.getAttestation(
+			communityUID
+		);
+		require(
+			communityRegistration.schema == registrationSchemaUID,
+			"Invalid community registration schema"
+		);
+		(string memory name, , , , ) = abi.decode(
+			communityRegistration.data,
+			(string, string, string, string, string)
+		);
+		require(
+			communityTreasuryByName[name] == address(0),
+			"Community treasury already exists"
+		);
 		bytes memory setupData = abi.encodeWithSelector(
 			Safe.setup.selector,
 			initialOwners,
@@ -149,7 +184,7 @@ contract CommunityRegistry is ICommunityRegistry, Ownable, SchemaResolver {
 			schema: treasurySchemaUID,
 			data: requestData
 		});
-		_eas.attest{value: msg.value}(request);
+		_eas.attest{ value: msg.value }(request);
 	}
 
 	// function addUserToCommunity(
@@ -196,55 +231,115 @@ contract CommunityRegistry is ICommunityRegistry, Ownable, SchemaResolver {
 			// Attestation is for a community registration
 			require(value == 0, "Community registration requires zero value");
 			(
-				string memory name, 
-				string memory description, 
-				string memory city, 
+				string memory name,
+				string memory description,
+				string memory city,
 				string memory state,
-				string memory country,  
+				string memory country,
 				string memory postalCode,
 				string memory websiteUrl,
-			) = abi.decode(attestation.data, (string,string,string,string,string,string,string,string));
+
+			) = abi.decode(
+					attestation.data,
+					(
+						string,
+						string,
+						string,
+						string,
+						string,
+						string,
+						string,
+						string
+					)
+				);
 			require(bytes(name).length > 0, "Name cannot be empty");
-			require(communityUIDByName[name] == bytes32(0), "Community name already exists");
-			require(bytes(description).length > 0, "Description cannot be empty");
+			require(
+				communityUIDByName[name] == bytes32(0),
+				"Community name already exists"
+			);
+			require(
+				bytes(description).length > 0,
+				"Description cannot be empty"
+			);
 			require(bytes(country).length > 0, "Country cannot be empty");
-			require(bytes(postalCode).length > 0, "Postal code cannot be empty");
+			require(
+				bytes(postalCode).length > 0,
+				"Postal code cannot be empty"
+			);
 			communityUIDByName[name] = attestation.uid;
-			emit CommunityRegistered(attestation.uid, name, description, city, state, country, postalCode, websiteUrl);
+			emit CommunityRegistered(
+				attestation.uid,
+				name,
+				description,
+				city,
+				state,
+				country,
+				postalCode,
+				websiteUrl
+			);
 			return true;
 		} else if (attestation.schema == treasurySchemaUID) {
 			// Attestation is for a new community treasury
-			(
-				address treasury,
-				address[] memory initialOwners
-			) = abi.decode(attestation.data, (address, address[]));
-			require(treasury != address(0) && initialOwners.length > 0, "Invalid treasury data");
+			(address treasury, address[] memory initialOwners) = abi.decode(
+				attestation.data,
+				(address, address[])
+			);
+			require(
+				treasury != address(0) && initialOwners.length > 0,
+				"Invalid treasury data"
+			);
 			treasuryUIDByCommunityUID[attestation.refUID] = attestation.uid;
 			communityUIDByTreasury[treasury] = attestation.refUID;
-			Attestation memory communityRegistration = _eas.getAttestation(attestation.refUID);
-			(string memory name, , , ,) = abi.decode(communityRegistration.data, (string, string, string, string, string));
-			emit CommunityTreasuryCreated(attestation.uid, name, attestation.refUID, treasury, initialOwners);
+			Attestation memory communityRegistration = _eas.getAttestation(
+				attestation.refUID
+			);
+			(string memory name, , , , ) = abi.decode(
+				communityRegistration.data,
+				(string, string, string, string, string)
+			);
+			emit CommunityTreasuryCreated(
+				attestation.uid,
+				name,
+				attestation.refUID,
+				treasury,
+				initialOwners
+			);
 			if (value > 0) {
 				require(msg.value == value, "Message value mismatch");
-				(bool success,) = treasury.call{value: value}("");
+				(bool success, ) = treasury.call{ value: value }("");
 				require(success, "Value transfer to treasury failed");
 			}
 			return true;
 		} else if (attestation.schema == memberSchemaUID) {
 			// Attestation is for a new member joining a community
 			require(value == 0, "Joining a community requires zero value");
-			(
-				bytes32 userUID,
-				UserRole memberRole
-			) = abi.decode(attestation.data, (bytes32, UserRole));
-			UserRecord memory userRecord = userRegistry.userRecordByUID(userUID);
-			require(userRecord.account != address(0), "User must be registered");
-			require(attestation.recipient == userRecord.account, "User must be the attestation recipient");
+			(bytes32 userUID, UserRole memberRole) = abi.decode(
+				attestation.data,
+				(bytes32, UserRole)
+			);
+			UserRecord memory userRecord = userRegistry.userRecordByUID(
+				userUID
+			);
+			require(
+				userRecord.account != address(0),
+				"User must be registered"
+			);
+			require(
+				attestation.recipient == userRecord.account,
+				"User must be the attestation recipient"
+			);
 			require(memberRole < UserRole.ADMIN, "Invalid membership role");
 			bytes32 communityUID = attestation.refUID;
 			Community memory community = communityByUID(communityUID);
-			require(community.uid == communityUID && communityUID != 0, "Invalid community UID");
-			emit UserJoinedCommunity(userRecord.account, community.name, memberRole);
+			require(
+				community.uid == communityUID && communityUID != 0,
+				"Invalid community UID"
+			);
+			emit UserJoinedCommunity(
+				userRecord.account,
+				community.name,
+				memberRole
+			);
 			return true;
 		}
 		return false;
